@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="res/normalize.css">
+    <link rel="stylesheet" href="res/element-ui.css">
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+    <title>data-project</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="./assets/js/jquery.min.js"></script>
+    <script>
+        var localUrl = "www.gangerp-local.com";
+        var _token = null;
+    </script>
+    <script>
+        $.get('http://www.gangerp-local.com/api/getToken',function(response){
+          _token = (response);
+        });
+    </script>
+    <script src="./dist/priceInfo.js"></script>
+  </body>
+</html>

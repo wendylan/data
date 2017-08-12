@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>用户订单</title>
+	<link rel="stylesheet" href="res/normalize.css">
+    <link rel="stylesheet" href="res/element-ui.css">
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+	<div id="app"></div>
+	<script src="./assets/js/jquery.min.js"></script>
+    <script>
+        var localUrl = "www.gangerp-local.com";
+        var _token = null;
+    </script>
+    <script>
+        $.get('http://www.gangerp-local.com/api/getToken',function(response){
+          _token = (response);
+        });
+        $.get('http://www.gangerp-local.com/api/allspecs',function(response){
+         console.log(response);
+        });
+    </script>
+    <script src="./dist/userOrder.js"></script>
+</body>
+</html>

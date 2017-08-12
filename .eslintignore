@@ -1,0 +1,7 @@
+build/*.js
+config/*.js
+src/data_manage/*
+src/freight/*
+src/history_data/*
+src/steels_price/*
+src/source_recommend/*
