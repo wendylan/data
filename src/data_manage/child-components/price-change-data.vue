@@ -2,17 +2,19 @@
 	// 暂时无法按需引入 $confirm
 	// import { Table, TableColumn, Button, Select, Option } from "element-ui";
 	import Vue from "vue";
+	import headerbar from '../../components/admin-headerbar.vue';
 	import ajaxCustom from '../../components/ajax-custom.js';
 	import ElementUI from 'element-ui';
 	Vue.use(ElementUI);
 	export default{
-		// components: {
-		// 	elTable : Table,
-		// 	elTableColumn : TableColumn,
-		// 	elButton : Button,
-		// 	elSelect : Select,
-		// 	elOption : Option
-		// },
+		components: {
+			headerbar,
+			// elTable : Table,
+			// elTableColumn : TableColumn,
+			// elButton : Button,
+			// elSelect : Select,
+			// elOption : Option
+		},
 		created : function(){
 			ajaxCustom.ajaxGet(this,"dingoapi/getNoticeDatas", (responese)=>{
 				console.log(responese);
@@ -195,11 +197,8 @@
 </script>
 
 <template>
-	<div class="main-warpper">
-		<h1>风险提示设置</h1>
-		<h4>浮动范围挺行数据</h4>
-		<br/><br/>
-		<div>
+	<headerbar active_number="5-3" :text="['风险提示设置','浮动范围挺行数据']">
+		<div class="black">
 			<el-select size="small" placeholder="选择品牌" v-model="brandsModel.selected" @change="getSteelStandard">
 				<el-option v-for="item in brandsModel.data" :label="item" :value="item" ></el-option>
 			</el-select>
@@ -227,72 +226,72 @@
 				<el-option label="钢厂直送" :value="2" ></el-option>
 			</el-select>
 
-			<el-input size="small" placeholder="最大上浮" style="width:100px;" v-model="steelTreeModel.selected.maxNum"></el-input>
-			<el-input size="small" placeholder="最大下浮" style="width:100px;" v-model="steelTreeModel.selected.minNum"></el-input>
+			<el-input size="small" placeholder="最大上浮" style="width:80px;" v-model="steelTreeModel.selected.maxNum"></el-input>
+			<el-input size="small" placeholder="最大下浮" style="width:80px;" v-model="steelTreeModel.selected.minNum"></el-input>
 			<el-button size="small" type="success" @click="newPriceNotice()">新增一条</el-button>
 		</div>
-		<hr />
-		<el-table :data="tableDatas" v-loading.body="isLoading" style="width: 100%" border>
-			<el-table-column prop="name" label="钢厂/产地"></el-table-column>
-			<el-table-column prop="description" label="品名"></el-table-column>
-			<el-table-column label="材质" prop="material" ></el-table-column>
-			<el-table-column label="规格" prop="norms" ></el-table-column>
-			<el-table-column label="运输方式" prop="transport" >
-				<template scope="scope">{{ scope.row.transport == 1 ? "广州仓发货" : "钢厂直送" }}</template>
-			</el-table-column>
-			<el-table-column label="最大上浮" prop="maxNumber" >
-				<template scope="scope">
-					<template v-if="scope.row.isEdit">
-						<el-input size="small" v-model="scope.row.maxNumber"></el-input>
+		<div class="black_style">
+			<el-table :data="tableDatas" v-loading.body="isLoading" style="width: 100%" border>
+				<el-table-column prop="name" label="钢厂/产地"></el-table-column>
+				<el-table-column prop="description" label="品名"></el-table-column>
+				<el-table-column label="材质" prop="material" ></el-table-column>
+				<el-table-column label="规格" prop="norms" ></el-table-column>
+				<el-table-column label="运输方式" prop="transport" >
+					<template scope="scope">{{ scope.row.transport == 1 ? "广州仓发货" : "钢厂直送" }}</template>
+				</el-table-column>
+				<el-table-column label="最大上浮" prop="maxNumber" >
+					<template scope="scope">
+						<template v-if="scope.row.isEdit">
+							<el-input size="small" v-model="scope.row.maxNumber"></el-input>
+						</template>
+						<template v-else>
+							{{ scope.row.maxNumber }}
+						</template>
 					</template>
-					<template v-else>
-						{{ scope.row.maxNumber }}
+				</el-table-column>
+				<el-table-column label="最大下浮" prop="minNumber" >
+					<template scope="scope">
+						<template v-if="scope.row.isEdit">
+							<el-input size="small" v-model="scope.row.minNumber"></el-input>
+						</template>
+						<template v-else>
+							{{ scope.row.minNumber }}
+						</template>
 					</template>
-				</template>
-			</el-table-column>
-			<el-table-column label="最大下浮" prop="minNumber" >
-				<template scope="scope">
-					<template v-if="scope.row.isEdit">
-						<el-input size="small" v-model="scope.row.minNumber"></el-input>
+				</el-table-column>
+				<el-table-column label="操作">
+					<template scope="scope">
+						<template v-if="!scope.row.isEdit">
+							<el-button size="small" :disabled="isAbled" @click="toEdit(scope.row)">编辑</el-button>
+							<el-button size="small" :disabled="isAbled" type="danger" @click="deleteData(scope)">删除</el-button>
+						</template>
+						<template v-else>
+							<el-button size="small" type="primary" @click="isSaveTable(true, scope.row)">保存</el-button>
+							<el-button size="small" @click="isSaveTable(false, scope.row)">取消</el-button>
+						</template>
 					</template>
-					<template v-else>
-						{{ scope.row.minNumber }}
-					</template>
-				</template>
-			</el-table-column>
-			<el-table-column label="操作">
-				<template scope="scope">
-					<template v-if="!scope.row.isEdit">
-						<el-button size="small" :disabled="isAbled" @click="toEdit(scope.row)">编辑</el-button>
-						<el-button size="small" :disabled="isAbled" type="danger" @click="deleteData(scope)">删除</el-button>
-					</template>
-					<template v-else>
-						<el-button size="small" type="primary" @click="isSaveTable(true, scope.row)">保存</el-button>
-						<el-button size="small" @click="isSaveTable(false, scope.row)">取消</el-button>
-					</template>
-				</template>
-			</el-table-column>
-		</el-table>
+				</el-table-column>
+			</el-table>
+		</div>
 	</div>
-
+	</headerbar>
 </template>
 
 <style scoped>
-	.main-warpper{
-		width:1280px;
-		margin:auto;
-		padding:25px;
-		color:#1F2D3D;
-	}
 	h1,h4{
 		font-weight:400;
 	}
 	h4{
 		color:#8492A6;
 	}
-	hr{
-		margin:30px 0px 50px 0px;
-		border: none;
-		border-top:solid 1px #DEDEDE;
+	.black{
+		background-color: #fff;
+		padding: 15px;
+	}
+	.black_style{
+		background-color: #fff;
+		padding: 15px;
+		margin-top: 20px;
+		margin-bottom: 30px;
 	}
 </style>

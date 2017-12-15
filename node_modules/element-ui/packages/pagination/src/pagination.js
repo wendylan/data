@@ -77,7 +77,7 @@ export default {
     });
 
     if (haveRightWrapper) {
-      template.children.unshift(rightWrapper);
+      template.children.push(rightWrapper);
     }
 
     return template;
@@ -205,10 +205,10 @@ export default {
               type="number"
               min={ 1 }
               max={ this.internalPageCount }
-              value={ this.$parent.internalCurrentPage }
               domProps-value={ this.$parent.internalCurrentPage }
               on-change={ this.handleChange }
               on-focus={ this.handleFocus }
+              style={{ width: '30px' }}
               number/>
             { this.t('el.pagination.pageClassifier') }
           </span>
@@ -312,12 +312,10 @@ export default {
         this.$nextTick(() => {
           this.internalCurrentPage = newVal;
           if (oldVal !== newVal) {
-            this.$emit('update:currentPage', newVal);
             this.$emit('current-change', this.internalCurrentPage);
           }
         });
       } else {
-        this.$emit('update:currentPage', newVal);
         this.$emit('current-change', this.internalCurrentPage);
       }
     },

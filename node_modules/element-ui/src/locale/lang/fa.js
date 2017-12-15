@@ -62,7 +62,6 @@ export default {
     },
     cascader: {
       noMatch: 'هیچ داده‌ای پیدا نشد',
-      loading: 'بارگیری',
       placeholder: 'انتخاب کنید'
     },
     pagination: {
@@ -86,19 +85,10 @@ export default {
       emptyText: 'اطلاعاتی وجود ندارد',
       confirmFilter: 'تایید',
       resetFilter: 'حذف',
-      clearFilter: 'همه',
-      sumText: 'Sum' // to be translated
+      clearFilter: 'همه'
     },
     tree: {
       emptyText: 'اطلاعاتی وجود ندارد'
-    },
-    transfer: {
-      noMatch: 'هیچ داده‌ای پیدا نشد',
-      noData: 'اطلاعاتی وجود ندارد',
-      titles: ['List 1', 'List 2'], // to be translated
-      filterPlaceholder: 'Enter keyword', // to be translated
-      noCheckedFormat: '{total} items', // to be translated
-      hasCheckedFormat: '{checked}/{total} checked' // to be translated
     }
   }
 };

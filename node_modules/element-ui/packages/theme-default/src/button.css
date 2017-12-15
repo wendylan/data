@@ -10,7 +10,6 @@
     cursor: pointer;
     background: var(--button-default-fill);
     border: var(--border-base);
-    border-color: var(--button-default-border);
     color: var(--button-default-color);
     -webkit-appearance: none;
     text-align: center;

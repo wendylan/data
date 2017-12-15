@@ -1,6 +1,6 @@
 <script>
+	import headerbar from '../components/admin-headerbar.vue';
 	import sortable from "./sortable.vue";
-	import headbar from "../components/headbar.vue";
 	import provinceList from "../../res/json/provinceList.json";
 	import ajaxCustom from '../components/ajax-custom.js';
 	import { Select, Option, Input, Button, Table, TableColumn, Checkbox, CheckboxGroup, Radio,RadioGroup,RadioButton } from "element-ui";
@@ -16,8 +16,8 @@
 			this.selectedCity.push('广州市');
 		},
 		components : {
+			headerbar,
 			sortable,
-			headbar,
 			elSelect : Select,
 			elOption : Option,
 			elInput : Input,
@@ -241,7 +241,7 @@
 				}
 			}
 
-			
+
 		},
 		watch : {
 			//城市筛选
@@ -253,7 +253,7 @@
 							this.tableData[i].isHide='on';
 						}
 					}
-				}				
+				}
 			},
 			/*按品牌筛选*/
 			brandsGroup(newVal,oldVal){
@@ -293,129 +293,124 @@
 	}
 </script>
 <template>
-	<div>
-		<headbar :active_number="3"></headbar>
-		<div class="main-warpper">
-			<h1>运费查询</h1>
-			<h4>送往各地运费详细<br><p class="smallh">运费包含17%税费</p></h4>
-			<hr />
+	<headerbar active_number="2" :text="['运费查询','查看/编辑定价规则']">
 
-			<div class="operation-box" id="selectDiv" >
-				<div class="controller-box" >
-					<span>项目地址 : 广东省 </span>
-					<el-select size="small" placeholder="城市" v-model="city" @change="setArea()">
-						<el-option v-for="item in provinceList" :label="item.name" :value="item"></el-option>
-					</el-select>
-					<el-select size="small" placeholder="区/县" v-model="area">
-						<template v-if="areaArray">
-							<el-option v-for="area in areaArray.areaList" :label="area" :value="area"></el-option>
-						</template>
-					</el-select>
-					<el-input placeholder="详细地址" size="small" v-model="adds"></el-input>
-					<el-button size="small" type="success" @click="seachFreightRecord(city.name,area,adds)">查询运费</el-button>
-				</div>
-				<div>
-					<h3>发货方式:
-						<el-button size="small" id="since"   type="info" @click="setChooseMethodToWarehouse()">广州仓发货</el-button>
-						<el-button size="small" id="direct" type="info" @click="setChooseMethodToMillTransport()">钢厂直送</el-button>
-					</h3>
-				</div>
-				<div v-show="transport_methods=='1'">
-					<h3>品&nbsp&nbsp&nbsp&nbsp&nbsp 牌:
-						<el-radio class="allChoose" label="0" v-model="brandAllChoose">全选</el-radio>
-						<el-radio class="allChoose" label="1" v-model="brandAllChoose">清空</el-radio>
-					</h3>
-					<div class="alignment">
-						<el-checkbox-group v-model="brandsGroup">
-							<el-checkbox :label="item.name"  v-for="item of brands"></el-checkbox>
-						</el-checkbox-group>
-					</div>
-				</div>
-				<div v-show="transport_methods=='2'">
-					<h3>地&nbsp&nbsp&nbsp&nbsp&nbsp 区:
-						<el-radio class="allChoose" label="0" v-model="cityAllChoose">全选</el-radio>
-						<el-radio class="allChoose" label="1" v-model="cityAllChoose">清空</el-radio>
-					</h3>
-					<div class="alignment">
-						<el-checkbox-group v-model="selectedCity" >
-							<el-checkbox v-for="value in provinceList" :label="value.name" ></el-checkbox>
-						</el-checkbox-group>
-					</div>
+		<div class="operation-box" id="selectDiv" >
+			<h4>送往各地运费详细<p class="smallh">运费包含17%税费</p></h4>
+			<div class="controller-box" >
+				<span>项目地址 : 广东省 </span>
+				<el-select size="small" placeholder="城市" v-model="city" @change="setArea()">
+					<el-option v-for="item in provinceList" :label="item.name" :value="item"></el-option>
+				</el-select>
+				<el-select size="small" placeholder="区/县" v-model="area">
+					<template v-if="areaArray">
+						<el-option v-for="area in areaArray.areaList" :label="area" :value="area"></el-option>
+					</template>
+				</el-select>
+				<el-input placeholder="详细地址" size="small" v-model="adds"></el-input>
+				<el-button size="small" type="success" @click="seachFreightRecord(city.name,area,adds)">查询运费</el-button>
+			</div>
+			<div style="margin-bottom: 20px;">
+				<h4>发货方式:
+					<el-button size="small" id="since"   type="info" @click="setChooseMethodToWarehouse()">广州仓发货</el-button>
+					<el-button size="small" id="direct" type="info" @click="setChooseMethodToMillTransport()">钢厂直送</el-button>
+				</h4>
+			</div>
+			<div v-show="transport_methods=='1'">
+				<h4>品&nbsp&nbsp&nbsp&nbsp&nbsp 牌:
+					<el-radio class="allChoose" label="0" v-model="brandAllChoose">全选</el-radio>
+					<el-radio class="allChoose" label="1" v-model="brandAllChoose">清空</el-radio>
+				</h4>
+				<div class="alignment">
+					<el-checkbox-group v-model="brandsGroup">
+						<el-checkbox :label="item.name"  v-for="item of brands"></el-checkbox>
+					</el-checkbox-group>
 				</div>
 			</div>
-			<table width="50%" v-show="transport_methods=='1'">
-				<col span="1" style="width:80px"/>
-				<col span="1" style="width:150px"/>
-				<col span="2" style="width:80px"/>
-				<thead  id="mTable">
-					<tr>
-						<th style="width:80px">品牌</th>
-						<th style="width:150px">地区</th>
-						<th style="width:80px">
-							<div class="th-sort">
-								<div class="sort-name">运费</div>
-								<sortable :data="millTable" col="transport_price" :activeCol="activeCol" v-on:asc="asc" v-on:desc="desc"></sortable>
-							</div>
-						</th>
-						<th style="width:80px">
-							<div class="th-sort">
-								<div class="sort-name">限载量</div>
-								<sortable :data="millTable" col="transport_count" :activeCol="activeCol" v-on:asc="asc" v-on:desc="desc"></sortable>
-							</div>
-						</th>
-						<th style="width:249px">备注</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr v-for="item in millTable"  >
-						<td>{{item.brand}}</td>
-						<td>{{ item.city }}{{ item.area }}<br>{{item.address}}</td>
-						<td>{{ item.transport_price }}</td>
-						<td>{{ item.transport_count }}</td>
-						<td>{{ item.remarks }}</td>
-					</tr>
-				</tbody>
-			</table>
-			<table width="50%" v-show="transport_methods=='2'">
-				<col span="5" style="width:80px"/>
-				<thead id="tTable">
-					<tr >
-						<th style="width:80px">送达市</th>
-						<th style="width:80px">地区</th>
-						<th style="width:80px">
-							<div class="th-sort">
-								<div class="sort-name">运费</div>
-								<sortable :data="tableData" col="freight" :activeCol="activeCol" v-on:asc="asc" v-on:desc="desc"></sortable>
-							</div>
-						</th>
-						<th style="width:80px">
-							<div class="th-sort">
-								<div class="sort-name">限载量</div>
-								<sortable :data="tableData" col="count" :activeCol="activeCol" v-on:asc="asc" v-on:desc="desc"></sortable>
-							</div>
-						</th>
-						<th style="width:80px">
-							<div class="th-sort">
-								<div class="sort-name" >包车费</div>
-								<sortable :data="tableData" col="other" :activeCol="activeCol" v-on:asc="asc" v-on:desc="desc"></sortable>
-							</div>
-						</th>
-						<th style="width:239px">备注</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr v-for="item in tableData" v-if="item.isHide=='on'" >
-						<td>{{ item.city }}</td>
-						<td>{{ item.area }}</td>
-						<td>{{ item.freight }}</td>
-						<td>{{ item.count }}</td>
-						<td>{{ item.other }}</td>
-						<td>{{ item.remarks }}</td>
-					</tr>
-				</tbody>
-			</table>
+			<div v-show="transport_methods=='2'">
+				<h4>地&nbsp&nbsp&nbsp&nbsp&nbsp 区:
+					<el-radio class="allChoose" label="0" v-model="cityAllChoose">全选</el-radio>
+					<el-radio class="allChoose" label="1" v-model="cityAllChoose">清空</el-radio>
+				</h4>
+				<div class="alignment">
+					<el-checkbox-group v-model="selectedCity" >
+						<el-checkbox v-for="value in provinceList" :label="value.name" ></el-checkbox>
+					</el-checkbox-group>
+				</div>
+			</div>
 		</div>
-	</div>
+		<table width="50%" v-show="transport_methods=='1'">
+			<col span="1" style="width:80px"/>
+			<col span="1" style="width:150px"/>
+			<col span="2" style="width:80px"/>
+			<thead  id="mTable">
+				<tr>
+					<th style="width:80px">品牌</th>
+					<th style="width:150px">地区</th>
+					<th style="width:80px">
+						<div class="th-sort">
+							<div class="sort-name">运费</div>
+							<sortable :data="millTable" col="transport_price" :activeCol="activeCol" v-on:asc="asc" v-on:desc="desc"></sortable>
+						</div>
+					</th>
+					<th style="width:80px">
+						<div class="th-sort">
+							<div class="sort-name">限载量</div>
+							<sortable :data="millTable" col="transport_count" :activeCol="activeCol" v-on:asc="asc" v-on:desc="desc"></sortable>
+						</div>
+					</th>
+					<th style="width:249px">备注</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr v-for="item in millTable"  >
+					<td>{{item.brand}}</td>
+					<td>{{ item.city }}{{ item.area }}<br>{{item.address}}</td>
+					<td>{{ item.transport_price }}</td>
+					<td>{{ item.transport_count }}</td>
+					<td>{{ item.remarks }}</td>
+				</tr>
+			</tbody>
+		</table>
+		<table width="50%" v-show="transport_methods=='2'">
+			<col span="5" style="width:80px"/>
+			<thead id="tTable">
+				<tr >
+					<th style="width:80px">送达市</th>
+					<th style="width:80px">地区</th>
+					<th style="width:80px">
+						<div class="th-sort">
+							<div class="sort-name">运费</div>
+							<sortable :data="tableData" col="freight" :activeCol="activeCol" v-on:asc="asc" v-on:desc="desc"></sortable>
+						</div>
+					</th>
+					<th style="width:80px">
+						<div class="th-sort">
+							<div class="sort-name">限载量</div>
+							<sortable :data="tableData" col="count" :activeCol="activeCol" v-on:asc="asc" v-on:desc="desc"></sortable>
+						</div>
+					</th>
+					<th style="width:80px">
+						<div class="th-sort">
+							<div class="sort-name" >包车费</div>
+							<sortable :data="tableData" col="other" :activeCol="activeCol" v-on:asc="asc" v-on:desc="desc"></sortable>
+						</div>
+					</th>
+					<th style="width:239px">备注</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr v-for="item in tableData" v-if="item.isHide=='on'" >
+					<td>{{ item.city }}</td>
+					<td>{{ item.area }}</td>
+					<td>{{ item.freight }}</td>
+					<td>{{ item.count }}</td>
+					<td>{{ item.other }}</td>
+					<td>{{ item.remarks }}</td>
+				</tr>
+			</tbody>
+		</table>
+	</headerbar>
 </template>
 
 <style scoped>
@@ -427,12 +422,6 @@
 		border: none;
 		border-top:solid 1px #DEDEDE;
 	}
-	.main-warpper{
-		width:1280px;
-		margin:auto;
-		padding:25px 0px 25px 0px;
-		color:#1F2D3D;
-	}
 	h1,h4{
 		font-weight:400;
 	}L
@@ -443,7 +432,7 @@
 		width:100px;
 	}
 	.controller-box{
-		margin-bottom: 30px;
+		margin: 30px 0;
 	}
 	table{
 		float:right;
@@ -470,11 +459,13 @@
 	table tbody tr:hover{
 		background-color: #eff2f7;
 	}
-	
+
 	.operation-box{
+		padding-top: 15px;
+		padding-left: 15px;
 		position:fixed;
-		top:295px;
-		width:580px;
+		top:140px;
+		width:460px;
 		height:550px;
 		background-color:#FFF;
 	}
@@ -517,9 +508,6 @@
 		font-size: 5px;
 	}
 	#tTable{
-		z-index: 1;		
-	}
-	body{
-		background-color:#f8f8f8;
+		z-index: 1;
 	}
 </style>

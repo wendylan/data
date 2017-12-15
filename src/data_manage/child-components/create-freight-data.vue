@@ -1,7 +1,11 @@
 <script>
+	import headerbar from '../../components/admin-headerbar.vue';
 	import jsonData from "../../../res/json/provinceList.json";
 	import ajaxCustom from '../../components/ajax-custom.js';
 	export default{
+		components : {
+			headerbar,
+		},
 		mounted : function(){
 			var _this = this;
 			for(let _province of jsonData.province){
@@ -10,7 +14,7 @@
 				}
 			}
 			ajaxCustom.ajaxGet(this,"dingoapi/getAllbrands", (responese)=>{
-				console.log(responese.body.data);
+				// console.log(responese.body.data);
 				this.brandsList = responese.body.data;
 			},(responese)=>{
 				console.log(responese);
@@ -140,176 +144,167 @@
 </script>
 
 <template>
-	<div class="main-warpper">
-		<h1>运费数据</h1>
-		<h4>添加新的运费数据记录</h4>
-		<br><br>
-		<span>运送方式:</span>
+	<headerbar active_number="5-2" :text="['运费数据','添加新的运费数据记录']">
+		<div class="white_style">
 		 	<el-radio class="radio" v-model="handleView" label='1' >物流承运</el-radio>
-  			<el-radio class="radio" v-model="handleView" label='2' >钢厂直送</el-radio>
-		<br><br>
-		<template>
-			<div v-show="handleView==1">
-				<el-popover
-				ref="popover3"
-				placement="right"
-				width="400"
-				trigger="click">
-					<div class="popov">
-						<div>
-							<h5 >{{ jsonAddress.name }}</h5>
-							<el-radio  v-for="item in jsonAddress.cityList" class="radio" v-model="companyTransport.origin.city" :label="item.name" v-if="chooseCity()">
-							  	{{item.name}}
-							</el-radio>
-							<div v-show="companyTransport.origin.city">
-								<template v-for="city in jsonAddress.cityList" v-if="companyTransport.origin.city==city.name">
-									<h5>地区</h5>
-									<el-radio  v-for="item in city.areaList" class="radio" v-model="companyTransport.origin.area" :label="item" v-if="chooseCity()">
-									  	{{item}}
-									</el-radio>
-									<h5>没有此地区? 手动输入:</h5>
-									<el-input v-model="companyTransport.origin.area" size="small" style="width:50%;"></el-input>
-								</template>
+			<el-radio class="radio" v-model="handleView" label='2' >钢厂直送</el-radio>
+			<div style="margin-top: 10px;">
+				<div v-show="handleView==1">
+					<el-popover
+					ref="popover3"
+					placement="right"
+					width="400"
+					trigger="click">
+						<div class="popov">
+							<div>
+								<h5 >{{ jsonAddress.name }}</h5>
+								<el-radio  v-for="item in jsonAddress.cityList" class="radio" v-model="companyTransport.origin.city" :label="item.name" v-if="chooseCity()">
+								  	{{item.name}}
+								</el-radio>
+								<div v-show="companyTransport.origin.city">
+									<template v-for="city in jsonAddress.cityList" v-if="companyTransport.origin.city==city.name">
+										<h5>地区</h5>
+										<el-radio  v-for="item in city.areaList" class="radio" v-model="companyTransport.origin.area" :label="item" v-if="chooseCity()">
+										  	{{item}}
+										</el-radio>
+										<h5>没有此地区? 手动输入:</h5>
+										<el-input v-model="companyTransport.origin.area" size="small" style="width:50%;"></el-input>
+									</template>
 
+								</div>
 							</div>
 						</div>
-					</div>
-				</el-popover>
-				<el-popover
-				ref="popover4"
-				placement="right"
-				width="400"
-				trigger="click">
-					<div class="popov">
-						<div>
-							<h5 >{{ jsonAddress.name }}</h5>
-							<el-radio  v-for="item in jsonAddress.cityList" class="radio" v-model="companyTransport.destination.city" :label="item.name" v-if="chooseCity()">
-							  	{{item.name}}
-							</el-radio>
-							<div v-show="companyTransport.destination.city">
-								<template v-for="city in jsonAddress.cityList" v-if="companyTransport.destination.city==city.name">
-									<h5>地区</h5>
-									<el-radio  v-for="item in city.areaList" class="radio" v-model="companyTransport.destination.area" :label="item" v-if="chooseCity()">
-									  	{{item}}
-									</el-radio>
-									<h5>没有此地区? 手动输入:</h5>
-									<el-input v-model="companyTransport.destination.area" size="small" style="width:50%;"></el-input>
-								</template>
+					</el-popover>
+					<el-popover
+					ref="popover4"
+					placement="right"
+					width="400"
+					trigger="click">
+						<div class="popov">
+							<div>
+								<h5 >{{ jsonAddress.name }}</h5>
+								<el-radio  v-for="item in jsonAddress.cityList" class="radio" v-model="companyTransport.destination.city" :label="item.name" v-if="chooseCity()">
+								  	{{item.name}}
+								</el-radio>
+								<div v-show="companyTransport.destination.city">
+									<template v-for="city in jsonAddress.cityList" v-if="companyTransport.destination.city==city.name">
+										<h5>地区</h5>
+										<el-radio  v-for="item in city.areaList" class="radio" v-model="companyTransport.destination.area" :label="item" v-if="chooseCity()">
+										  	{{item}}
+										</el-radio>
+										<h5>没有此地区? 手动输入:</h5>
+										<el-input v-model="companyTransport.destination.area" size="small" style="width:50%;"></el-input>
+									</template>
 
+								</div>
 							</div>
 						</div>
-					</div>
-				</el-popover>
-				<el-form label-width="80px">
-					<el-form-item label="始发地：">
-						<el-input :value="companyTransport.origin.city+' '+companyTransport.origin.area" v-popover:popover3></el-input>
-						<br/>
-						<el-input placeholder="详细地址" v-model="companyTransport.origin.address"></el-input>
-						<br>
-					</el-form-item >
-					<el-form-item label="送到：">
-						<el-input :value="companyTransport.destination.city+' '+companyTransport.destination.area" v-popover:popover4></el-input>
-						<br/>
-						<el-input placeholder="详细地址" v-model="companyTransport.destination.address"></el-input>
-						<br>
-					</el-form-item >
-					<el-form-item label="运费：">
-						<el-input v-model="companyTransport.transport_price"></el-input>
-						<span>元/吨</span>
-						<br>
-					</el-form-item >
-					<el-form-item label="包车费：">
-						<el-input type="number" v-model="companyTransport.transport_car_price"></el-input>
-						<span>元/车</span>
-						<br>
-					</el-form-item>
-					<el-form-item label="限载量：" >
-						<el-input v-model="companyTransport.transport_count"></el-input>
-						<span>吨</span>
-						<br>
-					</el-form-item>
-					<el-form-item label="备注：" >
-						<el-input v-model="companyTransport.remarks"></el-input>
-						<el-button type="primary" @click="postCompanyTransport()">新增</el-button>
-					</el-form-item>
-				</el-form>
+					</el-popover>
+					<el-form label-width="80px">
+						<el-form-item label="始发地：">
+							<el-input :value="companyTransport.origin.city+' '+companyTransport.origin.area" v-popover:popover3></el-input>
+							<br/>
+							<el-input placeholder="详细地址" v-model="companyTransport.origin.address"></el-input>
+							<br>
+						</el-form-item >
+						<el-form-item label="送到：">
+							<el-input :value="companyTransport.destination.city+' '+companyTransport.destination.area" v-popover:popover4></el-input>
+							<br/>
+							<el-input placeholder="详细地址" v-model="companyTransport.destination.address"></el-input>
+							<br>
+						</el-form-item >
+						<el-form-item label="运费：">
+							<el-input v-model="companyTransport.transport_price"></el-input>
+							<span>元/吨</span>
+							<br>
+						</el-form-item >
+						<el-form-item label="包车费：">
+							<el-input type="number" v-model="companyTransport.transport_car_price"></el-input>
+							<span>元/车</span>
+							<br>
+						</el-form-item>
+						<el-form-item label="限载量：" >
+							<el-input v-model="companyTransport.transport_count"></el-input>
+							<span>吨</span>
+							<br>
+						</el-form-item>
+						<el-form-item label="备注：" >
+							<el-input v-model="companyTransport.remarks"></el-input>
+							<el-button type="primary" @click="postCompanyTransport()">新增</el-button>
+						</el-form-item>
+					</el-form>
+				</div>
+				<div v-show="handleView!=1">
+					<el-popover
+					ref="popover5"
+					placement="right"
+					width="400"
+					trigger="click">
+						<div class="popov">
+							<div>
+								<h5 >{{ jsonAddress.name }}</h5>
+								<el-radio  v-for="item in jsonAddress.cityList" class="radio" v-model="factoryTransport.destination.city" :label="item.name" v-if="chooseCity()">
+								  	{{item.name}}
+								</el-radio>
+								<div v-show="factoryTransport.destination.city">
+									<template v-for="city in jsonAddress.cityList" v-if="factoryTransport.destination.city==city.name">
+										<h5>地区</h5>
+										<el-radio  v-for="item in city.areaList" class="radio" v-model="factoryTransport.destination.area" :label="item" v-if="chooseCity()">
+										  	{{item}}
+										</el-radio>
+										<h5>没有此地区? 手动输入:</h5>
+										<el-input v-model="factoryTransport.destination.area" size="small" style="width:50%;"></el-input>
+									</template>
+
+								</div>
+							</div>
+						</div>
+					</el-popover>
+					<el-form label-width="80px">
+						<el-form-item label="品牌：" >
+							<el-select  v-model="factoryTransport.brand">
+								<el-option v-for="item in brandsList" :label="item" :value="item"></el-option>
+							</el-select>
+							<br>
+						</el-form-item>
+						<el-form-item label="规格：" >
+							<el-select  v-model="factoryTransport.size" multiple>
+								<el-option v-for="item in sizeList" :label="item" :value="item"></el-option>
+							</el-select>
+							<el-button size="small" type="default" @click="selectedAll()">全选</el-button>
+							<br>
+						</el-form-item>
+						<el-form-item label="送到：">
+							<el-input :value="factoryTransport.destination.city+' '+factoryTransport.destination.area" v-popover:popover5></el-input>
+							<br/>
+							<el-input placeholder="详细地址" v-model="factoryTransport.destination.address"></el-input>
+							<br/>
+						</el-form-item>
+						<el-form-item label="运费：" >
+							<el-input type="number" v-model="factoryTransport.transport_price"></el-input>
+							<span>元/吨</span>
+							<br>
+						</el-form-item>
+						<el-form-item label="限载量：" >
+							<el-input v-model="factoryTransport.transport_count"></el-input>
+							<span>吨</span>
+							<br>
+						</el-form-item>
+						<el-form-item label="备注："  >
+							<el-input v-model="factoryTransport.remarks"></el-input>
+							<el-button type="primary" @click="factoryCompanyTransport()">新增</el-button>
+						</el-form-item>
+					</el-form>
+				</div>
 			</div>
-			<div v-show="handleView!=1">
-				<el-popover
-				ref="popover5"
-				placement="right"
-				width="400"
-				trigger="click">
-					<div class="popov">
-						<div>
-							<h5 >{{ jsonAddress.name }}</h5>
-							<el-radio  v-for="item in jsonAddress.cityList" class="radio" v-model="factoryTransport.destination.city" :label="item.name" v-if="chooseCity()">
-							  	{{item.name}}
-							</el-radio>
-							<div v-show="factoryTransport.destination.city">
-								<template v-for="city in jsonAddress.cityList" v-if="factoryTransport.destination.city==city.name">
-									<h5>地区</h5>
-									<el-radio  v-for="item in city.areaList" class="radio" v-model="factoryTransport.destination.area" :label="item" v-if="chooseCity()">
-									  	{{item}}
-									</el-radio>
-									<h5>没有此地区? 手动输入:</h5>
-									<el-input v-model="factoryTransport.destination.area" size="small" style="width:50%;"></el-input>
-								</template>
-
-							</div>
-						</div>
-					</div>
-				</el-popover>
-				<el-form label-width="80px">
-					<el-form-item label="品牌：" >
-						<el-select  v-model="factoryTransport.brand">
-							<el-option v-for="item in brandsList" :label="item" :value="item"></el-option>
-						</el-select>
-						<br>
-					</el-form-item>
-					<el-form-item label="规格：" >
-						<el-select  v-model="factoryTransport.size" multiple>
-							<el-option v-for="item in sizeList" :label="item" :value="item"></el-option>
-						</el-select>
-						<el-button size="small" type="default" @click="selectedAll()">全选</el-button>
-						<br>
-					</el-form-item>
-					<el-form-item label="送到：">
-						<el-input :value="factoryTransport.destination.city+' '+factoryTransport.destination.area" v-popover:popover5></el-input>
-						<br/>
-						<el-input placeholder="详细地址" v-model="factoryTransport.destination.address"></el-input>
-						<br/>
-					</el-form-item>
-					<el-form-item label="运费：" >
-						<el-input type="number" v-model="factoryTransport.transport_price"></el-input>
-						<span>元/吨</span>
-						<br>
-					</el-form-item>
-					<el-form-item label="限载量：" >
-						<el-input v-model="factoryTransport.transport_count"></el-input>
-						<span>吨</span>
-						<br>
-					</el-form-item>
-					<el-form-item label="备注："  >
-						<el-input v-model="factoryTransport.remarks"></el-input>
-						<el-button type="primary" @click="factoryCompanyTransport()">新增</el-button>
-					</el-form-item>
-				</el-form>
-			</div>
-		</template>
-	</div>
+		</div>
+	</headerbar>
 </template>
 
 <style scoped>
 	.popov{
 		height: 400px;
 		overflow: scroll
-	}
-	.main-warpper{
-		width:1280px;
-		margin:auto;
-		padding:25px;
-		color:#1F2D3D;
 	}
 	h1,h4{
 		font-weight:400;
@@ -323,13 +318,17 @@
 	.el-select{
 		width: 18%;
 	}
+	.white_style{
+		background-color: #fff;
+		padding: 15px;
+	}
 </style>
 
 <style>
 	html body .el-radio+.el-radio{
-		margin-left:5px;
+		margin-left:15px;
 	}
 	.el-radio, .el-radio__inner, .el-radio__input{
-		margin-left:5px;
+	    display: inline-block;
 	}
 </style>

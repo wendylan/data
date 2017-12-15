@@ -1,14 +1,8 @@
 <script>
-	import headbar from "../components/user-headbar.vue";
-	export default {
-		components:{
-			headbar,
-		},
-	}
+	export default {}
 </script>
 <template>
 	<div>
-		<headbar :active_number="1"></headbar>
 		<router-view></router-view>
 	</div>
 </template>

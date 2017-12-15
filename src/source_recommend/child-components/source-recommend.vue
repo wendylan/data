@@ -1,10 +1,12 @@
 <script>
+	import headerbar from '../../components/admin-headerbar.vue';
 	import recommend from "../../../res/json/recommend.json";
 	import ajaxCustom from '../../components/ajax-custom.js';
 	import echarts from "echarts";
 	import { Button, Select, Input, Table, TableColumn, Option } from 'element-ui'
 	export default{
 		components : {
+			headerbar,
 			elTable : Table,
 			elTableColumn : TableColumn,
 			elSelect : Select,
@@ -360,37 +362,31 @@
 </script>
 
 <template>
-	<div class="main-warpper">
-	<h1>资源推荐</h1>
-	<h4>推荐区域优势品牌</h4>
-	<div class="posi">
-
-		<el-button v-model="contrast" class="recommendItem" size="small" @click="getcontrastItem()">品牌对比</el-button>
-		<div v-if="contrast" >
-			<template v-for="data in diffBrand">
-				<el-select v-model="data.selected" @change="addInput" >
-					<el-option
-					      v-for="item in allBrands"
-					      :label="item.text"
-					      :value="item.value">
-					</el-option>
-				</el-select>
-				<br/>
-			</template>
-			<el-button size="small" type="success" @click="startDiff()">开始对比</el-button>
-			<el-button size="small" @click="clean()">清空</el-button>
+	<headerbar active_number="1" :text="['资源推荐','推荐区域优势品牌']">
+		<div class="posi">
+			<el-button v-model="contrast" class="recommendItem" size="small" @click="getcontrastItem()">品牌对比</el-button>
+			<div v-if="contrast" >
+				<template v-for="data in diffBrand">
+					<el-select v-model="data.selected" @change="addInput" >
+						<el-option
+						      v-for="item in allBrands"
+						      :label="item.text"
+						      :value="item.value">
+						</el-option>
+					</el-select>
+					<br/>
+				</template>
+				<el-button size="small" type="success" @click="startDiff()">开始对比</el-button>
+				<el-button size="small" @click="clean()">清空</el-button>
+			</div>
 		</div>
-	</div>
-		<br>
-		<div class="controller-box" ><br>
+		<div style="margin-bottom: 10px;">
 			<span>广东省 : </span>
 			<el-select size="small" v-model="searchCity">
 				<el-option v-for="item in recommendStandard" :label="item.city" :value="item.city"></el-option>
 			</el-select>
 			<el-button size="small" type="default" @click="resetList()">重置</el-button>
 		</div>
-		<br>
-		<h4>区域优秀品牌推荐：</h4>
 		<el-table :data="recommendData" v-if="recommendData.length" border>
 			<el-table-column label="品牌"
 			:filters="filtersOfBrands"
@@ -437,15 +433,9 @@
 		</el-table>
 		<div v-else v-loading.body="true" style="width:100%;height:300px;"></div>
 
-	</div>
+	</headerbar>
 </template>
 <style scoped>
-	.main-warpper{
-		width:1280px;
-		margin:auto;
-		padding:25px;
-		color:#1F2D3D;
-	}
 	h1,h4{
 		font-weight:400;
 	}
@@ -473,7 +463,7 @@
 		height: 300px;
 		position: fixed;
 		right: 0%;
-		top: 10%;
+		top: 90px;
 		z-index: 1;
 	}
 	.contrastBox{

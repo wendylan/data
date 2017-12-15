@@ -62,7 +62,6 @@ export default {
     },
     cascader: {
       noMatch: 'No matching data',
-      loading: 'Loading',
       placeholder: 'Select'
     },
     pagination: {
@@ -86,19 +85,10 @@ export default {
       emptyText: 'No Data',
       confirmFilter: 'Confirm',
       resetFilter: 'Reset',
-      clearFilter: 'All',
-      sumText: 'Sum'
+      clearFilter: 'All'
     },
     tree: {
       emptyText: 'No Data'
-    },
-    transfer: {
-      noMatch: 'No matching data',
-      noData: 'No data',
-      titles: ['List 1', 'List 2'], // to be translated
-      filterPlaceholder: 'Enter keyword', // to be translated
-      noCheckedFormat: '{total} items', // to be translated
-      hasCheckedFormat: '{checked}/{total} checked' // to be translated
     }
   }
 };

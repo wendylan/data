@@ -1,9 +1,11 @@
 <script>
+    import headerbar from '../../components/admin-headerbar.vue';
     import echarts from "echarts";
     import {Form,FormItem, Button, Select, Input, Table, TableColumn, Option, DatePicker, Col ,Loading } from 'element-ui';
     import ajaxCustom from '../../components/ajax-custom.js';
     export default{
         components : {
+            headerbar,
             elCol : Col,
             elTable : Table,
             elTableColumn : TableColumn,
@@ -158,13 +160,13 @@
                     if(this.final!=''&&this.final!=undefined){
                         if (this.material!='') {
                             let loadingInstance = Loading.service({ fullscreen: true });
-                            var data={}; 
+                            var data={};
                             data.foremostDate = this.foremost.getTime()/1000;
                             data.finalDate    = this.final.getTime()/1000+86400;
                             data.brand        = this.brands.name;
                             data.product      = this.product.name;
                             data.type         = this.type.name ;
-                            data.material     = this.material; 
+                            data.material     = this.material;
                             ajaxCustom.ajaxPost(this,"dingoapi/seachHistoryPrice",{data}, (responese)=>{
                                 // console.log(responese);
                                 if (responese.body.data.webPrice.length!=0&&responese.body.data.marketPrice.length!=0) {
@@ -172,8 +174,10 @@
                                     let web=this.getChartWebPrice(responese.body.data.webPrice);
                                     /*获取统计图市场直送价数据*/
                                     let marketSend=this.getChartMarketSendPrice(responese.body.data.marketPrice);
+                                    console.log(marketSend);
                                     /*获取统计图市场自提价数据*/
                                     let marketSelf=this.getChartMarketSelfPrice(responese.body.data.marketPrice);
+                                    console.log(marketSelf);
                                     /*获取统计图网价直送差价数据*/
                                     this.getWebSendDiffPrice(web,marketSend);
                                     /*获取统计图网价自提差价数据*/
@@ -230,14 +234,22 @@
             getChartMarketSendPrice(marketData){
                 let marketSend=this.historyData[0].data=[];
                 for (var i = 0; i < this.dateBetween.length; i++) {
-                    marketSend.push(undefined);
+                    marketSend.push([]);
                     for(var j = 0; j < marketData.length; j++){
                         let timeadd=marketData[j].date%86400<57600?28800:-57600;
                         let time=parseInt(marketData[j].date/86400)*86400-timeadd;
                         if(this.timeBetween[i]==time&&marketData[j].transport=="直送"){
-                            marketSend[i]=parseInt(marketData[j].price);
+                            marketSend[i].push(parseInt(marketData[j].price));
                         }
                     }
+                }
+                for (var i = 0; i < marketSend.length; i++) {
+                    let sum = 0;
+                    for(var j = 0; j < marketSend[i].length; j++){
+                        sum += marketSend[i][j];
+                    }
+                    console.log(marketSend[i]);
+                    marketSend[i] = parseInt(sum/(marketSend[i].length));
                 }
                 return marketSend;
             },
@@ -245,14 +257,23 @@
             getChartMarketSelfPrice(marketData){
                 let marketSelf=this.historyData[3].data=[];
                 for (var i = 0; i < this.dateBetween.length; i++) {
-                    marketSelf.push(undefined);
+                    marketSelf.push([]);
                     for(var j = 0; j < marketData.length; j++){
                         let timeadd=marketData[j].date%86400<57600?28800:-57600;
                         let time=parseInt(marketData[j].date/86400)*86400-timeadd;
                         if(this.timeBetween[i]==time&&marketData[j].transport=="广州仓发货"){
-                            marketSelf[i]=parseInt(marketData[j].price);
+                            marketSelf[i].push(parseInt(marketData[j].price));
                         }
                     }
+                }
+                // console.log(marketSelf);
+                for (var i = 0; i < marketSelf.length; i++) {
+                    let sum = 0;
+                    for(var j = 0; j < marketSelf[i].length; j++){
+                        sum += marketSelf[i][j];
+                    }
+                    console.log(marketSelf[i]);
+                    marketSelf[i] = parseInt(sum/(marketSelf[i].length));
                 }
                 return marketSelf;
             },
@@ -260,13 +281,13 @@
             getChartWebPrice(webData){
                 let web=this.historyData[1].data=[];
                 for (var i = 0; i < this.dateBetween.length; i++) {
-                    web.push(undefined);
+                    web.push(null);
                     for (var j = 0; j < webData.length; j++) {
                         let timeadd=webData[j].file_name%86400<57600?28800:-57600;
                         let time=parseInt(webData[j].file_name/86400)*86400-timeadd;
                         if(this.timeBetween[i]==time&&webData[j].web_price!="-"){
                             // console.log(webData[j].web_price!="-");
-                            web[i]=parseInt(webData[j].web_price);
+                            web[i] = (parseInt(webData[j].web_price));
                         }
                     }
                 }
@@ -277,7 +298,7 @@
                 let webSendpriceDifference=this.historyData[2].data=[];
                 for (var i = 0; i < this.dateBetween.length; i++) {
                     webSendpriceDifference.push(undefined);
-                    if (webData[i]!=undefined&&marketData[i]!=undefined){
+                    if (webData[i]&&marketData[i]){
                         webSendpriceDifference[i]=webData[i]-marketData[i];
                     }
                 }
@@ -287,7 +308,7 @@
                 let webSendpriceDifference=this.historyData[4].data=[];
                 for (var i = 0; i < this.dateBetween.length; i++) {
                     webSendpriceDifference.push(undefined);
-                    if (webData[i]!=undefined&&marketData[i]!=undefined){
+                    if (webData[i] && marketData[i]){
                         webSendpriceDifference[i]=webData[i]-marketData[i];
                     }
                 }
@@ -304,7 +325,7 @@
                 let sum=0;
                 let undefinedCount=0;
                 for (var i = 0; i < array.length; i++) {
-                    if (array[i]!=undefined) {
+                    if (array[i]) {
                         sum+=array[i];
                     }else{
                         undefinedCount+=1;
@@ -452,9 +473,7 @@
     }
 </script>
 <template>
-    <div class="main-warpper">
-        <h1>历史数据</h1>
-        <h4>近期钢材数据统计</h4>
+    <headerbar active_number="3" :text="['历史数据','查看/编辑定价规则']">
         <div class="form">
             <el-form>
                 <div class="tocenter">
@@ -474,7 +493,7 @@
                         </el-select><br>
                     </div>
                     <div>
-                        <span>品&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp名：</span>                
+                        <span>品&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp名：</span>
                         <el-select v-model="product" @change="changeProducts(product)">
                             <el-option v-for="item in productGroup" :label="item.name" :value="item"></el-option>
                         </el-select><br>
@@ -503,16 +522,16 @@
                         <span >市场直送均价：<font class="fontToCen">{{marketSendAvgPrice}}</font></span>
                     </div>
                     <div class="lineHigh" v-if="webSelfpriceDifference!='暂无数据'">
-                        <span>网价自提差价：<font class="fontToCen">{{webSelfpriceDifference}}</font></span>	
+                        <span>网价自提差价：<font class="fontToCen">{{webSelfpriceDifference}}</font></span>
                     </div>
                     <div class="lineHigh" v-if="webSendpriceDifference!='暂无数据'">
-                        <span>网价直送差价：<font class="fontToCen">{{webSendpriceDifference}}</font></span>  
+                        <span>网价直送差价：<font class="fontToCen">{{webSendpriceDifference}}</font></span>
                     </div>
                 </div>
             </el-form>
         </div>
         <div   id="main" ></div>
-    </div>
+    </headerbar>
 </template>
 
 
@@ -539,15 +558,14 @@
     }
     .form{
         float: left;
-        width: 512px;
-        margin:50px auto 10px auto;
+        width: 412px;
     }
     .tocenter{
         margin:10px auto 10px 0px;
         padding: 1px;
     }
     .fontToCen{
-        margin-left: 100px; 
+        margin-left: 100px;
     }
     .el-select{
         margin-top: 15px;
@@ -555,7 +573,7 @@
         text-align: center;
     }
     .lineHigh{
-        margin-bottom:10px; 
+        margin-bottom:10px;
     }
     #main{
         float: left;

@@ -7,6 +7,9 @@
 			},
 			brands : {
 				type : Array
+			},
+			role : {
+				type : Number
 			}
 		},
 		components : {
@@ -33,8 +36,7 @@
 				if(this.needingDatas.childData.length >1 ){
 					this.needingDatas.childData.splice(index, 1);
 				}
-			},
-
+			}
 		},
 	}
 </script>
@@ -44,15 +46,15 @@
 		<div class="needing-select">
 			<div class="type-select-box">
 				<el-radio-group v-model="needingDatas.conditionType">
-				<ul>
-					<li><el-radio :label="1">统一包干结算</el-radio></li>
-				    <li><el-radio :label="2">分品牌包干结算</el-radio></li>
-				    <li><el-radio :label="3">分品名包干结算</el-radio></li>
-				    <li><el-radio :label="4">统一分拆结算</el-radio></li>
-				    <li><el-radio :label="5">分品牌分拆结算</el-radio></li>
-				    <li><el-radio :label="6">综合费率结算</el-radio></li>
-				    <li><el-radio :label="7">其他方式结算</el-radio></li>
-				</ul>
+					<ul>
+						<li><el-radio :label="1" >统一包干结算</el-radio></li>
+					    <li><el-radio :label="2" >分品牌包干结算</el-radio></li>
+					    <li><el-radio :label="3" >分品名包干结算</el-radio></li>
+					    <li><el-radio :label="4" >统一分拆结算</el-radio></li>
+					    <li><el-radio :label="5" >分品牌分拆结算</el-radio></li>
+					    <li><el-radio :label="6" >综合费率结算</el-radio></li>
+					    <li><el-radio :label="7" >其他方式结算</el-radio></li>
+					</ul>
 				</el-radio-group>
 			</div>
 			<div class="selected-view">
@@ -64,8 +66,9 @@
 						<el-option label="到货后" value="到货后"></el-option>
 					</el-select>
 					<el-input v-model="needingDatas.days" type="number" min="0" style="width:55px;" size="small"></el-input>
-					<span>日, </span>
-					<el-select v-model="needingDatas.priceType" style="width:90px;" size="small">
+					<span>日结算, </span>
+					<br>
+					<el-select v-model="needingDatas.priceType" style="width:90px;margin-top: 10px;" size="small">
 						<el-option label="现货价" value="现货价"></el-option>
 						<el-option label="最新网价" value="最新网价"></el-option>
 						<el-option label="首次网价" value="首次网价"></el-option>
@@ -77,6 +80,12 @@
 					</el-select>
 					<el-input v-model="needingDatas.price" type="number" min="0" style="width:55px;" size="small"></el-input>
 					<span>元/吨</span>
+					<br>
+					<span>销售运费 : 已含</span>
+					<br>
+					<span>成本运费 :</span>
+					<el-input v-model="needingDatas.costFreight" type="number" min="0" style="width:55px;" size="small"></el-input>
+					<span>元/吨</span>
 				</div>
 				<!-- 分品牌包干结算 -->
 				<div v-if="needingDatas.conditionType==2">
@@ -86,7 +95,14 @@
 							<el-option label="到货后" value="到货后"></el-option>
 						</el-select>
 					<el-input v-model="needingDatas.days" type="number" min="0" style="width:55px;" size="small"></el-input>
-					<span>日</span>
+					<span>日结算,</span>
+					<br>
+					<span>销售运费 : 已含</span>
+					<br>
+					<span>成本运费 :</span>
+					<el-input v-model="needingDatas.costFreight" type="number" min="0" style="width:55px;" size="small"></el-input>
+					<span>元/吨</span>
+					<br>
 					<template v-for="(data,index) in needingDatas.childData">
 						<br>
 						<el-select v-model="data.onemoreBrand" style="width:100px;margin-top:20px;" size="small">
@@ -102,9 +118,9 @@
 							<el-option label="上浮" value="上浮"></el-option>
 							<el-option label="下浮" value="下浮"></el-option>
 						</el-select>
-						<el-input v-model="data.price" type="number" min="0" style="width:55px;" size="small"></el-input>   
+						<el-input v-model="data.price" type="number" min="0" style="width:55px;" size="small"></el-input>
 						<span>元/吨</span>
-						<el-button @click="delBrand(index)" size="small">删除</el-button>
+						<el-button @click="delBrand(index)" size="small" :disabled="needingDatas.childData.length ==1? true:false" >删除</el-button>
 					</template>
 					<br><br>
 					<el-button @click="addBrands" size="small">新增品牌</el-button>
@@ -129,6 +145,12 @@
 						<span>元/吨</span>
 						<br>
 					</template>
+					<br>
+					<span>销售运费 : 已含</span>
+					<br>
+					<span>成本运费 :</span>
+					<el-input v-model="needingDatas.costFreight" type="number" min="0" style="width:55px;" size="small"></el-input>
+					<span>元/吨</span>
 				</div>
 
 				<!-- 统一分拆结算 -->
@@ -139,8 +161,9 @@
 							<el-option label="到货后" value="到货后"></el-option>
 					</el-select>
 					<el-input v-model="needingDatas.days" type="number" min="0" style="width:55px;" size="small"></el-input>
-					<span>日, </span>
-					<el-select v-model="needingDatas.priceType" style="width:90px;" size="small">
+					<span>日结算, </span>
+					<br>
+					<el-select v-model="needingDatas.priceType" style="width:90px;margin-top: 10px;" size="small">
 						<el-option label="现货价" value="现货价"></el-option>
 						<el-option label="最新网价" value="最新网价"></el-option>
 						<el-option label="首次网价" value="首次网价"></el-option>
@@ -153,10 +176,16 @@
 					<el-input v-model="needingDatas.price" type="number" min="0" style="width:55px;" size="small"></el-input>
 					<span>元/吨</span>
 					<br>
-					<label>运费:</label>
+					<label>{{ role===1 ? '运费' : '销售运费' }}:</label>
 					<el-input v-model="needingDatas.freight" type="number" min="0" style="width:55px;" size="small"></el-input>
 					<span>元/吨</span>
 					<br>
+					<template v-if="role==2">
+						<label>成本运费:</label>
+    					<el-input v-model="needingDatas.costFreight" type="number" min="0" style="width:55px;" size="small"></el-input>
+    					<span>元/吨</span>
+    					<br>
+					</template>
 					<label>过磅费:</label>
 					<el-input v-model="needingDatas.ponderation_price" type="number" min="0" style="width:55px;" size="small"></el-input>
 					<span>元/吨</span>
@@ -170,7 +199,7 @@
 							<el-option label="到货后" value="到货后"></el-option>
 					</el-select>
 					<el-input v-model="needingDatas.days" type="number" min="0" style="width:55px;" size="small"></el-input>
-					<span>日, </span>
+					<span>日结算, </span>
 					<template v-for="(data,index) in needingDatas.childData">
 						<br>
 						<el-select v-model="data.onemoreBrand" style="width:100px;margin-top:20px;" size="small">
@@ -188,15 +217,21 @@
 						</el-select>
 						<el-input v-model="data.price" type="number" min="0" style="width:55px;" size="small"></el-input>
 						<span>元/吨</span>
-						<el-button @click="delBrand(index)" size="small">删除</el-button>
+						<el-button @click="delBrand(index)" size="small" :disabled="needingDatas.childData.length ==1? true:false" >删除</el-button>
 					</template>
 					<br><br>
 					<el-button @click="addBrands" size="small">新增品牌</el-button>
 					<br>
-					<label>运费:</label>
+					<label>{{ role===1 ? '运费' : '销售运费' }}:</label>
 					<el-input v-model="needingDatas.freight" type="number" min="0" style="width:55px;" size="small"></el-input>
 					<span>元/吨</span>
 					<br>
+					<template v-if="role==2">
+						<label>成本运费:</label>
+    					<el-input v-model="needingDatas.costFreight" type="number" min="0" style="width:55px;" size="small"></el-input>
+    					<span>元/吨</span>
+    					<br>
+					</template>
 					<label>过磅费:</label>
 					<el-input v-model="needingDatas.ponderation_price" type="number" min="0" style="width:55px;" size="small"></el-input>
 					<span>元/吨</span>
@@ -210,8 +245,9 @@
 						<el-option label="到货后" value="到货后"></el-option>
 					</el-select>
 					<el-input v-model="needingDatas.days" type="number" min="0" style="width:55px;" size="small"></el-input>
-					<span>日, </span>
-					<el-select v-model="needingDatas.priceType" style="width:90px;" size="small">
+					<span>日结算, </span>
+					<br>
+					<el-select v-model="needingDatas.priceType" style="width:90px;margin-top: 10px;" size="small">
 						<el-option label="现货价" value="现货价"></el-option>
 						<el-option label="最新网价" value="最新网价"></el-option>
 						<el-option label="首次网价" value="首次网价"></el-option>
@@ -224,10 +260,16 @@
 					<el-input v-model="needingDatas.price" type="number" min="0" style="width:55px;" size="small"></el-input>
 					<span>元/吨</span>
 					<br>
-					<label>运费:</label>
+					<label>{{ role===1 ? '运费' : '销售运费' }}:</label>
 					<el-input v-model="needingDatas.freight" type="number" min="0" style="width:55px;" size="small"></el-input>
 					<span>元/吨</span>
 					<br>
+					<template v-if="role==2">
+						<label>成本运费:</label>
+    					<el-input v-model="needingDatas.costFreight" type="number" min="0" style="width:55px;" size="small"></el-input>
+    					<span>元/吨</span>
+    					<br>
+					</template>
 					<label>过磅费:</label>
 					<el-input v-model="needingDatas.ponderation_price" type="number" min="0" style="width:55px;" size="small"></el-input>
 					<span>元/吨</span>
@@ -243,7 +285,7 @@
 				<!-- 其他方式结算 -->
 				<div v-if="needingDatas.conditionType==7">
 					<p>其他方式结算 :</p>
-					<el-input  type="textarea" auto-complete="off" style="width:400px;" placeholder="请输入结算描述" v-model="needingDatas.elsePayWay" autosize></el-input>
+					<el-input  type="textarea" auto-complete="off" style="margin:10px auto;" placeholder="请输入结算描述" v-model="needingDatas.elsePayWay" autosize></el-input>
 				</div>
 			</div>
 		</div>
@@ -252,6 +294,12 @@
 </template>
 
 <style scoped>
+	ul,li{
+		list-style: none;
+	}
+	.type-select-box ul {
+		padding: 0;
+	}
 	.needing-select{
 		height:100%;
 	}
@@ -259,7 +307,7 @@
 		float:left;
 	}
 	.type-select-box{
-		width: 26%;
+		min-width: 20%;
 		height:100%;
 		padding-right:20px;
 		border-right:solid 1px #DEDEDE;

@@ -1,20 +1,9 @@
-<script>
-	import headbar from "../components/headbar.vue";
-	// import ajaxCustom from '../components/ajax-custom.js';
-	export default{
-		components : {
-			headbar
-		}
-	}
-</script>
-
+<script></script>
 <template>
 	<div>
-		<headbar></headbar>
 		<router-view></router-view>
 	</div>
 </template>
-
 <style>
 	*{
 		font-family:"微软雅黑";

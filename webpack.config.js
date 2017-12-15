@@ -1,27 +1,39 @@
 var path = require('path')
 var webpack = require('webpack')
 
+// 为了避免各个开发者output路径不同，请新建output_path.json文件写入自己的路径
+// 切勿提交此JSON文件，建议在git中忽略
+var mypath = require('./output_path.json')
+
 module.exports = {
   entry: {
-    // 'priceInfo' : './src/priceInfo.js',
-    //'dataManage' : './src/dataManage.js',
-    // 'freight' : './src/freight.js',
-    // 'historyData' : './src/historyData.js',
-    // 'sourceRecommend' : './src/sourceRecommend.js',
+    'dataManage' : './src/dataManage.js',
+    'freight' : './src/freight.js',
+    'historyData' : './src/historyData.js',
+    'sourceRecommend' : './src/sourceRecommend.js',
     'agentOrder' : './src/agentOrder.js',
-    //'steelWebPrice' : './src/steelWebPrice.js',
-    //'steelMainPrice' : './src/steelMainPrice.js',
-    //'userDeal' : './src/userDeal.js',
+    'register' : './src/register.js',
+    'steelWebPrice' : './src/steelWebPrice.js',
+    'steelMainPrice' : './src/steelMainPrice.js',
+    'shortageSearch' : './src/shortageSearch.js',
+    'userDeal' : './src/userDeal.js',
     'userCenter' : './src/userCenter.js',
-    //'brandManage' : './src/brandManage.js',
+    'brandManage' : './src/brandManage.js',
     'secondaryTerminal' : './src/secondaryTerminal.js',
-    //'secondaryTerminalPurchase' : './src/secondaryTerminalPurchase.js',
-    //'stResource' : './src/stResource.js',
-    'userOrder' : './src/userOrder.js',
-    'salesOrder' : './src/salesOrder.js'
+    'secondaryTerminalPurchase' : './src/secondaryTerminalPurchase.js',
+    'userInfo' : './src/userInfo.js',
+    'stResource' : './src/stResource.js',
+    'purchaseOrder' : './src/purchaseOrder.js',
+    'salesOrder' : './src/salesOrder.js',
+    'dealingTool' : './src/dealingTool.js',
+    'formTotal' : './src/formTotal.js',
+    'supplierOrder' : './src/supplierOrder.js',
+    'signCompany' : './src/signCompany.js',
+    'messageList' : './src/messageList.js',
+    'buybuybuySalesOrder' : './src/buybuybuySalesOrder.js'
   },
   output: {
-    path: path.resolve(__dirname, './dist'),
+    path: path.resolve(__dirname, mypath),
     publicPath: './dist/',
     filename: '[name].js'
   },
@@ -57,7 +69,18 @@ module.exports = {
         test: /\.js$/,
         exclude: /node_modules/,
         loader: ['babel-loader', 'eslint-loader']
-      }
+    },
+    // {
+    //   test: /\.vue$/,
+    //   enforce: 'pre',
+    //   include: /src/,
+    //       use: [{
+    //           loader: 'eslint-loader',
+    //           options: {
+    //               formatter: require('eslint-friendly-formatter')
+    //           }
+    //   }]
+    //   }
     ]
   },
   resolve: {

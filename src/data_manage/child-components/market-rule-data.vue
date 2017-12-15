@@ -1,8 +1,10 @@
 <script>
+import headerbar from '../../components/admin-headerbar.vue';
 import {Table,TableColumn,Select,Option,Button} from "element-ui";
 import ajaxCustom from '../../components/ajax-custom.js';
 	export default{
 		components:{
+			headerbar,
 			elTable:Table,
 			elTableColumn:TableColumn,
 			elSelect:Select,
@@ -10,7 +12,7 @@ import ajaxCustom from '../../components/ajax-custom.js';
 			elButton:Button
 		},
 		created : function(){
-			this.getRuleData();			
+			this.getRuleData();
 		},
 		data(){
 			return {
@@ -58,9 +60,7 @@ import ajaxCustom from '../../components/ajax-custom.js';
 	}
 </script>
 <template>
-	<div class="main-warpper">
-	<h1>定价规则数据</h1>
-	<h4>查看/编辑定价规则</h4>
+	<headerbar active_number="5-4" :text="['定价规则数据','查看/编辑定价规则']">
 		<el-table :data="data" >
 			<el-table-column prop="id" label="序列" width="80"></el-table-column>
 			<el-table-column label="描述" width="420">
@@ -91,19 +91,9 @@ import ajaxCustom from '../../components/ajax-custom.js';
 				</template>
 			</el-table-column>
 		</el-table>
-	</div>
+	</headerbar>
 </template>
 <style scoped>
-	.main-warpper{
-		width:1280px;
-		margin:auto;
-		padding:25px;
-		color:#1F2D3D;
-	}
-	/*.el-table{
-		text-align: center;
-		margin:auto;
-	}*/
 	.el-button{
 		width: 74px;
 	}

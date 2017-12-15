@@ -1,4 +1,5 @@
 import Vue from 'vue';
+import store from './vuex/store';
 import VueResource from 'vue-resource';
 import App from './user_deal/index.vue';
 import VueRouter from 'vue-router';
@@ -20,5 +21,6 @@ var router = new VueRouter({
 new Vue({
 	el: '#app',
 	router: router,
+	store:store,
 	template: "<router-view></router-view>"
 });

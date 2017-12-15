@@ -57,12 +57,11 @@ export default {
     select: {
       loading: 'Chargement',
       noMatch: 'Aucune correspondance',
-      noData: 'Aucune donnée',
+      noData: 'Aucun résultat',
       placeholder: 'Choisir'
     },
     cascader: {
       noMatch: 'Aucune correspondance',
-      loading: 'Chargement',
       placeholder: 'Choisir'
     },
     pagination: {
@@ -85,19 +84,10 @@ export default {
       emptyText: 'Aucune donnée',
       confirmFilter: 'Confirmer',
       resetFilter: 'Réinitialiser',
-      clearFilter: 'Tous',
-      sumText: 'Sum' // to be translated
+      clearFilter: 'Tous'
     },
     tree: {
       emptyText: 'Aucune donnée'
-    },
-    transfer: {
-      noMatch: 'Aucune correspondance',
-      noData: 'Aucune donnée',
-      titles: ['List 1', 'List 2'], // to be translated
-      filterPlaceholder: 'Enter keyword', // to be translated
-      noCheckedFormat: '{total} items', // to be translated
-      hasCheckedFormat: '{checked}/{total} checked' // to be translated
     }
   }
 };

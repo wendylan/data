@@ -1,20 +1,7 @@
-<script>
-	import headbar from "../components/headbar.vue";
-	export default{
-		components : {
-			headbar
-		},
-		data(){
-			return {
-				msg : "Here is a test !"
-			}
-		}
-	}
-</script>
+<script></script>
 
 <template>
 	<div>
-		<headbar :active_number="4"></headbar>
 		<router-view></router-view>
 	</div>
 </template>

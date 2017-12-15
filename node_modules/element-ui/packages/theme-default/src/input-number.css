@@ -5,6 +5,7 @@
 @component-namespace el {
   @b input-number {
     display: inline-block;
+    overflow: hidden;
     width: 180px;
     position: relative;
     

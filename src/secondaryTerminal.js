@@ -4,7 +4,6 @@ import App from './secondary_terminal/index.vue';
 import DemandPlan from './components/demand_plan.vue';
 import resource from './secondary_terminal/resource.vue';
 import purchase from './secondary_terminal/purchase.vue';
-import userOrder from './secondary_terminal/user-order.vue';
 import salesOrder from './secondary_terminal/sales-order.vue';
 import purchaseOrder from './secondary_terminal/purchase-order.vue';
 
@@ -12,6 +11,7 @@ import VueRouter from 'vue-router';
 
 Vue.use(VueRouter);
 Vue.use(VueResource);
+
 Vue.http.options.emulateJSON = true;
 
 Vue.http.interceptors.push((request, next) => {
@@ -32,9 +32,6 @@ var router = new VueRouter({
 		},
 		{
 			path: '/purchase', component: purchase
-		},
-		{
-			path: '/userOrder', component: userOrder
 		},
 		{
 			path: '/salesOrder', component: salesOrder

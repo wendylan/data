@@ -21,18 +21,6 @@ export default {
     }
   },
 
-  watch: {
-    type(type) {
-      if (this.picker) {
-        this.unmountPicker();
-        this.panel = getPanel(type);
-        this.mountPicker();
-      } else {
-        this.panel = getPanel(type);
-      }
-    }
-  },
-
   created() {
     this.panel = getPanel(this.type);
   }

@@ -1,9 +1,10 @@
-
 <script>
-	import { Button, Pagination, Loading  } from "element-ui";
+	import headerbar from '../../components/admin-headerbar.vue';
 	import ajaxCustom from '../../components/ajax-custom.js';
+	import { Button, Pagination, Loading  } from "element-ui";
 	export default{
 		components : {
+			headerbar,
 			elButton : Button,
 			elPagination : Pagination
 		},
@@ -205,10 +206,7 @@
 </script>
 
 <template>
-	<div class="main-warpper" >
-		<h1>后台数据</h1>
-		<h4>管理后台的数据</h4>
-		<br><br>
+	<headerbar active_number="4" :text="['数据管理','管理后台的数据']">
 		<div class="list-box">
 			<template v-if="marketData">
 				<ul id="market-price">
@@ -297,18 +295,24 @@
 					<el-button type="primary" @click="routerChange('market_rule_data')">进入</el-button>
 				</div>
 			</div>
+			<div class="other-data-box">
+				<p>供应商别名:</p>
+				<div class="button-box">
+					<el-button type="primary" @click="routerChange('price_source_data')">查看</el-button>
+				</div>
+			</div>
+			<div class="other-data-box">
+				<p>品牌详情:</p>
+				<div class="button-box">
+					<el-button type="primary" @click="routerChange('brand_manage_data')">查看</el-button>
+				</div>
+			</div>
 		</div>
 
-	</div>
+	</headerbar>
 </template>
 
 <style scoped>
-	.main-warpper{
-		width:1280px;
-		margin:auto;
-		padding:25px;
-		color:#1F2D3D;
-	}
 	h1,h4{
 		font-weight:400;
 	}
@@ -382,7 +386,7 @@
 		background-color:#EEE;
 	}
 	.other-data>div{
-		width:25%;
+		width:16.5%;
 		float:left;
 	}
 	.other-data-box{

@@ -1,7 +1,7 @@
 export default {
   el: {
     colorpicker: {
-      confirm: 'Onayla',
+      confirm: 'OK',
       clear: 'Temizle'
     },
     datepicker: {
@@ -9,7 +9,7 @@ export default {
       today: 'Bugün',
       cancel: 'İptal',
       clear: 'Temizle',
-      confirm: 'Onayla',
+      confirm: 'OK',
       selectDate: 'Tarih seç',
       selectTime: 'Saat seç',
       startDate: 'Başlangıç Tarihi',
@@ -62,7 +62,6 @@ export default {
     },
     cascader: {
       noMatch: 'Eşleşen veri bulunamadı',
-      loading: 'Yükleniyor',
       placeholder: 'Seç'
     },
     pagination: {
@@ -73,7 +72,7 @@ export default {
     },
     messagebox: {
       title: 'Mesaj',
-      confirm: 'Onayla',
+      confirm: 'OK',
       cancel: 'İptal',
       error: 'İllegal giriş'
     },
@@ -85,20 +84,11 @@ export default {
     table: {
       emptyText: 'Veri yok',
       confirmFilter: 'Onayla',
-      resetFilter: 'Sıfırla',
-      clearFilter: 'Hepsi',
-      sumText: 'Sum'
+      resetFilter: 'Reset',
+      clearFilter: 'Hepsi'
     },
     tree: {
       emptyText: 'Veri yok'
-    },
-    transfer: {
-      noMatch: 'Eşleşen veri bulunamadı',
-      noData: 'Veri yok',
-      titles: ['Liste 1', 'Liste 2'],
-      filterPlaceholder: 'Anahtar kelimeleri gir',
-      noCheckedFormat: '{total} adet',
-      hasCheckedFormat: '{checked}/{total} seçildi'
     }
   }
 };

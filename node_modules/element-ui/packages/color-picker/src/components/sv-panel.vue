@@ -27,16 +27,8 @@
       }
     },
 
-    computed: {
-      colorValue() {
-        const hue = this.color.get('hue');
-        const value = this.color.get('value');
-        return { hue, value };
-      }
-    },
-
     watch: {
-      colorValue() {
+      'color.value'() {
         this.update();
       }
     },

@@ -1,11 +1,11 @@
 <script>
-	import {Select, Option, button} from "element-ui"
+	import {Select, Option, Button} from "element-ui"
 	import addsData from "../../res/json/provinceList.json";
 	export default{
 		components : {
 			elSelect : Select,
 			elOption : Option,
-			elButton : button
+			elButton : Button
 		},
 		props : ['province', 'grade'],
 		methods : {
@@ -16,7 +16,7 @@
 					if (this.addsData.province[i].name==this.provinceChoose) {
 						this.cityOption=this.addsData.province[i].cityList;
 
-					} 
+					}
 				}
 			},*/
 			getArea(){
@@ -38,14 +38,18 @@
 					area : this.areaChoose
 				}
 				this.$emit("getAddressData", data);
-			}
+			},
+			emptyAdds(){
+				this.cityChoose = null;
+				this.areaChoose = null;
+			},
 		},
 		data(){
 			return {
 				addsData,
 				provinceChoose : "",
-				cityChoose : "",
-				areaChoose : "",
+				cityChoose : null,
+				areaChoose : null,
 				cityOption : [],
 				areaOption : []
 			}
@@ -54,7 +58,7 @@
 			for (var i = 0; i < this.addsData.province.length; i++) {
 				if (this.addsData.province[i].name==this.province) {
 					this.cityOption=this.addsData.province[i].cityList;
-				} 
+				}
 			}
 		}
 	}
@@ -72,6 +76,7 @@
 		<el-select v-model="areaChoose" size="small" placeholder="区\县" @change="sendDataToParent" v-if='grade==1'>
 			<el-option v-for="item in areaOption " :label="item" :value="item"></el-option>
 		</el-select>
+		<el-button @click="emptyAdds" type="default" size="small">置空</el-button>
 	</span>
 </template>
 <style scoped>

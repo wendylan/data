@@ -1,8 +1,10 @@
 <script>
-	import { Input, Button, Table, TableColumn, Popover, Select, Option, Pagination,Message,Loading } from "element-ui";
+	import headerbar from '../../components/admin-headerbar.vue';
 	import ajaxCustom from '../../components/ajax-custom.js';
+	import { Input, Button, Table, TableColumn, Popover, Select, Option, Pagination,Message,Loading } from "element-ui";
 	export default{
 		components : {
+			headerbar,
 			Message,
 			elInput : Input,
 			elButton : Button,
@@ -193,7 +195,7 @@
 			formatTime:function(m){
 				return m<10?'0'+m:m ;
 			},
-			saveAsExcel(tableID){ 
+			saveAsExcel(tableID){
 				let date = this.dateFormat(this.$route.params.time);
 				let time = this.dateFormat(this.$route.params.time).split(' ')[1];
 				date = date.split(' ')[0] + ' ' + time;
@@ -207,16 +209,13 @@
 					exclude_links: true,
 					exclude_inputs: true
 				});
-			} 
+			}
 		}
 	}
 </script>
 
 <template>
-	<div class="main-warpper">
-		<h1>网价数据</h1>
-		<h4>新增网价数据</h4>
-		<br><br>
+	<headerbar active_number="4" :text="['网价数据','新增网价数据']">
 		<div class="controller-bar">
 			<el-button >导 入 时 间</el-button>
 			<el-button type="success" @click="toEdit()" >编辑网价</el-button>
@@ -244,7 +243,7 @@
 		</div>
 
 		<br/>
-			
+
 		<div style="display:none;">
 			<table id="mytable">
 				<tr>
@@ -263,12 +262,12 @@
 					<td>{{ line.web_price }}</td>
 					<td>{{ line.price_change }}</td>
 				</tr>
-			</table>			
+			</table>
 		</div>
 
 		<div>
 			<el-table :data="tableData" style="width:100%;" >
-				<el-table-column prop="product" label="品名" 
+				<el-table-column prop="product" label="品名"
 				:filters="allFilters.productsFilters" :filter-method="productFilter"
 				></el-table-column>
 				<el-table-column prop="type" label="规格"
@@ -296,8 +295,8 @@
 				<!-- <el-table-column prop="source_states" label="资源情况"></el-table-column> -->
 			</el-table>
 		</div>
-	</div>
-</template>	
+	</headerbar>
+</template>
 
 <style >
 	.main-warpper{

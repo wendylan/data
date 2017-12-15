@@ -1,16 +1,6 @@
-<script>
-	import headbar from "../components/agent-header.vue";
-	import orderList from "./child-components/order-list.vue";
-	export default {
-		components:{
-			headbar,
-			orderList,
-		},
-	}
-</script>
+<script></script>
 <template>
 	<div>
-		<headbar :active_number="1"></headbar>
 		<router-view></router-view>
 	</div>
 </template>

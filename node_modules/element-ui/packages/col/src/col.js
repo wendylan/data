@@ -6,10 +6,6 @@ export default {
       type: Number,
       default: 24
     },
-    tag: {
-      type: String,
-      default: 'div'
-    },
     offset: Number,
     pull: Number,
     push: Number,
@@ -21,21 +17,23 @@ export default {
 
   computed: {
     gutter() {
-      let parent = this.$parent;
-      while (parent && parent.$options.componentName !== 'ElRow') {
-        parent = parent.$parent;
+      return this.$parent.gutter;
+    },
+
+    style() {
+      var ret = {};
+
+      if (this.gutter) {
+        ret.paddingLeft = this.gutter / 2 + 'px';
+        ret.paddingRight = ret.paddingLeft;
       }
-      return parent ? parent.gutter : 0;
+
+      return ret;
     }
   },
   render(h) {
+    let { style } = this;
     let classList = [];
-    let style = {};
-
-    if (this.gutter) {
-      style.paddingLeft = this.gutter / 2 + 'px';
-      style.paddingRight = style.paddingLeft;
-    }
 
     ['span', 'offset', 'pull', 'push'].forEach(prop => {
       if (this[prop]) {
@@ -62,9 +60,12 @@ export default {
       }
     });
 
-    return h(this.tag, {
-      class: ['el-col', classList],
-      style
-    }, this.$slots.default);
+    return (
+      <div
+        class={['el-col', classList]}
+        style={style}>
+        {this.$slots.default}
+      </div>
+    );
   }
 };

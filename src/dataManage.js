@@ -12,6 +12,10 @@ import createFreightData from "./data_manage/child-components/create-freight-dat
 import checkWebData from "./data_manage/child-components/check-web-data.vue";
 import marketRuleData from "./data_manage/child-components/market-rule-data.vue";
 import dataSearch from "./data_manage/child-components/report-record.vue";
+
+import priceSourceData from "./data_manage/child-components/price_source_data.vue";
+import brandManageData from "./data_manage/child-components/brand_manage_data.vue";
+import carInfoData from "./data_manage/child-components/car_info_data.vue";
 Vue.use(VueRouter);
 Vue.use(VueResource);
 Vue.http.options.emulateJSON = true;
@@ -41,6 +45,10 @@ var router = new VueRouter({
 			{ path : '/check_web_data/:time', component : checkWebData },
 			{ path : '/market_rule_data', component : marketRuleData },
 			{ path : '/data_search', component : dataSearch },
+			
+			{ path : '/price_source_data', component : priceSourceData },
+			{ path : '/brand_manage_data', component : brandManageData },
+			{ path : '/car_info_data', component : carInfoData },
 		]}
 	]
 });

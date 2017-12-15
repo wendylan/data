@@ -1,9 +1,11 @@
 <script>
+    import headerbar from '../../components/admin-headerbar.vue';
 	// import echarts from "echarts";
     import ajaxCustom from '../../components/ajax-custom.js';
     import {Table, TableColumn, Select, Option} from 'element-ui';
 	export default{
         components : {
+            headerbar,
             elSelect : Select,
             elOption : Option,
             elTable : Table,
@@ -110,12 +112,8 @@
 
 </script>
 <template>
-    <div class="main-warpper">
-        <div class="tocenter">
-            <h1>品牌对比</h1>
-            <h4>多个品牌对比功能</h4>
-            <p>项目地址：...</p>
-
+    <headerbar active_number="1" :text="['品牌对比','多个品牌对比功能']">
+        <div>
             <el-table :data="tableData" :show-header="false" border >
                 <el-table-column align="center" prop="0" width="150px"></el-table-column>
                 <el-table-column>
@@ -153,17 +151,10 @@
                     </template>
                 </el-table-column>
             </el-table>
-
         </div>
-    </div>
+    </headerbar>
 </template>
 <style scoped>
-	.main-warpper{
-        width:1366px;
-        margin:auto;
-        padding:25px;
-        color:#1F2D3D;
-    }
     h1,h4{
         font-weight:400;
     }

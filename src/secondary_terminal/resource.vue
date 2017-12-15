@@ -1,14 +1,15 @@
 <script>
-	import headbar from "../components/agent-header.vue";
-	import titleBox from "../components/title-box.vue";
+	import headerbar from '../components/same-headerbar.vue';
+	import multiple from "../components/multiple.vue";
+	import addressUi from '../components/adds-input.vue';
 	import ajaxCustom from '../components/ajax-custom.js';
-	import addsInput from '../components/adds-input.vue';
-	import { Input, Select, Option, RadioGroup, Radio, DatePicker, Button, CheckboxGroup, Checkbox, Table, TableColumn, Tooltip} from 'element-ui';
+	import { Input, Select, Option, RadioGroup, Radio, DatePicker, Button, CheckboxGroup, Checkbox, Table, TableColumn, Tooltip, Loading, Dialog} from 'element-ui';
 	export default{
 		components : {
-			headbar,
-			titleBox,
-			addsInput,
+			headerbar,
+			addressUi,
+			multiple,
+			elDialog : Dialog,
 			elInput : Input,
 			elSelect : Select,
 			elOption : Option,
@@ -23,15 +24,17 @@
 			elTooltip : Tooltip,
 		},
 		created(){
-			this.getBrands();
+			// 获取固定框的品名,品牌,规格,材质
+			this.getInitData();
+			// 获取最开始的表格数据
+			this.getInitTable();
 		},
 		data(){
 			return {
-				city : '',
 				upper_limit : null||5,
 				floor_limit : null||5,
 				// 选中的当前品牌
-				brands : '',
+				brands : [],
 				// 品牌数据源
 				brandData : [],
 				// 选中的当前品名
@@ -47,8 +50,7 @@
 				// 材质数据源
 				materialGroup : [],
 				// 时间段/时间点
-				searchWay : 1,
-				timeSlot : true,
+				timeSlot : false,
 				timePoint : false,
 				//禁止选中日期（今日之后的日期）
                 pickerOptions: {
@@ -56,234 +58,448 @@
                         return time.getTime() > Date.now() ;
                     }
                 },
+                date : null,
                 // 选择时间段
-                foremost : null,
-                final : null,
+				dateRange : null,
+				// 表格的时间段
+				tableDateRange : null,
+				// 表格的时间点数组
+				dateArray : [],
                 // 选择时间点
                 forePoint : null,
                 // 表格数据
-                tableData : [
-					{
-						brand : "广钢",
-						product : "螺纹钢",
-						size : "18-25",
-						material : "HRB400E",
-						marketDiff : [28, 25, 25],
-						// todayMarDiff : 29,
-						// weekMarDiff : 25,
-						// monMarDiff : 25,
-						avgDiff : [26, 25, 25],
-						// todayAvgDiff : 29,
-						// weekAvgDiff : 29,
-						// monAvgDiff : 29,
-						// todayWebAvg : 29,
-						// weekWebAvg : 29,
-						// monWebAvg : 29,
-						webAvg : [3300, 3320, 3300] 
-					},
-					{
-						brand : "韶钢",
-						product : "螺纹钢",
-						size : "18-25",
-						material : "HRB400E",
-						marketDiff : [20, 25, 25],
-						// todayMarDiff : 29,
-						// weekMarDiff : 25,
-						// monMarDiff : 25,
-						avgDiff : [22, 25, 25],
-						// todayAvgDiff : 29,
-						// weekAvgDiff : 29,
-						// monAvgDiff : 29,
-						// todayWebAvg : 29,
-						// weekWebAvg : 29,
-						// monWebAvg : 29,
-						webAvg : [3300, 3320, 3300] 
-					},
-					{
-						brand : "粤钢",
-						product : "螺纹钢",
-						size : "18-25",
-						material : "HRB400E",
-						marketDiff : [27, 25, 25],
-						// todayMarDiff : 29,
-						// weekMarDiff : 25,
-						// monMarDiff : 25,
-						avgDiff : [23, 25, 25],
-						// todayAvgDiff : 29,
-						// weekAvgDiff : 29,
-						// monAvgDiff : 29,
-						// todayWebAvg : 29,
-						// weekWebAvg : 29,
-						// monWebAvg : 29,
-						webAvg : [3300, 3320, 3300] 
-					}
-                ],
-                marketDiff : true,
+                tableData : [],
+                analysisData : [],
+                // 运费
+                freight : null,
+                marketDiff : false,
                 avgDiff : true,
                 webAvg : true,
                 isShowOptions : false,
+                filterDatas : {
+					brands : []
+                },
+                filterArr : {
+					brands : []
+                },
+                // 请求后的材质规格数据数组
+                allData : [],
+                // 别名表
+                originalData : null,
+				displayLabel : {
+					web_price : {
+						date : true,
+						week : null,
+						month : null
+					},
+					spot_price : {
+						date : true,
+						week : null,
+						month : null
+					},
+					price_diff : {
+						date : true,
+						week : true,
+						month : true
+					},
+					cate_spec : {
+						steel : true,
+						disk : false,
+						highSpeedWire : false
+					}
+				},
+                tableLength : {
+					web_price : 1,
+					spot_price : 1,
+					price_diff : 3,
+                },
+                newestDataDate : { label : "", value : "" },
+                specOrder : {
+					"螺纹钢" : 2,
+					"盘螺" : 1,
+					"高线" : 0
+                },
+                popover : false,
+                canLoadData : true,
+                popoverData : [
+					{name : "螺纹钢", data : [], sizeLimit : "18-25E" },
+					{name : "盘螺", data : [], sizeLimit : "8-10E" },
+					{name : "高线", data : [], sizeLimit : "8-10" }
+				],
 			}
 		},
+		computed:{
+			chooseLength (){
+				return this.chooseArray.length;
+			},
+			chooseArray (){
+				let array = JSON.parse(JSON.stringify(this.dateArray));
+				if(this.tableDateRange){
+					array.push(this.tableDateRange);
+				}
+				return array;
+			},
+		},
 		methods : {
-			// 获取城市
-			getCity(adds){
-				this.city = adds.city;
-				console.log(this.city);
-			},
-			searchData(){
-				let data = {};
-				if(this.foremost !=undefined && this.final != undefined){
-					if(this.material != ''){
-						let foremost = new Date(this.foremost);
-						let final = new Date(this.final);
-						data.foremostDate = foremost.getTime()/1000;
-						data.finalDate = final.getTime()/1000 + 86400;
-						// data.upper_limit = this.upper_limit;
-						// data.floor_limit = this.floor_limit;
-						data.brand = this.brands.name;
-						data.product = this.product.name;
-						data.type = this.type.name;
-						data.material = this.material;
-						console.log(data);
-						ajaxCustom.ajaxPost(this, "dingoapi/seachHistoryPrice", {data}, (response)=>{
-							console.log(response);
-
-						}, (response)=>{
-							console.log(response);
-						});
-					}
-				}
-			},
-			getAvg(arr){
-				let sum = 0;
-				let undefinedCount = 0;
-				for(let i = 0 ; i < arr.length;i++){
-					if(arr[i] != undefined){
-						sum += arr[i];
-					}else{
-						undefinedCount++;
-					}
-				}
-				if(undefinedCount == arr.length){
-					alert("暂无数据");
-				}
-				let avg = parseInt(sum/(arr.length - undefinedCount));
-				return avg;
-			},
-			// 获取品牌
-			getBrands(){
-				ajaxCustom.ajaxGet(this, 'dingoapi/getFactorys', (response)=>{
-					console.log(response);
-					let brands = response.body.data;
-					this.brandData = [];
-					for(var i = 0; i < brands.length; i++){
-						this.brandData.push({ 'name' : brands[i].brand });
-					}
+			// 获取固定框的品名,品牌,规格,材质
+			getInitData(){
+				ajaxCustom.ajaxGet(this, 'dingoapi/getAllProduct', (response)=>{
+					response = response.body;
+					let brand = response.brand;
+					this.brandData = brand;
 				}, (response)=>{
-					console.log(response);
+					alert(response.body.message);
 				});
 			},
-			// 获取品名
-			getBrandsProduct(brand){
-				this.product = "";
-				if(brand){
-					ajaxCustom.ajaxPost(this, "dingoapi/getProductsData", {brand :brand.name}, (response)=>{
+			// 改变品牌
+			changBrand(brand){
+				if(brand.length){
+					ajaxCustom.ajaxGet(this, "dingoapi/getBrandGroupSpec", { params : { 'brand' : brand } }, (response)=>{
 						console.log(response);
-						brand.product = null;
-						let productData = response.body.data;
-						for(let i = 0; i < productData.length;i++){
-							this.getProductsData(brand, productData[i]);
+						this.allData = response.body.data;
+						let arr = [];
+						for(let product in this.allData ){
+							arr.push({ 'cate_spec' : this.allData[product].name, 'material' : this.allData[product].material });
 						}
-						this.productGroup = brand.product;
+						this.productGroup = arr;
 					}, (response)=>{
-						console.log(response);
+						alert(response.body.message);
 					});
 				}
 			},
-			// 获取规格
-			getProductsData(brand, data){
-				if(brand.product == null){
-					brand.product = [{ name : data.product, type : [{ name : data.type, material : [data.material]}] }];
-				}else{
-					for(let i = 0; i < brand.product.length; i++ ){
-						if(brand.product[i].name == data.product){
-							this.getTypeData(brand.product[i], data);
-							return;
+			// 改变品名
+			changProduct(product){
+				let arr = [];
+				let material = this.productGroup;
+				for(let i = 0; i < material.length;i++){
+					if(material[i].cate_spec == product){
+						let data = material[i].material;
+						for(let j= 0; j< data.length; j++){
+							arr.push({ 'material' : data[j].name, 'size' : data[j].size });
 						}
 					}
-					brand.product.push({ name : data.product, type : [{ name : data.type, material : [data.material]}]});
 				}
-			},
-			// 获取材质
-			getTypeData(product, data){
-				for(let i = 0; i < product.type.length; i++){
-					if(product.type[i].name == data.type){
-						this.getMaterialData(product.type[i], data);
-						return;
-					}
-				}
-				product.type.push({ name : data.type, material : [data.material]});
-			},
-			getMaterialData(type, data){
-				type.material.push(data.material);
-			},
-			// 改变规格
-			changeProduct(product){
-				this.type = '';
-				this.typeGroup = product.type;
+				this.materialGroup = arr;
 			},
 			// 改变材质
-			changeType(type){
-				this.material = '';
-				this.materialGroup = type.material;
+			changMaterial(material){
+				let arr = [];
+				let size = this.materialGroup;
+				for(let i = 0; i < size.length; i++){
+					if(size[i].material == material){
+						let data = size[i].size;
+						for(let j = 0; j < data.length; j++){
+							arr.push({ 'size' : data[j].name});
+						}
+					}
+				}
+				// 额外添加size段, 需要解析为单个size后提交
+				if(this.product == "螺纹钢"){
+					arr.push({ "size" : "18 - 25" });
+				}else if(this.product == "盘螺"){
+					arr.push({ "size" : "8 - 10" });
+				}
+				else{
+					arr.push({"size" : "8 - 10" });
+				}
+				this.typeGroup = arr;
 			},
-			changeMaterial(){
-				console.log(this.brands, this.product, this.type, this.material);
-				this.searchData();
+			// 获取最开始的表格数据
+			getInitTable(){
+				let loadingInstance = Loading.service({ fullscreen: true, text : "正在加载数据,请耐心等待..." });
+				ajaxCustom.ajaxGet(this, 'dingoapi/getResourceInfo', (response)=>{
+					// console.log(response);
+					let data = response.data.data;
+					this.date = response.data.date;
+					this.newestDataDate.value = this.getNewestDataDate(response.data.data);
+					this.newestDataDate.label = this.getDateString(this.newestDataDate.value);
+					this.tableData = this.dataHandle(data);
+					for(let item of this.tableData){
+						//网价数据
+						item.webDate = this.calDateData(this.newestDataDate.value, 'web', item.data);
+						item.previousWebDate = this.getPreviousDateData(this.newestDataDate.value, 'web', item.data);
+						item.webDateFloat = this.getFloatString(item.previousWebDate, item.webDate);
+
+						item.webWeekAvg = this.getDaysAvg(7, 'web', item.data);
+						item.previousWebWeekAvg = this.getDaysAvg(7, 'web', item.data, 6);
+						item.webWeekAvgFloat = this.getFloatString(item.previousWebWeekAvg, item.webWeekAvg);
+
+						item.webMountAvg = this.getDaysAvg(30, 'web', item.data);
+						//现货价数据
+						item.spotDate = this.calDateData(this.newestDataDate.value, 'spot', item.data);
+						item.previousSpotDate = this.getPreviousDateData(this.newestDataDate.value, 'spot', item.data);
+						item.spotDateFloat = this.getFloatString(item.previousSpotDate, item.spotDate);
+
+						item.spotWeekAvg = this.getDaysAvg(7, 'spot', item.data);
+						item.previousSpotWeekAvg = this.getDaysAvg(7, 'spot', item.data, 6);
+						item.spotWeekAvgFloat = this.getFloatString(item.previousSpotWeekAvg, item.spotWeekAvg);
+
+						item.spotMountAvg = this.getDaysAvg(30, 'spot', item.data);
+						//价差（网-现）数据
+						item.diffDate = this.calDateData(this.newestDataDate.value, 'price_diff', item.data);
+						item.previousDiffDate = this.getPreviousDateData(this.newestDataDate.value, 'price_diff', item.data);
+						item.diffDateFloat = this.getFloatString(item.previousDiffDate, item.diffDate);
+
+						item.diffWeekAvg = this.getDaysAvg(7, 'price_diff', item.data);
+						item.previousDiffWeekAvg = this.getDaysAvg(7, 'price_diff', item.data, 6);
+						item.diffWeekAvgFloat = this.getFloatString(item.previousDiffWeekAvg, item.diffWeekAvg);
+
+						item.diffMountAvg = this.getDaysAvg(30, 'price_diff', item.data);
+						//到货价差预处理｛不然会报undefined异常｝
+						item.descDiffDateFloat = {};
+						item.descDiffWeekFloat = {};
+						if(item.cate_spec=="螺纹钢"){
+							item.display = true;
+						}else{
+							item.display = false;
+						}
+					}
+					// console.log(this.tableData);
+					// 默认广州仓今天/昨日价格从大到小
+					this.sortTableLine('desc', '', 'diffDate', this.tableData);
+					// 品牌筛选过滤
+					this.filterDatas.brands = this.filterDatasFunc(this.filterDatas, this.tableData);
+					loadingInstance.close();
+				}, (response)=>{
+					alert(response.body.message);
+					loadingInstance.close();
+				});
+			},
+			//计算最新报价的上一次报价，用于计算最新报价浮动
+			getPreviousDateData(date, key, data){
+				for(let item of data){
+					if(item.date!=date){
+						return item[key];
+					}
+				}
+				return null;
+			},
+			//计算最近一周的上一周报价，用于计算最新报价浮动
+			getPreviousWeekData(data){
+				console.log(data);
+			},
+			calDateData(date, key, data){
+				for(let item of data){
+					if(item.date==date){
+						return item[key];
+					}
+				}
+				return null;
+			},
+			dataHandle(data){
+				let items = [];
+				let disk = [];
+				let highSpeedWire = [];
+				for (var i = 0; i < data.length; i++) {
+					items=this.formatData(data[i].data, items, "HRB400E", "18-25", "螺纹钢");
+					disk=this.formatData(data[i].disk, disk, "HRB400E", "8-10", "盘螺");
+					highSpeedWire=this.formatData(data[i].highSpeedWire, highSpeedWire, "HPB300", "8-10", "高线");
+				}
+				items = this.arrayPush(items, disk);
+				items = this.arrayPush(items, highSpeedWire);
+				return items;
+			},
+			arrayPush(addedArray, addArray){
+				for(let item of addArray){
+					addedArray.push(item);
+				}
+				return addedArray;
+			},
+			formatData(data, items, material, size, cate_spec){
+				if(data.data.length){
+					let arrayItems = data.data;
+					for(let item of arrayItems){
+						item.date = data.date;
+						let door = 1;
+						for (var j = 0; j < items.length; j++) {
+							if(items[j].brand == item.brand){
+								door = 0;
+								items[j].data.push(item);
+							}
+						}
+						if(door){
+							let brandData = {
+								'brand':item.brand,
+								'material':material,
+								'size':size,
+								'cate_spec':cate_spec,
+								'data':[]
+							};
+							brandData.data.push(item);
+							items.push(brandData);
+						}
+					}
+				}
+				return items;
+			},
+			getDaysAvg(days, key, data, startdDay){
+				let endTime = (Date.parse(new Date(this.date)))-(days*86400000);
+				let startTime = Number.POSITIVE_INFINITY;
+				if(startdDay){
+					startTime = (Date.parse(new Date(this.date)))-(startdDay*86400000);
+					endTime = (Date.parse(new Date(this.date)))-(days*86400000)-(startdDay*86400000);
+				}
+				let sum = 0;
+				let count = 0;
+				let result = null;
+				for(let item of data){
+					let time = Date.parse(new Date(item.date));
+					if(time<startTime && time > endTime){
+						sum += item[key]
+						count += 1;
+					}
+				}
+				if(count){
+					result = parseInt(sum/count);
+				}
+				return result;
+			},
+			getNewestDataDate(data){
+				// console.log('icon',data);
+				for (var i = 0; i < data.length; i++) {
+					// console.log(data[i]);
+					if(data[i].sopt.length&&data[i].web.length){
+						return data[i].date;
+					}
+				}
+				return null;
+			},
+			getDateString(date){
+				if(Date.parse(this.date)==Date.parse(date)){
+					return "今日";
+				}else if((Date.parse(this.date)-86400000)==Date.parse(date)){
+					return "昨日";
+				}else{
+					return date;
+				}
+			},
+			//相较上次浮动数据处理
+			getFloatString(oldValue, newValue){
+				let float = parseInt(newValue) - parseInt(oldValue);
+				if(isNaN(float)){
+					return { vlaue : "", type : 3};
+				}
+				if(float > 0){
+					return { value : ("↑"+float), type : 0};
+				}
+				if(float==0){
+					return {value : "-平", type : 2};
+				}
+				if(float<0){
+					return {value : ("↓"+(-1*float)), type : 1};
+				}
+			},
+			// 获取地址进行运费计算
+			getAddressData(adds){			//地址
+				this.marketDiff = true;
+				console.log(adds);
+				if((!(adds.city&&adds.area))||(adds.area=="")){
+					this.marketDiff = false;
+					return;
+				}
+				this.getFreight(adds.city, adds.area);
+			},
+			// 获取运费
+			getFreight(city, area){
+				ajaxCustom.ajaxGet(this, 'dingoapi/getFreightByCity', { params : { 'city' : city, 'area' : area }}, (response)=>{
+					console.log(response);
+					this.freight = response.body.data;
+					let tableInfo = this.tableData;
+					tableInfo = this.spotAddFreight(tableInfo, this.freight.warehouse);
+					this.tableData.push();
+					console.log(tableInfo);
+					// 今日到货平均差
+					this.descHandle();
+				}, (response)=>{
+					alert(response.body.message);
+				});
+			},
+
+			// 计算运费
+			spotAddFreight(spotPrice, freight){
+				if(!freight){
+					alert('没有到该区域运费地运费数据');
+					return;
+				}
+				for(let item of this.tableData){
+					for (var i = 0; i < item.data.length; i++) {
+						item.data[i].desc_diff = item.data[i].price_diff - freight;
+					}
+
+					item.descDiffDate = this.calDateData(this.newestDataDate.value, 'desc_diff', item.data);
+					item.previousDescDiffDate = this.getPreviousDateData(this.newestDataDate.value, 'desc_diff', item.data);
+					item.descDiffDateFloat = this.getFloatString(item.previousDescDiffDate, item.descDiffDate);
+
+					item.descDiffWeek = this.getDaysAvg(7, 'desc_diff', item.data);
+					item.previousDiffWeekAvg = this.getDaysAvg(7, 'desc_diff', item.data, 6);
+					item.descDiffWeekFloat = this.getFloatString(item.previousDiffWeekAvg, item.descDiffWeek);
+
+					item.descDiffMount = this.getDaysAvg(30, 'desc_diff', item.data);
+				}
+				return spotPrice;
 			},
 			// 时间段
-			foreDate(foremost){
-				if(foremost){
-					foremost = this.dateFormat(foremost);
-					console.log(foremost);
-				}
-			},
-			finalDate(final){
-				if(final){
-					final = this.dateFormat(final);
-					console.log(final);
-				}
+			changDateRange(daterange){
+				this.analysisData = [];
+				// console.log(daterange);
+				this.tableDateRange = daterange;
 			},
 			// 时间点
 			forePointDate(forePoint){
+				this.analysisData = [];
 				if(forePoint){
 					forePoint = this.dateFormat(forePoint);
-					console.log(forePoint);
+					let dateArr = this.dateArray;
+					let menu = 1;
+					for(let i = 0; i < dateArr.length;i++ ){
+						if(dateArr[i] == forePoint){
+							menu = 0;
+						}
+					}
+					if(menu){
+						this.dateArray.unshift(forePoint);
+					}
 				}
+				this.forePoint = '';
+				this.dateArray.sort();
+			},
+			// 删除时间点
+			delOne(index){
+				let dateArr = this.dateArray;
+				dateArr.splice(index, 1);
 			},
 			// 清空数据函数
 			clearAllData(){
-				this.brands = '';
-				this.productGroup = '';
-				this.foremost = '';
-				this.final = '';
+				this.brands = [];
+				this.product = '';
+				this.type = '';
+				this.material = '';
+				this.timeSlot = false;
+				this.timePoint = false;
+				this.dateRange = '';
 				this.forePoint = '';
+				this.dateArray = [];
+				// 品牌筛选过滤
+				this.filterDatas.brands = this.filterDatasFunc(this.filterDatas, this.tableData);
+			},
+			filterDatasFunc(filterDataArr, dataArr){
+				filterDataArr.brands = [];
+				for(let item of dataArr){
+					let door = 1;
+					for(let data of filterDataArr.brands){
+						if(data.text == item.brand){
+							door = 0;
+						}
+					}
+					if(door){
+						filterDataArr.brands.push({ text : item.brand, value : item.brand });
+					}
+				}
+				return filterDataArr.brands;
 			},
 			// 控制左边的弹出框
 			showBox(){
 				this.isShowOptions = !this.isShowOptions;
-			},
-			// 对数据进行排序
-			sortTable(methods){
-				if( methods == "asce" ){
-					this.tableData.sort(function(a, b){
-						return a - b;
-					});
-				}else{
-					this.tableData.sort(function(a, b){
-						return b - a;
-					});
-				}
 			},
 			//日期对象格式化
 			dateFormat(date){
@@ -299,105 +515,648 @@
 				var dateTime = year + "-" + month + "-" +day;
 				return dateTime;
 			},
+			// 查询时间段时间点数据
+			search(){
+				this.filterDatas.brands = [];
+				let data = {};
+				data.timePart = this.tableDateRange;
+				data.timePoints = this.dateArray;
+				data.discardTopPart = this.upper_limit;
+				data.discardBottomPart = this.floor_limit;
+				data.brands = this.brands;
+				data.spec = this.product;
+				data.size = this.type;
+				data.material = this.material;
+				// console.log(data.timePart);
+				let loadingInstance = Loading.service({ fullscreen: true, text : "正在加载数据..." });
+				ajaxCustom.ajaxGet(this, "dingoapi/getResourceAnalysis", {params : { data }}, (response)=>{
+					console.log(response);
+					this.analysisData = [];
+					this.originalData = response.body;
+					let timePointsData = response.body.timePointsData;
+					for (var i = 0; i < this.brands.length; i++){
+						this.analysisData.push({'brand' : this.brands[i], 'spec' : this.product, 'size' : this.type, 'material' : this.material, 'display' : true });
+						for (var j = 0; j < this.dateArray.length; j++) {
+							let date = this.dateArray[j];
+							this.analysisData[i][date] = {};
+							for(let item in timePointsData){
+								if (timePointsData[item].brand == this.brands[i]) {
+									for (let redate in timePointsData[item].prices)  {
+										if (redate == date) {
+											let price = this.analysisData[i][date];
+											price.soptPrice=timePointsData[item].prices[date].price;
+											price.webPrice=timePointsData[item].prices[date].web_price;
+											this.analysisData[i][date].priceDiff = 0;
+											if(price.soptPrice&&price.webPrice){
+												this.analysisData[i][date].priceDiff = timePointsData[item].prices[date].web_price - timePointsData[item].prices[date].price;
+											}
+											if(this.freight&&price.soptPrice&&price.webPrice){
+												this.analysisData[i][date].desPriceDiff=
+												timePointsData[item].prices[date].web_price - timePointsData[item].prices[date].price - this.freight.warehouse;
+											}
+										}
+									}
+								}
+							}
+						}
+						this.analysisData[i][this.tableDateRange] = this.getPartData(response.body.timePartData, this.brands[i]);
+
+						// this.filterDatas.brands.push({ text : this.brands[i], value : this.brands[i] });
+						this.filterDatas.brands = this.filterDatasFunc(this.filterDatas, this.analysisData);
+					}
+					this.isShowOptions = !this.isShowOptions;
+					loadingInstance.close();
+				}, (response)=>{
+					alert(response.body.message);
+					loadingInstance.close();
+				});
+			},
+			// 时间点时间段的数据的平均包到价差,平均价差,平均网价
+			getPartData(data, brand){
+				let priceDiffAll = [];
+				let desPriceDiffAll = [];
+				let webPriceAll = [];
+				for (var i = 0; i < data.length; i++) {
+					if(data[i].brand==brand){
+						let dataDate = data[i].prices;
+						for(let item in dataDate){
+							if(dataDate[item].web_price){
+								webPriceAll.push(dataDate[item].web_price);
+								if(dataDate[item].price){
+									priceDiffAll.push(dataDate[item].web_price-dataDate[item].price);
+									if(this.freight){
+										desPriceDiffAll.push(dataDate[item].web_price-dataDate[item].price-this.freight.warehouse);
+									}
+								}
+							}
+						}
+					}
+				}
+				let desPriceDiff = 0;
+				if(this.freight){
+					desPriceDiff = this.avgPrice(desPriceDiffAll);
+				}
+				let priceDiff = this.avgPrice(priceDiffAll);
+				let webPrice = this.avgPrice(webPriceAll);
+				return {'priceDiff' : priceDiff, 'desPriceDiff' : desPriceDiff, 'webPrice' : webPrice };
+			},
+			// 求平均
+			avgPrice(arr){
+				let sum = 0;
+				for(let i = 0; i < arr.length; i++){
+					sum += arr[i];
+				}
+				let avg = parseInt(sum/arr.length);
+				return avg;
+			},
+			// 表格数据排序
+			sortTableLine(methods, value, key, arr){
+				let tmp = this.sortFunc(methods, value, key, arr);
+				if(arr==this.tableData){
+					this.tableData = tmp;
+					this.tableData.push();
+				}else if(arr == this.analysisData){
+					this.analysisData = tmp;
+					this.analysisData.push();
+				}
+				return tmp;
+			},
+			sortFunc(methods, value, key, arr){
+				for(let i=0; i<arr.length;i++){
+					for(let j=0;j<arr.length-1;j++){
+						if(this.judgeResult(methods, value, key, arr[j], arr[j+1])){
+							let temp = arr[j+1];
+							arr[j+1] = arr[j];
+							arr[j] = temp;
+						}
+					}
+				}
+				return arr;
+			},
+			judgeResult(methods, value, key, a, b){
+				if(methods == "desc"){
+					if(value){
+						return a[value][key] < b[value][key];
+					}
+					let result = a[key]<b[key];
+					return this.specJudge(a, b, result);
+				}else{
+					if(value){
+						return a[value][key] > b[value][key];
+					}
+					let result = a[key] > b[key];
+					return this.specJudge(a, b, result);
+				}
+			},
+			specJudge(a, b, result){
+				if(this.specOrder[a['cate_spec']]<this.specOrder[b['cate_spec']]){
+					return true;
+				}else if(this.specOrder[a['cate_spec']]>this.specOrder[b['cate_spec']]){
+					return false;
+				}else{
+					return result;
+				}
+			},
+			// 品牌筛选
+			sortTable(data){
+				this.filterArr.brands = data;
+				// 清空选项时 重置表格
+				if( !this.filterArr.brands.length){
+					for(let _data of this.tableData){
+						_data.display = true;
+					}
+
+				}else{
+					for(let _data of this.tableData){
+						_data.display = false;
+					}
+					for(let lineData of this.tableData ){
+						for(let tmp of this.filterArr.brands){
+							if(lineData.brand == tmp){
+								lineData.display = true;
+								this.$set(lineData, 'display', true);
+							}
+						}
+					}
+				}
+				console.log(this.tableData.push());
+				// 解决浏览器不刷新问题
+				this.tableData.push();
+			},
+			// 时间点时间段的品牌筛选
+			sortTableTime(data){
+				console.log(data);
+				this.filterArr.brands = data;
+				// 清空选项时 重置表格
+				if( !this.filterArr.brands.length){
+					for(let _data of this.analysisData){
+						_data.display = true;
+					}
+
+				}else{
+					for(let _data of this.analysisData){
+						_data.display = false;
+					}
+
+					for(let lineData of this.analysisData ){
+						for(let tmp of this.filterArr.brands){
+							if(lineData.brand == tmp){
+								lineData.display = true;
+							}
+						}
+					}
+				}
+			},
+			moreInfo(brand){
+				this.$router.push("/brandManage?brand="+ brand);
+			},
+			descHandle(){
+				if(!this.originalData){
+					return ;
+				}
+				let data = this.getDesPriceDiffData(this.originalData);
+				for (var i = 0; i < this.analysisData.length; i++) {
+					for (var j = 0; j < data.length; j++) {
+						if(data[j].brand == this.analysisData[i].brand){
+							this.analysisData[i][data[j].key]['desPriceDiff'] =  data[j].desPriceDiff;
+						}
+					}
+				}
+				this.analysisData.push();
+				console.log(this.analysisData);
+			},
+			getDesPriceDiffData(data){
+				let timePartData = data.timePartData;
+				let timePointsData = data.timePointsData;
+				let rData = [];
+				for (let i = 0; i < timePartData.length; i++) {
+					let sum = 0;
+					let count = 0;
+					let result = '-';
+					for(let item in timePartData[i].prices){
+						let desPriceDiff = this.catDesPriceDiff(timePartData[i].prices[item]);
+						if(!isNaN(desPriceDiff)){
+							sum += desPriceDiff;
+							count += 1;
+						}
+					}
+					if(count){
+						result = parseInt(sum/count);
+					}
+					rData.push({key : this.tableDateRange, brand : timePartData[i].brand, desPriceDiff : result});
+				}
+				for (let i = 0; i < timePointsData.length; i++) {
+					for(let item in timePointsData[i].prices){
+						let result = this.catDesPriceDiff(timePointsData[i].prices[item]);
+						if(isNaN(result)){
+							result = '-';
+						}
+						rData.push({ key : item, brand : timePointsData[i].brand, desPriceDiff : result });
+					}
+				}
+				return rData;
+			},
+			catDesPriceDiff(item){
+				if(!(item.price&&item.web_price)){
+					return NaN;
+				}
+				return item.web_price-item.price-parseInt(this.freight.warehouse);
+			},
+			tableHeadLengthCal(key){
+				let count = 0;
+				for(let item in this.displayLabel[key]){
+					if(this.displayLabel[key][item]){
+						count += 1;
+					}
+				}
+				this.tableLength[key] = count;
+			},
+			tableHandleDisPlay(cate){
+				for (var i = 0; i < this.tableData.length; i++) {
+					if(cate == this.tableData[i].cate_spec){
+						this.tableData[i].display = !this.tableData[i].display;
+					}
+				}
+				this.tableData.push();
+			},
+			checkIndex(){
+				let popoverData = this.popoverData;
+				let tableData = this.tableData;
+				if(this.canLoadData){
+					for(let item of tableData){
+						for (var i = 0; i < popoverData.length; i++) {
+							if(popoverData[i].name == item.cate_spec && item.spotDate){
+								popoverData[i].data.push(item);
+								break;
+							}
+						}
+					}
+					this.canLoadData = false;
+				}
+				this.popover = true;
+			},
+			sortPopoverData(methods, key, index){
+				this.popoverData[index].data = this.sortFunc(methods, null, key, this.popoverData[index].data);
+				this.popoverData[index].data.push();
+			},
+			getFontColor(type){
+				if(type==0){
+					return "red_font";
+				}
+				if(type==1){
+					return "green_font";
+				}
+				if(type==2){
+					return "yellow_font";
+				}
+			}
 		},
 	}
-</script>
-<template>
+	</script>
+	<template>
 	<div>
-		<headbar :active_number="3"></headbar>
-		<div class="main-warpper">
-			<title-box :text="['资源推荐','推荐区域优势品牌']"></title-box>
+		<headerbar active_number="3" :identity="2" :text="['资源推荐','推荐区域优势品牌']">
 			<div>
-				<span>选择送达地区: 广东省</span>
-				<adds-input province="广东" @change="getCity"></adds-input>
-			</div>
-			<div style="margin-top:20px;">
-				<span>
-					<b>显示项:</b>
-				</span>
-				<el-checkbox label="平均包到价差" v-model="marketDiff"></el-checkbox>
-				<el-checkbox label="平均价差" v-model="avgDiff"></el-checkbox>
-				<el-checkbox label="平均网价" v-model="webAvg"></el-checkbox>
-				<span style="float:right">单位:元/吨</span>
+				<div class="addr_box">
+					<span> 选择送达地区: 广东省</span>
+					<address-ui province="广东" grade="1" @getAddressData='getAddressData' ></address-ui>
+					<el-button type="primary" size="small" style="float:right;" @click="checkIndex">最新指数</el-button>
+				</div>
+				<el-dialog v-model="popover"  title="广东区域市场最新指数"  size="large" style="text-align:center;">
+					<div style="float:left;width:33%;margin-top:0px;margin-bottom:50px;" v-for="(item,_index) in popoverData">
+						<table>
+							<thead>
+								<tr>
+									<th :colspan="5">{{ item.name+item.sizeLimit }}</th>
+								</tr>
+								<tr>
+									<th>序列</th>
+									<th>钢厂</th>
+									<th>现货价
+										<div class="sort-icon">
+											<div @click="sortPopoverData('asce','spotDate',_index)">▲</div>
+											<div @click="sortPopoverData('desc','spotDate',_index)" style="margin-top:-3px;">▼</div>
+										</div>
+									</th>
+									<th>网价
+										<div class="sort-icon">
+											<div @click="sortPopoverData('asce','webDate',_index)">▲</div>
+											<div @click="sortPopoverData('desc','webDate',_index)" style="margin-top:-3px;">▼</div>
+										</div>
+									</th>
+									<th>价差
+										<div class="sort-icon">
+											<div @click="sortPopoverData('asce','diffDate',_index)">▲</div>
+											<div @click="sortPopoverData('desc','diffDate',_index)" style="margin-top:-3px;">▼</div>
+										</div>
+									</th>
+								</tr>
+							</thead>
 
-				<!-- <el-table :data="tableData" border style="margin-top:20px;">
-					<el-table-column prop="brand" label="推荐品牌"></el-table-column>
-					<el-table-column prop="product" label="品名"></el-table-column>
-					<el-table-column prop="size" label="规格"></el-table-column>
-					<el-table-column prop="material" label="材质" width="100"></el-table-column>
-					<el-table-column label="到货平均价差(网价：到货价)" >
-						<el-table-column label="今日" prop="todayMarDiff"></el-table-column>
-						<el-table-column label="近一周" prop="weekMarDiff"></el-table-column>
-						<el-table-column label="近一月" prop="monMarDiff"></el-table-column>
-					</el-table-column>
-					<el-table-column label="广州仓平均价差(网价：现货价)" >
-						<el-table-column label="今日" prop="todayAvgDiff"></el-table-column>
-						<el-table-column label="近一周" prop="weekAvgDiff"></el-table-column>
-						<el-table-column label="近一月" prop="monAvgDiff"></el-table-column>
-					</el-table-column>
-					<el-table-column label="平均网价" >
-						<el-table-column label="今日" prop="todayWebAvg"></el-table-column>
-						<el-table-column label="近一周" prop="weekWebAvg"></el-table-column>
-						<el-table-column label="近一月" prop="monWebAvg"></el-table-column>
-					</el-table-column>
-				</el-table> -->
+							<tbody>
+								<tr v-for="(li, index) in item.data">
+									<td>{{index}}</td>
+									<td>{{li.brand}}</td>
+									<td>
+										{{li.spotDate}}
+										<font :class="getFontColor(li.spotDateFloat.type)">{{li.spotDateFloat.value}}</font>
+									</td>
+									<td>
+										{{li.webDate}}
+										<font :class="getFontColor(li.webDateFloat.type)">{{li.webDateFloat.value}}</font>
+									</td>
+									<td>
+										{{li.diffDate}}
+										<font :class="getFontColor(li.diffDateFloat.type)">{{li.diffDateFloat.value}}</font>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</el-dialog>
+				<div class="price_box">
+					<template v-if="!(timeSlot || timePoint)" >
+						<span><b>显示项 :</b></span>
+						<div>
+							<label style="width: 60px">现货价</label>
+							<el-checkbox label="最新" v-model="displayLabel.spot_price.date" @change="tableHeadLengthCal('spot_price')"></el-checkbox>
+							<el-checkbox label="周" v-model="displayLabel.spot_price.week"  @change="tableHeadLengthCal('spot_price')"></el-checkbox>
+							<el-checkbox label="月" v-model="displayLabel.spot_price.month"  @change="tableHeadLengthCal('spot_price')"></el-checkbox>
+						</div>
+						<div>
+							<label style="width: 60px">网价</label>
+							<el-checkbox label="最新" v-model="displayLabel.web_price.date" @change="tableHeadLengthCal('web_price')"></el-checkbox>
+							<el-checkbox label="周" v-model="displayLabel.web_price.week" @change="tableHeadLengthCal('web_price')"></el-checkbox>
+							<el-checkbox label="月" v-model="displayLabel.web_price.month" @change="tableHeadLengthCal('web_price')"></el-checkbox>
+						</div>
+						<div>
+							<label style="width: 60px">差价</label>
+							<el-checkbox label="最新" v-model="displayLabel.price_diff.date" @change="tableHeadLengthCal('price_diff')"></el-checkbox>
+							<el-checkbox label="周" v-model="displayLabel.price_diff.week" @change="tableHeadLengthCal('price_diff')"></el-checkbox>
+							<el-checkbox label="月" v-model="displayLabel.price_diff.month" @change="tableHeadLengthCal('price_diff')"></el-checkbox>
+						</div>
+						<div>
+							<label style="width: 60px">品名</label>
+							<el-checkbox label="螺纹钢" v-model="displayLabel.cate_spec.steel" @change="tableHandleDisPlay('螺纹钢')"></el-checkbox>
+							<el-checkbox label="盘螺" v-model="displayLabel.cate_spec.disk" @change="tableHandleDisPlay('盘螺')"></el-checkbox>
+							<el-checkbox label="高线" v-model="displayLabel.cate_spec.highSpeedWire" @change="tableHandleDisPlay('高线')"></el-checkbox>
+						</div>
+						<span style="float:right">单位:元/吨</span>
+					</template>
 
-				<!-- table数据 -->
-				<table>
-					<thead>
-						<tr>
-							<th rowspan="2">推荐品牌</th>
+					<!-- 选择时间段时间点的table数据 -->
+					<table v-if="timeSlot || timePoint">
+						<thead>
+							<th rowspan="2">
+								<multiple name="推荐品牌" :options="filterDatas.brands" v-on:selectedArr="sortTableTime"></multiple>
+							</th>
 							<th rowspan="2">品名</th>
 							<th rowspan="2">规格</th>
 							<th rowspan="2">材质</th>
-							<th colspan="3" v-if="marketDiff">到货平均价差
-								 <el-tooltip class="item" content="平均包到价差 =选中日期内,网价与市场包到价之差的平均数" placement="top">
-									<span>(网价:到货价)</span>
+							<th :colspan="chooseLength" v-if="marketDiff">到货平均价差
+								 <el-tooltip class="item" content="平均包到价差 = 选中日期内,网价与市场包到价之差的平均数" placement="top">
+									<span>(网价-到货价)</span>
 								</el-tooltip>
 							</th>
-							<th colspan="3" v-if="avgDiff">广州仓平均价差
+							<th :colspan="chooseLength" v-if="avgDiff">广州仓平均价差
 								<el-tooltip class="item" style="font-weight:none;" content="平均价差 =选中日期内,网价与市场价之差的平均数" placement="top">
-									<span>(网价:现货价)</span><span style="display:inline-block;width:20px;background:#dedede;border-radious:50%;">?</span>
+									<span>(网价-现货价)</span><span style="display:inline-block;width:20px;background:#dedede;border-radious:50%;">?</span>
 								</el-tooltip>
 							</th>
-							<th colspan="3" v-if="webAvg">平均网价</th>
-						</tr>
-						<tr>
-							<template v-if="marketDiff">
-								<td>今日</td>
-								<td>近一周</td>
-								<td>近一月</td>
-							</template>
-							<template  v-if="avgDiff">
-								<td>今日</td>
-								<td>近一周</td>
-								<td>近一月</td>
-							</template>
-							<template v-if="webAvg">
-								<td>今日</td>
-								<td>近一周</td>
-								<td>近一月</td>
-							</template>
-						</tr>
-					</thead>
-					<tbody>
-						<tr v-for="item in tableData">
-							<td><a href="#">{{item.brand}}</a></td>
-							<td>{{item.product}}</td>
-							<td>{{item.size}}</td>
-							<td>{{item.material}}</td>
-							<td v-for="data in item.marketDiff" v-if="marketDiff">{{data}}</td>
-							<td v-for="data in item.avgDiff" v-if="avgDiff">{{data}}</td>
-							<td v-for="data in item.webAvg" v-if="webAvg">{{data}}</td>
-						</tr>
-					</tbody>
-				</table>
+							<th :colspan="chooseLength" v-if="webAvg">平均网价</th>
+							<tr>
+								<template v-if="marketDiff">
+									<td v-for='item in chooseArray'>{{item}}
+										<div class="sort-icon">
+											<div @click="sortTableLine('asce', item, 'desPriceDiff', analysisData)">▲</div>
+											<div @click="sortTableLine('desc', item, 'desPriceDiff', analysisData)" style="margin-top:-3px;">▼</div>
+										</div>
+									</td>
+								</template>
+								<template  v-if="avgDiff">
+									<td v-for='item in chooseArray'>{{item}}
+										<div class="sort-icon">
+											<div @click="sortTableLine('asce', item, 'priceDiff', analysisData)">▲</div>
+											<div @click="sortTableLine('desc', item, 'priceDiff', analysisData)" style="margin-top:-3px;">▼</div>
+										</div>
+									</td>
+								</template>
+								<template v-if="webAvg">
+									<td v-for='item in chooseArray'>{{item}}
+										<div class="sort-icon">
+											<div @click="sortTableLine('asce', item, 'webPrice', analysisData)">▲</div>
+											<div @click="sortTableLine('desc', item, 'webPrice', analysisData)" style="margin-top:-3px;">▼</div>
+										</div>
+									</td>
+								</template>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="item in analysisData">
+								<template v-if="item.display">
+									<td>
+										<a href="javascript:void(0)" @click="moreInfo(item.brand)">{{item.brand}}</a>
+									</td>
+									<td>{{ item.spec }}</td>
+									<td>{{ item.size }}</td>
+									<td>{{ item.material }}</td>
+									<template v-if="marketDiff" v-for="date in chooseArray">
+										<td>{{ item[date].desPriceDiff ? item[date].desPriceDiff  : '-' }}</td>
+									</template>
+									<template v-if="avgDiff" v-for="date in chooseArray">
+										<td>{{ item[date].priceDiff ? item[date].priceDiff : '-'  }}</td>
+									</template>
+									<template v-if="webAvg" v-for="date in chooseArray">
+										<td>{{ item[date].webPrice ? item[date].webPrice : '-' }}</td>
+									</template>
+								</template>
+							</tr>
+						</tbody>
+					</table>
+
+					<!-- 今日近一周近一月table数据 -->
+					<table v-else>
+						<thead>
+							<tr>
+								<th rowspan="2">
+									<multiple name="推荐品牌" :options="filterDatas.brands" v-on:selectedArr="sortTable"></multiple>
+								</th>
+								<th rowspan="2">品名</th>
+								<th rowspan="2">规格</th>
+								<th rowspan="2">材质</th>
+								<th :colspan="tableLength.price_diff" v-if="(marketDiff) && (displayLabel.price_diff.date || displayLabel.price_diff.week || displayLabel.price_diff.month)">到货平均价差
+									 <el-tooltip class="item" content="平均包到价差 =选中日期内,网价与市场包到价之差的平均数" placement="top">
+										<span>(网价-到货价)</span>
+									</el-tooltip>
+								</th>
+								<th :colspan="tableLength.price_diff" v-if="(!marketDiff) && (displayLabel.price_diff.date || displayLabel.price_diff.week || displayLabel.price_diff.month)" >广州仓平均价差
+									<el-tooltip class="item" style="font-weight:none;" content="平均价差 =选中日期内,网价与市场价之差的平均数" placement="top">
+										<span>(网价-现货价)</span><span style="display:inline-block;width:20px;background:#dedede;border-radious:50%;">?</span>
+									</el-tooltip>
+								</th>
+								<th :colspan="tableLength.web_price" v-if="displayLabel.web_price.date || displayLabel.web_price.week || displayLabel.web_price.month" >平均网价</th>
+								<th :colspan="tableLength.spot_price" v-if="displayLabel.spot_price.date || displayLabel.spot_price.week || displayLabel.spot_price.month" >平均现货价</th>
+							</tr>
+							<tr>
+								<template v-if="marketDiff">
+									<td v-if="displayLabel.price_diff.date" >{{newestDataDate.label}}
+										<div class="sort-icon">
+											<div @click="sortTableLine('asce', '', 'descDiffDate', tableData )">▲</div>
+											<div @click="sortTableLine('desc', '', 'descDiffDate', tableData)" style="margin-top:-3px;">▼</div>
+										</div>
+									</td>
+									<td v-if="displayLabel.price_diff.week" >近一周
+										<div class="sort-icon">
+											<div @click="sortTableLine('asce', '', 'descDiffWeek', tableData)">▲</div>
+											<div @click="sortTableLine('desc', '', 'descDiffWeek', tableData)" style="margin-top:-3px;">▼</div>
+										</div>
+									</td>
+									<td v-if="displayLabel.price_diff.month" >近一月
+										<div class="sort-icon">
+											<div @click="sortTableLine('asce','', 'descDiffMount', tableData)">▲</div>
+											<div @click="sortTableLine('desc','', 'descDiffMount', tableData)" style="margin-top:-3px;">▼</div>
+										</div>
+									</td>
+								</template>
+								<template  v-if="!marketDiff">
+									<td v-if="displayLabel.price_diff.date" >{{newestDataDate.label}}
+										<div class="sort-icon">
+											<div @click="sortTableLine('asce','', 'diffDate', tableData)">▲</div>
+											<div @click="sortTableLine('desc', '', 'diffDate', tableData)" style="margin-top:-3px;">▼</div>
+										</div>
+									</td>
+									<td v-if="displayLabel.price_diff.week" >近一周
+										<div class="sort-icon">
+											<div @click="sortTableLine('asce', '', 'diffWeekAvg', tableData)">▲</div>
+											<div @click="sortTableLine('desc', '', 'diffWeekAvg', tableData)" style="margin-top:-3px;">▼</div>
+										</div>
+									</td>
+									<td v-if="displayLabel.price_diff.month" >近一月
+										<div class="sort-icon">
+											<div @click="sortTableLine('asce', '', 'diffMountAvg', tableData)">▲</div>
+											<div @click="sortTableLine('desc', '', 'diffMountAvg', tableData)" style="margin-top:-3px;">▼</div>
+										</div>
+									</td>
+								</template>
+								<template >
+									<td v-if="displayLabel.web_price.date" >{{newestDataDate.label}}
+										<div class="sort-icon">
+											<div @click="sortTableLine('asce', '', 'webDate', tableData)">▲</div>
+											<div @click="sortTableLine('desc', '', 'webDate', tableData)" style="margin-top:-3px;">▼</div>
+										</div>
+									</td>
+									<td v-if="displayLabel.web_price.week" >近一周
+										<div class="sort-icon">
+											<div @click="sortTableLine('asce', '', 'webWeekAvg', tableData)">▲</div>
+											<div @click="sortTableLine('desc', '', 'webWeekAvg', tableData)" style="margin-top:-3px;">▼</div>
+										</div>
+									</td>
+									<td v-if="displayLabel.web_price.month" >近一月
+										<div class="sort-icon">
+											<div @click="sortTableLine('asce', '', 'webMountAvg', tableData)">▲</div>
+											<div @click="sortTableLine('desc', '', 'webMountAvg', tableData)" style="margin-top:-3px;">▼</div>
+										</div>
+									</td>
+								</template>
+								<template>
+									<td v-if="displayLabel.spot_price.date" >{{newestDataDate.label}}
+										<div class="sort-icon">
+											<div @click="sortTableLine('asce', '', 'spotDate', tableData)">▲</div>
+											<div @click="sortTableLine('desc', '', 'spotDate', tableData)" style="margin-top:-3px;">▼</div>
+										</div>
+									</td>
+									<td v-if="displayLabel.spot_price.week" >近一周
+										<div class="sort-icon">
+											<div @click="sortTableLine('asce', '', 'spotWeekAvg', tableData)">▲</div>
+											<div @click="sortTableLine('desc', '', 'spotWeekAvg', tableData)" style="margin-top:-3px;">▼</div>
+										</div>
+									</td>
+									<td v-if="displayLabel.spot_price.month" >近一月
+										<div class="sort-icon">
+											<div @click="sortTableLine('asce', '', 'spotMountAvg', tableData)">▲</div>
+											<div @click="sortTableLine('desc', '', 'spotMountAvg', tableData)" style="margin-top:-3px;">▼</div>
+										</div>
+									</td>
+								</template>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="item in tableData">
+								<template v-if="item.display">
+									<td>
+										<a href="javascript:void(0)" @click="moreInfo(item.brand)">{{item.brand}}</a>
+									</td>
+									<td>{{item.cate_spec}}</td>
+									<td>{{item.size}}</td>
+									<td>{{item.material}}</td>
+									<template v-if="marketDiff">
+										<td v-if="displayLabel.price_diff.date" >
+											{{ !item.descDiffDate ? '-' : item.descDiffDate }}
+											<font :class="getFontColor(item.descDiffDateFloat.type)">{{item.descDiffDateFloat.value}}</font>
+										</td>
+										<td v-if="displayLabel.price_diff.week" >
+											{{ !item.descDiffWeek ? '-' : item.descDiffWeek }}
+											<font :class="getFontColor(item.descDiffWeekFloat.type)">{{item.descDiffWeekFloat.value}}</font>
+										</td>
+										<td v-if="displayLabel.price_diff.month" >
+											{{ !item.descDiffMount ? '-' : item.descDiffMount }}
+											<!-- <font></font> -->
+										</td>
+									</template>
+									<template v-if="!marketDiff">
+										<td v-if="displayLabel.price_diff.date" >
+											{{ !item.diffDate ? '-' : item.diffDate }}
+											<font :class="getFontColor(item.diffDateFloat.type)">{{item.diffDateFloat.value}}</font>
+										</td>
+										<td v-if="displayLabel.price_diff.week" >
+											{{ !item.diffWeekAvg ? '-' : item.diffWeekAvg }}
+											<font :class="getFontColor(item.diffWeekAvgFloat.type)">{{item.diffWeekAvgFloat.value}}</font>
+										</td>
+										<td v-if="displayLabel.price_diff.month" >
+											{{ !item.diffMountAvg ? '-' : item.diffMountAvg }}
+											<!-- <font>{{item.diffWeekAvgFloat}}</font> -->
+										</td>
+									</template>
+									<template>
+										<td v-if="displayLabel.web_price.date" >
+											{{ !item.webDate ? '-' : item.webDate }}
+											<font :class="getFontColor(item.webDateFloat.type)">{{item.webDateFloat.value}}</font>
+										</td>
+										<td v-if="displayLabel.web_price.week" >
+											{{ !item.webWeekAvg ? '-' : item.webWeekAvg }}
+											<font :class="getFontColor(item.webWeekAvgFloat.type)">{{item.webWeekAvgFloat.value}}</font>
+										</td>
+										<td v-if="displayLabel.web_price.month" >
+											{{ !item.webMountAvg ? '-' : item.webMountAvg }}
+											<!-- <font>{{item.diffWeekAvgFloat}}</font> -->
+										</td>
+									</template>
+									<template>
+										<td v-if="displayLabel.spot_price.date" >
+											{{ !item.spotDate ? '-' : item.spotDate }}
+											<font :class="getFontColor(item.spotDateFloat.type)">{{item.spotDateFloat.value}}</font>
+										</td>
+										<td v-if="displayLabel.spot_price.week" >
+											{{ !item.spotWeekAvg ? '-' : item.spotWeekAvg }}
+											<font :class="getFontColor(item.spotWeekAvgFloat.type)">{{item.spotWeekAvgFloat.value}}</font>
+										</td>
+										<td v-if="displayLabel.spot_price.month" >
+											{{ !item.spotMountAvg ? '-' : item.spotMountAvg }}
+											<!-- <font>{{item.diffWeekAvgFloat}}</font> -->
+										</td>
+									</template>
+								</template>
+							</tr>
+						</tbody>
+					</table>
+
+				</div>
 			</div>
-		</div>
+		</headerbar>
 		<!-- 固定框 -->
 		<div class="fixBox">
-			<button id="onBox" @click="showBox">点击展开更多
-				<i class="el-icon-arrow-right" style="color:#FF4949;font-size:20px;"></i>
+			<button id="onBox" @click="showBox">搜索更多数据
+				<i class="el-icon-arrow-left" style="font-size:20px;"></i>
 			</button>
 			<div id="selectBox" v-show="isShowOptions">
 				<div>
@@ -412,77 +1171,77 @@
 					</p>
 					<p>
 						<span class="fixWidth">品牌:</span>
-						<el-select v-model="brands" @change="getBrandsProduct(brands)">
-							<el-option v-for="item in brandData" :label="item.name" :value="item"></el-option>
+						<el-select v-model="brands" multiple @change="changBrand">
+							<el-option v-for="item in brandData" :label="item.brand" :value="item.brand"></el-option>
 						</el-select>
 					</p>
 					<p>
 						<span class="fixWidth">品名:</span>
-						<el-select v-model="product" @change="changeProduct(product)">
-							<el-option v-for="item in productGroup" :label="item.name" :value="item"></el-option>
-						</el-select>
-					</p>
-					<p>
-						<span class="fixWidth">规格:</span>
-						<el-select v-model="type" @change="changeType(type)">
-							<el-option v-for="item in typeGroup" :label="item.name" :value="item"></el-option>
+						<el-select v-model="product" @change="changProduct">
+							<el-option v-for="item in productGroup" :label="item.cate_spec" :value="item.cate_spec"></el-option>
 						</el-select>
 					</p>
 					<p>
 						<span class="fixWidth">材质:</span>
-						<el-select v-model="material" @change="changeMaterial(product)">
-							<el-option v-for="item in materialGroup" :label="item.name" :value="item"></el-option>
+						<el-select v-model="material" @change="changMaterial">
+							<el-option v-for="item in materialGroup" :label="item.material" :value="item.material"></el-option>
+						</el-select>
+					</p>
+					<p>
+						<span class="fixWidth">规格:</span>
+						<el-select v-model="type">
+							<el-option v-for="item in typeGroup" :label="item.size" :value="item.size"></el-option>
 						</el-select>
 					</p>
 					<p>
 						<span class="fixWidth">查询方式:</span>
-						<!-- <el-radio-group v-model="searchWay">
-							<el-radio :label="1">时间段</el-radio>
-							<el-radio :label="2">时间点</el-radio>
-						</el-radio-group> -->
 						<el-checkbox label="时间段" v-model="timeSlot"></el-checkbox>
 						<el-checkbox label="时间点" v-model="timePoint"></el-checkbox>
 					</p>
-					<!-- <p v-if="searchWay ==1"> -->
 					<p v-if="timeSlot">
 						<span class="fixWidth">选择时间段:</span>
-						<el-date-picker v-model="foremost" type="date" :picker-options="pickerOptions" style="width:150px;" @change="foreDate(foremost)"></el-date-picker>
-						<el-date-picker v-model="final" type="date" :picker-options="pickerOptions" style="width:150px;" @change="finalDate(final)"></el-date-picker>
+						<el-date-picker v-model="dateRange" type="daterange" @change="changDateRange" :picker-options="pickerOptions" placeholder="选择日期范围"></el-date-picker>
 					</p>
-					<!-- <p v-if="searchWay ==2"> -->
 					<p v-if="timePoint">
 						<span class="fixWidth">选择时间点:</span>
-						<el-date-picker v-model="forePoint" type="date" :picker-options="pickerOptions"  @change="forePointDate(forePoint)"></el-date-picker>
+						<el-date-picker v-model="forePoint" type="date" :picker-options="pickerOptions"  @change="forePointDate(forePoint)" placeholder="选择时间点"></el-date-picker><br>
 					</p>
-					<p style="text-align:center;">
+					<p v-for="(date, index) in dateArray" style="text-align:center;margin-top:5px;" v-if="timePoint">
+						<span>{{ date }} <el-button type="small" @click="delOne(index)">删除</el-button></span>
+					</p>
+					<p class="button_box">
 						<el-button @click="clearAllData">清空数据</el-button>
+						<el-button @click="search">查询</el-button>
 					</p>
 				</div>
 				<button id="offBox" @click="showBox">数据统计分析
-					<i class="el-icon-arrow-left" style="color:#58B7FF;font-size:20px;"></i>
+					<i class="el-icon-arrow-right" style="font-size:20px;"></i>
 				</button>
 			</div>
 		</div>
-		
-		
 
 	</div>
 </template>
 <style scoped>
-	.main-warpper{
-		width: 80%;
-		margin:0 auto;
+	*{
+		font-size: 14px;
+	}
+	a{
+		text-decoration: none;
 	}
 	#selectBox{
 		position: relative;
 		width: 450px;
-		height: 550px;
-		border: 1px solid #dedede;
-		margin-top: 20px;
-		background: rgba(228,228,228,1);
+		height: auto;
+		padding: 10px;
+		background-color: #409EFF;
+		color: #fff;
 	}
 	#selectBox p{
 		margin-top: 20px;
+	}
+	#selectBox .el-checkbox{
+		color: #fff;
 	}
 	.fixWidth{
 		display: inline-block;
@@ -493,9 +1252,10 @@
 		margin-left: 20px;
 	}
 	.fixBox{
+		font-size: 14px;
 		position: absolute;
-		left: 0;
-		top:350px;
+		right: 40px;
+		top:200px;
 		z-index: 2;
 	}
 	#offBox{
@@ -504,13 +1264,13 @@
 		top: 0;
 		display: inline-block;
 		width: 20px;
-		height: 200px;
-		border:1px solid #58B7FF;
+		height: auto;
+		border: none;
 		padding: 20px 30px 10px 10px;
 		text-align: center;
 		font-size: 18px;
 		color: #fff;
-		background: rgba(204,204,204,1);
+		background-color: #409EFF;
 	}
 	#onBox{
 		position: absolute;
@@ -518,13 +1278,13 @@
 		top: 25px;
 		display: inline-block;
 		width: 20px;
-		height: 200px;
-		border:1px solid #FF4949;
+		border: none;
 		padding: 20px 30px 10px 10px;
 		text-align: center;
 		font-size: 18px;
+		height: auto;
 		color: #fff;
-		background: rgba(204,204,204,1);
+		background-color: #409EFF;
 	}
 	table{
 		margin-top: 20px;
@@ -566,5 +1326,33 @@
 		margin:0;
 		padding:0;
 		cursor:pointer;
+	}
+	.addr_box{
+		padding:10px 15px;
+		background-color: #fff;
+	}
+	.price_box{
+		margin-top:10px;
+		margin-bottom: 30px;
+		padding:15px;
+		background-color: #fff;
+	}
+	.button_box{
+		text-align: center;
+	}
+	.button_box button{
+		width: 80px;
+		text-align: center;
+		padding: 8px;
+		margin: 5px;
+	}
+	.red_font{
+		color:#aa1010;
+	}
+	.green_font{
+		color:#10aa10;
+	}
+	.yellow_font{
+		color:#aaaa10;
 	}
 </style>

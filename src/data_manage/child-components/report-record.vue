@@ -1,9 +1,12 @@
 <script>
+import headerbar from '../../components/admin-headerbar.vue';
 import ajaxCustom from '../../components/ajax-custom.js';
 import usuallySource from "../../../res/json/usually_steel_brand_source.json";
 import {Select, Table, TableColumn, DatePicker, Loading } from 'element-ui';
 	export default{
-
+		components : {
+			headerbar,
+		},
 		data(){
 			return {
 				loading : false,
@@ -149,7 +152,7 @@ import {Select, Table, TableColumn, DatePicker, Loading } from 'element-ui';
 				}
 				return returndata;
 			},
-			
+
 			//日期对象格式化
 			dateFormat(date){
 				let day = this.numberHandle(date.getDate());
@@ -275,7 +278,7 @@ import {Select, Table, TableColumn, DatePicker, Loading } from 'element-ui';
 						}
 					}
 				}
-				
+
 				if(postDatas.length){
 					ajaxCustom.ajaxPost(this, "dingoapi/fillMarketPrice", { data : postDatas }, (responese)=>{
 						console.log(responese)
@@ -289,7 +292,7 @@ import {Select, Table, TableColumn, DatePicker, Loading } from 'element-ui';
 				}else{
 					this.dialogTableVisible = false;
 				}
-				
+
 			}
 		},
 		watch : {
@@ -309,11 +312,12 @@ import {Select, Table, TableColumn, DatePicker, Loading } from 'element-ui';
 	}
 </script>
 <template>
-	<div class="main-warpper">
-		<div class="container">
-			<h1>后台补录</h1>
-			<h4 style="color:#8492A6">管理后台的市场价数据</h4>
-			<br><br>
+	<headerbar :text="['后台补录','管理后台的市场价数据']">
+	<!-- <div class="main-warpper"> -->
+		<div>
+			<!-- <h1>后台补录</h1> -->
+			<!-- <h4 style="color:#8492A6">管理后台的市场价数据</h4> -->
+			<!-- <br><br> -->
 			<div class="block" style="padding-left:50px;">
 				<span class="demonstration">选择时间</span>
 				<el-date-picker v-model="date" :picker-options="pickerOptions" @change="getRecord(date)">
@@ -336,7 +340,7 @@ import {Select, Table, TableColumn, DatePicker, Loading } from 'element-ui';
 								</select>
 							</div>
 							<div>
-								<span>统一将仓库选定为 : </span> 
+								<span>统一将仓库选定为 : </span>
 								<select v-model="setWare">
 									<option v-for="item in selectedModel.warehouseModel.items" :value="item.label">{{ item.label }}</option>
 								</select>
@@ -395,7 +399,8 @@ import {Select, Table, TableColumn, DatePicker, Loading } from 'element-ui';
 			    </el-table>
 			</div>
 		</div>
-	</div>
+	<!-- </div> -->
+	</headerbar>
 </template>
 
 <style scoped>

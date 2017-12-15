@@ -1,7 +1,7 @@
 <script>
 	import {Dialog, Radio, Button, Select, Option, Input, Pagination} from 'element-ui';
 	export default {
-		props : ['openbox'],
+		props : ['openbox', 'proReateId', 'projects', 'companys'],
 		components : {
 			elDialog : Dialog,
 			elRadio : Radio,
@@ -13,53 +13,118 @@
 		},
 		data(){
 			return {
-				relate_way : "2",
+				// 是否显示关联弹出框
 				isShowRelate : false,
-				account_relate : [
-					{ name : "yyy777@gyl.com", relate_status : 0 },
-					{ name : "yyy666@gyl.com", relate_status : 1 },
-					{ name : "yyy555@gyl.com", relate_status : 1 },
-					{ name : "yyy444@gyl.com", relate_status : 1 },
-					{ name : "yyy333@gyl.com", relate_status : 1 }
-				],
-				project : [
-					{ name : "流花湖公园"},
-					{ name : "越秀公园"},
-					{ name : "珠江新城"},
-				],
-				company : [
-					{ name : "广东省建工集团有限公司", relate_status : 0 },
-					{ name : "广州市建筑集团有限公司", relate_status : 1 },
-					{ name : "广州市金辉建筑有限公司", relate_status : 1 },
-					{ name : "广州市天力建筑有限公司", relate_status : 1 },
-					{ name : "广州市梁亮建筑有限公司", relate_status : 1 }
-				],
+				// 现在的项目名称
 				nowProject : null,
+				// 查询关键词
 				keyword : null,
+				// 当前页
 				currentPage : 1,
-				currentPage1 : 1,
+				// 当前绑定的公司
+				nowCompany : null,
+				proId : null,
+				// 公司table的邦定值
+				pageCompany : [],
+				showSearch : true 
+			}
+		},
+		computed : {
+			// 传过来的项目id
+			propData(){
+				if(this.proReateId){
+					this.proId = this.proReateId;
+				}
 			}
 		},
 		methods : {
-			cancleRelate(index){
-				console.log(index);
+			// 取消关联
+			cancleRelate(companyid, proId){
+				this.$emit('cancelRelate', { companyid : companyid, proId : proId });
+				let pro = this.projects;
+				for(let i = 0; i < pro.length;i++){
+					if(pro[i].project_id == proId){
+						for(let j = 0; j< this.companys.length; j++){
+							if(this.companys[j].user_id == companyid){
+								pro[i].company = '';
+								this.nowCompany = '';
+							}
+						}
+					}
+				}
+				this.isShowRelate = false;
+			}, 
+			// 确认关联
+			confirmRelate(companyid, proId){
+				this.$emit('confirmRelate', { companyid : companyid, proId : proId });
+				let pro = this.projects;
+				for(let i = 0; i < pro.length;i++){
+					if(pro[i].project_id == proId){
+						for(let j = 0; j< this.companys.length; j++){
+							if(this.companys[j].user_id == companyid){
+								pro[i].company = this.companys[j].name;
+								this.nowCompany = this.companys[j].name;
+							}
+						}
+					}
+				}
+				this.isShowRelate = false;
 			},
-			confirmRelate(index){
-				console.log(index);
+			// 公司查询
+			handleIconSearch(keyword){
+				this.showSearch = false;
+				this.pageCompany = [];
+				for(let data of this.companys){
+					if(data.name.includes(keyword)){
+						this.pageCompany.push(data);
+					}
+				}
 			},
-			handleIconClick(keyword){
-				console.log(keyword);
-			},
+			// 分页功能
 			changePage(page){
-				console.log(page);
+				let total = this.companys.length;
+				// console.log(total);
+				this.pageCompany = [];
+				for(let i = (page-1)*5; i < (page*5 < total ? page*5 : total); i++ ){
+					this.pageCompany.push(this.companys[i]);
+				}
 			},
-			changeRePage(page){
-				console.log(page);
+			// 查看所有公司
+			showAllCompany(){
+				this.keyword = '';
+				this.showSearch = true;
+				this.changePage(1);
+			},
+			// 获取当前的关联公司和项目
+			getNowPro(){
+				let pro = this.projects;
+				for(let i= 0;i< pro.length;i++){
+					if(pro[i].project_id == this.proId){
+						this.nowProject = pro[i].project_id;
+						this.nowCompany = pro[i].company;
+					}
+				}
+			},
+			// 改变项目
+			changeProject(value){
+				if(value >= 0){
+					this.proId = value;
+				}
 			},
 		},
 		watch : {
+			proReateId(){
+				this.propData;
+			},
 			openbox(){
 				this.isShowRelate = true;
+				this.getNowPro();
+			},
+			companys(){
+				this.changePage(1);
+			},
+			proId(){
+				this.getNowPro();
 			}
 		},
 	}
@@ -67,15 +132,14 @@
 <template>
 	<div>
 		<el-dialog v-model="isShowRelate" >
-			<el-radio class="radio" v-model="relate_way" label="1">关联公司</el-radio>
-			<el-radio class="radio" v-model="relate_way" label="2">关联帐户</el-radio>
+			<p style="text-align:center;font-size:16px;"><label>关联公司</label></p>
 			<!-- 关联公司 -->
-			<div v-if="relate_way == 1">
+			<div>
 				<label>选择项目:</label>
-				<el-select v-model="nowProject" size="small">
-					<el-option v-for="pro in project" :label="pro.name" :value="pro.name"></el-option>
+				<el-select v-model="nowProject" size="small" @change="changeProject">
+					<el-option v-for="pro in projects" :label="pro.name" :value="pro.project_id"></el-option>
 				</el-select>
-				<el-input class="leftBox" style="float:right" placeholder="搜索" v-model="keyword" icon="search" @change="handleIconClick" size="small"></el-input>
+				<el-input class="leftBox" style="float:right" placeholder="搜索" v-model="keyword" icon="search" @change="handleIconSearch" size="small"></el-input>
 				<table style="margin-top:10px;">
 					<thead>
 						<tr>
@@ -84,46 +148,23 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr v-for="(item, index) in company" >
+						<tr v-for="item in pageCompany" >
 							<td>{{item.name}}</td>
 							<td>
-								<el-button v-if="item.relate_status == 0" type="danger" @click="cancleRelate(index)" size="small">解除关联</el-button>
-								<el-button v-else type="info" @click="confirmRelate(index)" size="small">确认关联</el-button>
+								<el-button v-if="item.name == nowCompany" type="danger" @click="cancleRelate(item.user_id, proId)" size="small">解除关联</el-button>
+								<!-- <el-button v-else type="info" @click="confirmRelate(item.user_id)" size="small">确认关联</el-button> -->
+								<el-button v-else type="info" @click="confirmRelate(item.user_id, proId)" size="small">确认关联</el-button>
 							</td>
 						</tr>
 					</tbody>
 				</table>
-				<!-- 分页 -->
-				<div class="block">
-					<el-pagination :current-page="currentPage" :page-size="5" layout="total, prev, pager, next, jumper" :total="company.length" @current-change="changePage">
+				<p style="text-align:center;margin-top:20px;" v-if="showSearch==false"><el-button @click="showAllCompany" >查看所有公司</el-button></p>
+				<div class="block" v-if="showSearch==true">
+					<el-pagination :current-page="currentPage" :page-size="5" layout="total, prev, pager, next, jumper" :total="companys.length" @current-change="changePage">
 				    </el-pagination>
 				</div>
 			</div>
-			<!-- 关联账户 -->
-			<div v-if="relate_way == 2">
-				<table>
-					<thead>
-						<tr>
-							<th>账户</th>
-							<th>操作</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr v-for="(item, index) in account_relate" >
-							<td>{{item.name}}</td>
-							<td>
-								<el-button v-if="item.relate_status == 0" type="danger" @click="cancleRelate(index)" size="small">解除关联</el-button>
-								<el-button v-else type="info" @click="confirmRelate(index)" size="small">确认关联</el-button>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-				<!-- 分页 -->
-				<div class="block">
-					<el-pagination :current-page="currentPage1" :page-size="5" layout="total, prev, pager, next, jumper" :total="account_relate.length" @current-change="changeRePage">
-				    </el-pagination>
-				</div>
-			</div>
+		
 		</el-dialog>
 	</div>
 </template>

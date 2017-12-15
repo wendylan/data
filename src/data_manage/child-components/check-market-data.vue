@@ -1,12 +1,14 @@
 <script>
+	import headerbar from '../../components/admin-headerbar.vue';
+	import ajaxCustom from '../../components/ajax-custom.js';
 	import { Input , Select , Option, Loading, Switch, Dialog, Cascader } from "element-ui";
 	import  steelHeader from "./child-components/steel-header.vue";
 	import  steelBox from "./child-components/steel-list.vue";
 	import  steelTools from "./child-components/steel-tools.vue";
 	import  pinyin from "pinyin";
-	import ajaxCustom from '../../components/ajax-custom.js';
 	export default{
 		components : {
+			headerbar,
 			steelHeader : steelHeader,
 			steelTools : steelTools,
 			steelBox : steelBox,
@@ -228,7 +230,7 @@
 											_size.maxNumber = noticePrice.maxNumber;
 											_size.minNumber = noticePrice.minNumber;
 										}
-										
+
 									}
 								}
 
@@ -578,41 +580,38 @@
 </script>
 
 <template>
-	<div class="main-warpper">
-		<div style="padding-left:25px;">
-			<h1>市场价格</h1>
-			<h4>创建时间 : {{ reportTime }}</h4>
-			<br><br>
+	<headerbar active_number="4" :text="['市场价格','新增网价数据']">
+		<h4>创建时间 : {{ reportTime }}</h4>
+		<br><br>
 
-			<steel-header
-			@showSelectedData="showSelectedData"
-			@noticeSwithChanged="noticeSwithChanged"
-			@getSteelInfo="getSteelInfo"
-			@excessWarehouse="excessWarehouse"
-			:all-brands-data="allBrandsData"
-			:selected-model="selectedModel"
-			:create-options="createOptions"
-			:notice-swith="noticeSwith"
-			:data-date="isDisplay"></steel-header>
+		<steel-header
+		@showSelectedData="showSelectedData"
+		@noticeSwithChanged="noticeSwithChanged"
+		@getSteelInfo="getSteelInfo"
+		@excessWarehouse="excessWarehouse"
+		:all-brands-data="allBrandsData"
+		:selected-model="selectedModel"
+		:create-options="createOptions"
+		:notice-swith="noticeSwith"
+		:data-date="isDisplay"></steel-header>
 
-			<steel-tools
-			:list-datas="listDatas"
-			:selected-model="selectedModel"
-			:create-options="createOptions"
-			:web-price-data="webPriceData"
-			:data-date="isDisplay"></steel-tools>
+		<steel-tools
+		:list-datas="listDatas"
+		:selected-model="selectedModel"
+		:create-options="createOptions"
+		:web-price-data="webPriceData"
+		:data-date="isDisplay"></steel-tools>
 
-			<h4 :style="isUpdate ? 'color:#f7ba2a' : 'color:#ff4949'" v-show="listDatas!=null">{{ isUpdate ? "你现在可以查看, 更改, 删除(价格为空的数据将被删除)以下的数据 :" : "你现在可以添加以下的数据 :" }}</h4>
+		<h4 :style="isUpdate ? 'color:#f7ba2a' : 'color:#ff4949'" v-show="listDatas!=null">{{ isUpdate ? "你现在可以查看, 更改, 删除(价格为空的数据将被删除)以下的数据 :" : "你现在可以添加以下的数据 :" }}</h4>
 
-			<div id="list-box">
-				<steel-box :list-datas="listDatas" :selected-model="selectedModel" ></steel-box>
-			</div>
-
-			<hr />
-			<p v-if="hasExcessWarehouse" style="text-align:center;" >提示 : 此次暂存会额外添加到 {{excessWarehouseArr}} </p>
-			<el-button v-show="!isDisplay && listDatas!=null" :disabled="canSaving" style="display:block;margin:auto;" size="small" :type="isUpdate ? 'warning' : 'danger'" @click="postMarketData()" >{{ isUpdate ? "确认更改" : "暂存数据" }}</el-button>
+		<div id="list-box">
+			<steel-box :list-datas="listDatas" :selected-model="selectedModel" ></steel-box>
 		</div>
-	</div>
+
+		<hr />
+		<p v-if="hasExcessWarehouse" style="text-align:center;" >提示 : 此次暂存会额外添加到 {{excessWarehouseArr}} </p>
+		<el-button v-show="!isDisplay && listDatas!=null" :disabled="canSaving" style="display:block;margin:auto;" size="small" :type="isUpdate ? 'warning' : 'danger'" @click="postMarketData()" >{{ isUpdate ? "确认更改" : "暂存数据" }}</el-button>
+	</headerbar>
 </template>
 
 <style scoped>
