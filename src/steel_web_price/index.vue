@@ -51,7 +51,11 @@
 					date : '',
 					pickerOptions:{
 						disabledDate(time) {
-	                        return time.getTime() > Date.now() ;
+                            let tmp = time.getDay();
+                            if(tmp == 0 || tmp == 6 ){
+                                return true;
+                            }
+                            return time.getTime() > Date.now();
 	                    }
 					},
 					times : "",
@@ -168,7 +172,8 @@
 
 <template>
 	<div>
-		<headerbar active_number="1" :identity="1" :text="['网价', '查看网价数据']" >
+		<!-- <headerbar active_number="1" :identity="1" :text="['网价', '查看网价数据']" > -->
+		<headerbar active_number="webPrice" :identity="1" :text="['网价', '查看网价数据']" >
 			<div>
 				<div>
 					<filter-bar :data="filterDatas" :index="[

@@ -5,7 +5,6 @@ import VueResource from 'vue-resource';
 import Loading from "element-ui";
 import sourceRecommend from "./source_recommend/child-components/source-recommend.vue";
 import sourceContrast from "./source_recommend/child-components/source-contrast.vue";
-
 Vue.use(VueRouter);
 Vue.use(VueResource);
 Vue.use(Loading);
@@ -24,4 +23,3 @@ new Vue({
 	router: router,
 	template: "<router-view></router-view>"
 });
-

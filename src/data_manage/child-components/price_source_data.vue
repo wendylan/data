@@ -30,6 +30,7 @@
 			}
 		},
 		methods : {
+            // 获取供应商
 			getPriceSourceData(){
 				ajaxCustom.ajaxGet(this, 'dingoapi/getAllPriceSource', (response)=>{
 					console.log(response);
@@ -38,10 +39,12 @@
 					console.log(response);
 				});
 			},
+            // 修改
 			editPriceSource(index){
 				this.isEdit = index;
 				this.tempChangingData = JSON.parse(JSON.stringify(this.priceSourcetData[index]));
 			},
+            // 删除供应商
 			delPriceSource(index, id){
 				var dataId = id;
 				var _this = this;
@@ -54,6 +57,7 @@
 					alert(responese.body.message);
 				} );
 			},
+            // 保存修改
 			saveChanging(index){
 				ajaxCustom.ajaxPost(this,'dingoapi/editPriceSourceName', this.tempChangingData, (responese)=>{
 					console.log(responese);
@@ -66,9 +70,11 @@
 				} );
 
 			},
+            // 取消修改
 			cancelChanging(){
 				this.isEdit = -1;
 			},
+            // 新增数据
 			newOnePriceSource(data){
 				ajaxCustom.ajaxPost(this, 'dingoapi/addPricSourceName', { data : data }, (response)=>{
 					console.log(response);

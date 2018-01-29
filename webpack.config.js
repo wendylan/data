@@ -30,7 +30,8 @@ module.exports = {
     'supplierOrder' : './src/supplierOrder.js',
     'signCompany' : './src/signCompany.js',
     'messageList' : './src/messageList.js',
-    'buybuybuySalesOrder' : './src/buybuybuySalesOrder.js'
+    'buybuybuySalesOrder' : './src/buybuybuySalesOrder.js',
+    'userProject' : './src/userProject.js'
   },
   output: {
     path: path.resolve(__dirname, mypath),

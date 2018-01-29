@@ -38,48 +38,130 @@ text ： 需要在右上方显示的文本
 		},
 		data(){
 			return {
-				// 次终端
 				navList : [
-					{ name : "现货价格指数", link : "/secondaryTerminal", icon : 'fa fa-line-chart margin' },
-					{ name : "买买买", link : "/purchase", icon : 'fa fa-shopping-cart margin'},
-					{ name : "资源推荐", link : "/stResource", icon : 'fa fa-joomla margin' },
-					{ name : "订单管理", childs : [
-						{
-							title : '项目订单', icon : 'fa fa-tags margin', data : [
-								{ name : "采购订单", link : "/purchaseOrder", icon : 'fa  fa-sticky-note margin' },
-								{ name : "销售订单", link : "/salesOrder", icon : 'fa  fa-sticky-note margin' },
-							]
-						},
-						{
-							title : '买买买订单', icon : 'fa fa-tags margin', data : [
-								{ name : "现货订单", link : "/supplier_order", icon : 'fa  fa-sticky-note margin' },
-								{ name : "采购订单", link : "/stUserOrder", icon : 'fa  fa-sticky-note margin' }
-							]
-						}
-					], icon : 'fa fa-list margin' },
-					{ name : "表单管理", childs : [
-						{ name : "采购台账", link : "/form_total#/purchaseForm", icon : 'fa fa-th-list margin' },
-						{ name : "结余统计表", link : "/form_total#/countForm", icon : 'fa fa-th-list margin' },
-						{ name : "品牌出货表", link : "/form_total#/brandSellForm", icon : 'fa fa-th-list margin' },
-						{ name : "供应商出货统计表", link : "/form_total#/suppilerSellForm", icon : 'fa fa-th-list margin' },
-						{ name : "项目出货统计表", link : "/form_total#/projectSellForm", icon : 'fa fa-th-list margin' }
-					], icon : 'fa fa-th-large margin' },
-					{ name : "项目管理", link : "/agentProject#/usercenter", icon : 'fa fa-tasks margin' },
-					{ name : "下单助手", link : "/dealing_tool", icon : ' fa fa-wrench margin' },
-				],
-				// 终端
-				navListTerminal : [
-					{ name : "网价", link : "/webprice", icon : 'fa fa-bar-chart margin' },
-					{ name : "现货价格指数", link : "/mainprice", icon : 'fa fa-line-chart margin' },
-					{ name : "下单管理", link : "/userdeal", icon : 'fa fa-shopping-cart margin'},
-					{ name : "我的订单", link : "./usercenter#/userorder", icon : 'fa  fa-sticky-note margin'  },
-					{ name : "项目管理", link : "./usercenter#/usercenter", icon : 'fa fa-tasks margin' }
+					{
+						name : "现货价格指数",
+						link : "/secondaryTerminal",
+						icon : 'fa fa-line-chart margin',
+						index : 'secondaryTerminal',
+						roles : ['次终端用户'],
+						permission : '现货价格指数'
+					},
+                    {
+                        name : "网价",
+                        link : "/webprice",
+                        icon : 'fa fa-bar-chart margin',
+                        index : 'webPrice',
+                        roles : ['次终端用户', '终端用户'],
+                        permission : '网价'
+                    },
+					{
+						name : "买买买",
+						link : "/purchase",
+						icon : 'fa fa-shopping-cart margin',
+						index : 'purchase',
+						roles : ['次终端用户'],
+						permission : '买买买'
+					},
+					{
+						name : "资源推荐",
+						link : "/stResource",
+						icon : 'fa fa-joomla margin',
+						index : 'stResource',
+						roles : ['次终端用户', '终端用户'],
+						permission : '资源推荐'
+					},
+					{
+						name : "订单管理",
+						childs : [
+							{
+								title : '项目订单', icon : 'fa fa-tags margin', data : [
+									{ name : "采购订单", link : "/purchaseOrder", icon : 'fa  fa-sticky-note margin', index : 'purchaseOrder' },
+									{ name : "销售订单", link : "/salesOrder", icon : 'fa  fa-sticky-note margin', index : 'salesOrder' },
+								]
+							},
+							{
+								title : '买买买订单', icon : 'fa fa-tags margin', data : [
+									{ name : "现货订单", link : "/supplier_order", icon : 'fa  fa-sticky-note margin', index : 'supplier_order', roles : ['运营中心'] },
+									{ name : "采购订单", link : "/stUserOrder", icon : 'fa  fa-sticky-note margin', index : 'stUserOrder' }
+								]
+							}
+						],
+						icon : 'fa fa-list margin',
+						index : 'orderManage',
+						roles : ['次终端用户'],
+						permission : '订单管理'
+					},
+					{
+						name : "表单管理",
+						childs : [
+							{ name : "采购台账", link : "/form_total#/purchaseForm", icon : 'fa fa-th-list margin', index : 'purchaseForm' },
+							{ name : "结余统计表", link : "/form_total#/countForm", icon : 'fa fa-th-list margin', index : 'countForm' },
+							{ name : "品牌出货表", link : "/form_total#/brandSellForm", icon : 'fa fa-th-list margin', index : 'brandSellForm' },
+							{ name : "供应商出货统计表", link : "/form_total#/suppilerSellForm", icon : 'fa fa-th-list margin', index : 'suppilerSellForm' },
+							{ name : "项目出货统计表", link : "/form_total#/projectSellForm", icon : 'fa fa-th-list margin', index : 'projectSellForm' }
+						],
+						icon : 'fa fa-th-large margin',
+						index : 'form_total',
+						roles : ['次终端用户'],
+						permission : '表单管理'
+					},
+					{
+						name : "项目管理",
+						link : "/agentProject#/usercenter",
+						icon : 'fa fa-tasks margin',
+						index : 'secondUsercenter',
+						roles : ['次终端用户'],
+						permission : '项目管理'
+					},
+					{
+						name : "下单助手",
+						link : "/dealing_tool",
+						icon : ' fa fa-wrench margin',
+						index : 'dealing_tool',
+						roles : ['次终端用户'],
+						permission : '下单助手'
+					},
+
+
+					{
+						name : "现货价格指数",
+						link : "/mainprice",
+						icon : 'fa fa-line-chart margin',
+						index : 'mainprice',
+						roles : ['终端用户'],
+						permission : '现货价格指数'
+					},
+					{
+						name : "下单管理",
+						link : "/userdeal",
+						icon : 'fa fa-shopping-cart margin',
+						index : 'userDeal',
+						roles : ['终端用户'],
+						permission : '下单管理'
+					},
+					{
+						name : "我的订单",
+						link : "./usercenter#/userorder",
+						icon : 'fa  fa-sticky-note margin',
+						index : 'terminalUserorder',
+						roles : ['终端用户'],
+						permission : '我的订单'
+					},
+					{
+						name : "项目管理",
+						link : "./userprojectmanager",
+						icon : 'fa fa-tasks margin',
+						index : 'terminalUsercenter',
+						roles : ['终端用户'],
+						permission : '项目管理'
+					}
 				],
 				nowIndex : null,
 				user : [],
-				msgNum:'',
-				msgList:{},
-				socket: '',
+				msgNum : '',
+				msgList : {},
+				socket : '',
 			}
 		},
 		computed: {
@@ -91,42 +173,39 @@ text ： 需要在右上方显示的文本
 			...mapActions([
 				'websocket'
 			]),
-			hasPermission(permission){
-				for(let i = 0; i<this.user.permissions.length; i++){
-					if(permission==this.user.permissions[i].name){
-						return true;
-					}
-				}
-				return false;
-			},
+            // 获取用户信息
 			getUserInfo(){
 				ajaxCustom.ajaxGet(this, "dingoapi/getUserInfo", (response)=>{
 					response = response.body;
 					this.user = response.user;
-					console.log(response);
+					console.log('roles', this.user);
 				}, (response)=>{
 					alert(response.body.message);
 				});
 			},
+            // 用来判断哪个侧边栏进行选中
 			showSelect(){
 				this.nowIndex = this.active_number;
 			},
+            // 右上方导航栏的颜色控制
 			showColor(){
-				if(this.identity == 1){
-					return 'nav_header';
+				if(this.user.roles){
+					if(this.roleJudge("次终端用户")){
+						return 'nav_header1';
+					}else{
+						return 'nav_header';
+					}
 				}else{
 					return 'nav_header1';
 				}
 			},
 			initMessage(){
-				console.log('init....');
-				console.log(window.User.id);
 				var wsServer = 'ws://192.168.2.108:9501?uid='+window.User.id;
 				var ws = new WebSocket(wsServer);
+				// console.log(ws);
 				var that = this;
-				console.log(this.$store);
 				this.$store.commit('setsocket', ws);
-				//onmessage 监听服务器数据推送
+				// //onmessage 监听服务器数据推送
 				ws.onmessage = function (evt) {
 					console.log(evt.data);
 					that.msgNum= evt.data;
@@ -164,6 +243,63 @@ text ： 需要在右上方显示的文本
                             console.log(response);
                         });
             },
+            judgeRolesAndPermission(roles, permission){
+                if(!this.user.roles){
+                    return false;
+                }
+                if(this.isAdmin()){
+                    return true;
+                }
+                for(let role of roles){
+                    if(this.roleJudge(role)){
+                        if(this.permissionJudge(permission)){
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            },
+            //判断角色是否吻合
+            roleJudge(role){
+                //角色判断
+                let roles = this.user.roles;
+                for (var i = 0; i < roles.length; i++) {
+                    if( roles[i].name == role ){
+                        return true;
+                    }
+                }
+                return false;
+            },
+            //次级显示判断（判断是否我司运营中心角色）
+            secondRoleJudge(role){
+                //参数判断（未定义角色的默认显示）
+                if(role == undefined){
+                    return true;
+                }else{
+                    role = role[0];
+                }
+                return this.roleJudge(role);
+            },
+            //判断权限是否吻合
+            permissionJudge(permission){
+                let permissions = this.user.permissions;
+                for (var i = 0; i < permissions.length; i++) {
+                    if( permissions[i].name == permission ){
+                        return true;
+                    }
+                }
+                return false;
+            },
+            //判断是否管理员
+            isAdmin(){
+                let roles = this.user.roles;
+                for (var i = 0; i < roles.length; i++) {
+                    if( roles[i].name=='admin' ){
+                        return true;
+                    }
+                }
+                return false;
+            }
 		},
 	}
 </script>
@@ -181,42 +317,32 @@ text ： 需要在右上方显示的文本
 						<a href="/companyInfo">
 							<img src="/data/images/icon.png" alt="">
 						</a>
-						<!-- <span v-if="identity==2">次终端用户</span> -->
-						<!-- <span v-else>终端用户</span> -->
 						<span>{{ user.name }}</span>
 					</div>
 				</div>
 			</div>
-			<template v-if="identity==2">
-				<el-row class="tac">
-				  	<el-col :span="8">
-				    	<el-menu class="el-menu-vertical-demo" theme="dark" :default-active="nowIndex" unique-opened>
-							<template v-for="(val, index) in navList">
-								<el-menu-item v-if="!val.childs" :index="(index+1).toString()"><i :class="val.icon"></i><a :href="val.link">{{ val.name }}</a></el-menu-item>
-			  					<el-submenu v-else :index="(index+1).toString()">
-			  					   <template slot="title"><i :class="val.icon"></i>{{ val.name }}</template>
-									<template v-for="(value, key) in val.childs">
-										<el-menu-item v-if="!value.data" :index="(index+1).toString()+ '-' + (key+1).toString()"><i :class="value.icon"></i><a :href="value.link">{{ value.name }}</a></el-menu-item>
-										<el-menu-item-group v-else>
-											<template slot="title"><i :class="value.icon"></i>{{ value.title }}</template>
-											<el-menu-item v-for="(data, item) in value.data" :index="(index+1).toString() + '-' + (key+1).toString()+'-' + (item+1).toString() "><i :class="data.icon"></i><a :href="data.link">{{ data.name }}</a></el-menu-item>
-										</el-menu-item-group>
-									</template>
-			  				   </el-submenu>
-							</template>
-				    	</el-menu>
-					</el-col>
-				</el-row>
-			</template>
-			<template v-else>
-				<el-row class="tac">
-				  	<el-col :span="8">
-				    	<el-menu class="el-menu-vertical-demo" theme="dark" :default-active="nowIndex">
-							<el-menu-item v-for="(val, index) in navListTerminal" :index="(index+1).toString()"><i :class="val.icon"></i><a :href="val.link">{{ val.name }}</a></el-menu-item>
-				    	</el-menu>
-					</el-col>
-				</el-row>
-			</template>
+
+			<el-row class="tac" >
+			  	<el-col :span="8">
+			    	<el-menu class="el-menu-vertical-demo" theme="dark" :default-active="nowIndex" unique-opened>
+						<template v-for="val in navList" v-if="judgeRolesAndPermission(val.roles,val.permission)">
+							<el-menu-item v-if="!val.childs" :index="val.index"><i :class="val.icon"></i><a :href="val.link">{{ val.name }}</a></el-menu-item>
+		  					<el-submenu v-else :index="val.index">
+                                <template slot="title"><i :class="val.icon"></i>{{ val.name }}</template>
+                                <template v-for="value in val.childs">
+                                    <el-menu-item v-if="!value.data" :index="value.index"><i :class="value.icon"></i><a :href="value.link">{{ value.name }}</a></el-menu-item>
+                                    <el-menu-item-group v-else>
+                                        <template slot="title"><i :class="value.icon"></i>{{ value.title }}</template>
+                                        <el-menu-item v-for="data in value.data" :index="data.index" v-if="secondRoleJudge(data.roles)">
+                                        	<i :class="data.icon"></i><a :href="data.link" >{{ data.name }}</a>
+                                        </el-menu-item>
+                                    </el-menu-item-group>
+                                </template>
+		  				   </el-submenu>
+						</template>
+			    	</el-menu>
+				</el-col>
+			</el-row>
 		</div>
 		<div class="right_con">
 			<div class="right_con_top">
@@ -273,11 +399,8 @@ text ： 需要在右上方显示的文本
 					</div>
 				</div>
 				<div class="nav_middle">
-					<!-- <slot name="title"></slot> -->
 					<div class="text_lent">
 						<span>{{ text[0] }}</span>
-						<!-- <h5>{{ text[1] }}</h5> -->
-						<!-- <slot></slot> -->
 					</div>
 				</div>
 			</div>
@@ -294,7 +417,6 @@ text ： 需要在右上方显示的文本
 		font-size: 16px;
 	}
 	*{
-		/*font-family:"微软雅黑";*/
 		margin: 0;
 	}
 	a,a:hover{
@@ -350,7 +472,6 @@ text ： 需要在右上方显示的文本
 	}
 	.logo_box{
 		text-align: center;
-		/*margin-top: 10px;*/
 	}
 	.logo_box img{
 		text-align: center;

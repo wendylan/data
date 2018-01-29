@@ -24,14 +24,16 @@
 			return {}
 		},
 		methods:{
+            // 新增品牌
 			addBrands(){
 				this.needingDatas.childData.push({
 					onemoreBrand : '',
-					priceType : "网价",
+					priceType : "最新网价",
 					calculateType : "上浮",
 					price : null
 				});
 			},
+            // 删除品牌
 			delBrand(index){
 				if(this.needingDatas.childData.length >1 ){
 					this.needingDatas.childData.splice(index, 1);

@@ -14,7 +14,7 @@
     "echarts": "^3.4.0",
     "element-ui": "^1.0.8",
     "eslint-plugin-html": "^2.0.1",
-    "vue": "^2.1.0",
+    "vue": "^2.1.8",
     "vuex": "^2.3.1"
   },
   "devDependencies": {
@@ -41,12 +41,13 @@
     "eslint-plugin-vue": "^2.0.1",
     "file-loader": "^0.9.0",
     "json-loader": "^0.5.4",
+    "lodash": "^4.17.4",
     "pinyin": "^2.8.3",
     "style-loader": "^0.13.1",
     "vue-loader": "^10.0.0",
     "vue-resource": "^1.2.0",
     "vue-router": "^2.1.1",
-    "vue-template-compiler": "^2.1.0",
+    "vue-template-compiler": "^2.1.8",
     "vuedraggable": "^2.15.0",
     "webpack": "^2.1.0-beta.25",
     "webpack-dev-server": "^2.1.0-beta.9"

@@ -9,26 +9,26 @@
 	import projectCheck from './project-check.vue';
 	import showPro from '../../components/projectUpdate/project-condition.vue';
 	export default{
-		created : function(){
+        components : {
+            headerbar,
+            relateBox,
+            projectCheck,
+            projectCreat,
+            showPro,
+            elTabs : Tabs,
+            elTabPane : TabPane,
+            elTable : Table,
+            elTableColumn : TableColumn,
+            elButton : Button,
+            elPagination : Pagination,
+            elInput : Input,
+            elSelect : Select,
+            elOption : Option,
+            elSwitch : Switch,
+		},
+		created(){
 			this.initJsonData(provinceList);
 			this.getProject();
-		},
-		components : {
-			headerbar,
-			relateBox,
-			projectCheck,
-			projectCreat, 
-			showPro,
-			elTabs : Tabs,
-			elTabPane : TabPane,
-			elTable : Table,
-			elTableColumn : TableColumn,
-			elButton : Button,
-			elPagination : Pagination,
-			elInput : Input,
-			elSelect : Select,
-			elOption : Option,
-			elSwitch : Switch,
 		},
 		data(){
 			return {
@@ -77,7 +77,7 @@
 		},
 		methods:{
 			// 获取广东省所有市区
-			initJsonData:function(jsonData){
+			initJsonData(jsonData){
 				for(let data of jsonData.province){
 					if(data.name == "广东"){
 						this.provinceList = data.cityList;
@@ -261,7 +261,7 @@
 </script>
 <template>
 	<div>
-		<headerbar active_number="6" :identity="2" :text="['项目管理','查看所有项目']">
+		<headerbar active_number="secondUsercenter" :identity="2" :text="['项目管理','查看所有项目']">
 			<div>
 				<el-tabs type="border-card">
 					<el-tab-pane label="全部地区">

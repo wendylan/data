@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import VueResource from 'vue-resource';
 import App from './secondary_terminal/buybuybuyOrder/user-order.vue';
-
+import store from './vuex/store';
 import VueRouter from 'vue-router';
 
 Vue.use(VueRouter);
@@ -19,5 +19,6 @@ var router = new VueRouter({
 new Vue({
 	el: '#app',
 	router: router,
+	store: store,
 	template: "<router-view></router-view>"
 });

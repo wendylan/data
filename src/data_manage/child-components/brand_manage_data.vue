@@ -19,51 +19,38 @@
 		},
 		data(){
 			return{
+                // 品牌详细信息数组
 				brandDetail : [],
 				isEdit : -1,
+                // 修改时候的数据存储
 				tempBrandDetail : {},
+                // 新建弹出框是否打开
 				dialogFormVisible : false,
+                // 新增一条品牌信息的对象
 				newBrandDetail : {
 					brands : '',
 					context : '',
 					cate_spec : '',
 					cate_style : '',
+                    // 重量标准
 					weight_standard : '',
+                    // 运输方式
 					transport_way : '',
+                    // 钢厂三证
 					steel_certificate : [
 						{ type : 'first',value : ''},
 						{ type : 'second',value : ''},
 						{ type : 'third',value : ''}
 					],
+                    // 质量认证书
 					quality_certificate : '',
-					supplier : ''
+                    // 供应商
+					supplier : [
+                        {
+                            name : ''
+                        }
+                    ]
 				},
-
-				// brandDetail : [],
-				// isEdit : -1,
-				// tempBrandDetail : {},
-				// dialogFormVisible : false,
-				// dialogVisible : false,
-				// dialogVisibleWeight : false,
-				// dialogVisibleQuality : false,
-				// newBrandDetail : {
-				// 	cate_style_path : '',
-				// 	weight_standard_path : '',
-				// 	quality_certificate_path : '',
-				// 	brands : '',
-				// 	context : '',
-				// 	cate_spec : '',
-				// 	cate_style : '',
-				// 	weight_standard : '',
-				// 	transport_way : '',
-				// 	steel_certificate : [
-				// 		{ type : 'first',value : ''},
-				// 		{ type : 'second',value : ''},
-				// 		{ type : 'third',value : ''}
-				// 	],
-				// 	quality_certificate : '',
-				// 	supplier : ''
-				// },
 			}
 		},
 		methods : {
@@ -72,6 +59,7 @@
 				ajaxCustom.ajaxGet(this, 'dingoapi/getBrandInfo', (response)=>{
 					console.log(response);
 					this.brandDetail = response.body.data;
+                    console.log(this.brandDetail);
 					if(this.brandDetail.length){
 						this.brandDetail = response.body.data.reverse();
 					}
@@ -79,9 +67,25 @@
 					console.log(response);
 				});
 			},
-			// 新增品牌详情
-			newOneBrandInfo(data){
-				window.document.getElementById('formAdd').submit();
+            // 新增一条品牌信息
+			newOneBrandInfo(){
+                console.log(this.newBrandDetail);
+                var form=document.getElementById("formAdd");
+                var fd =new FormData(form);
+                $.ajax({
+                     url: "dingoapi/addBrandInfo",
+                     type: "POST",
+                     data: fd,
+                     processData: false,  // 告诉jQuery不要去处理发送的数据
+                     contentType: false,   // 告诉jQuery不要去设置Content-Type请求头
+                     success: function(response){
+                        console.log(response);
+                        this.brandDetail = response.data.reverse();
+                        location.reload();
+                     }
+                });
+                this.dialogFormVisible = false;
+                return false;
 			},
 			// 修改一条数据
 			editBrandDetail(index){
@@ -108,7 +112,21 @@
 			saveChanging(index){
 				delete this.tempBrandDetail.created_at;
 				delete this.tempBrandDetail.updated_at;
-				window.document.getElementById('form').submit();
+                var form=document.getElementById("form");
+                var fd =new FormData(form);
+                var that = this;
+                $.ajax({
+                     url: "dingoapi/editBrandInfo",
+                     type: "POST",
+                     data: fd,
+                     processData: false,  // 告诉jQuery不要去处理发送的数据
+                     contentType: false,   // 告诉jQuery不要去设置Content-Type请求头
+                     success: function(response){
+                        console.log(response);
+                        location.reload();
+                     }
+                });
+                return false;
 
 			},
 			// 取消修改
@@ -127,54 +145,7 @@
 					}
 				}
 			},
-			modifyFile(name){
-				window.document.getElementById(name).click();
-			},
-			// fileChanged(flie){
-			// 	var files = flie.target.files ;
-			// 	if((typeof FileReader)===undefined){
-			// 		alert('您的浏览器并不支持图片上传');
-			// 	}
-			// 	var reader = new FileReader();
-			// 	if(files.length){
-			// 		this.tempBrandDetail.cate_style_path = files[0];
-			// 		reader.readAsDataURL(files[0]);
-			// 		var this_ = this;
-			// 		reader.onload = function(e){
-			// 			this_.tempBrandDetail.cate_style = e.target.result;
-			// 		}
-			// 	}
-			// },
-			// fileWeightChanged(flie){
-			// 	var files = flie.target.files ;
-			// 	if((typeof FileReader)===undefined){
-			// 		alert('您的浏览器并不支持图片上传');
-			// 	}
-			// 	var reader = new FileReader();
-			// 	if(files.length){
-			// 		this.tempBrandDetail.weight_standard_path = files[0];
-			// 		reader.readAsDataURL(files[0]);
-			// 		var this_ = this;
-			// 		reader.onload = function(e){
-			// 			this_.tempBrandDetail.weight_standard = e.target.result;
-			// 		}
-			// 	}
-			// },
-			// fileQualityChanged(flie){
-			// 	var files = flie.target.files ;
-			// 	if((typeof FileReader)===undefined){
-			// 		alert('您的浏览器并不支持图片上传');
-			// 	}
-			// 	var reader = new FileReader();
-			// 	if(files.length){
-			// 		this.tempBrandDetail.quality_certificate_path = files[0];
-			// 		reader.readAsDataURL(files[0]);
-			// 		var this_ = this;
-			// 		reader.onload = function(e){
-			// 			this_.tempBrandDetail.quality_certificate = e.target.result;
-			// 		}
-			// 	}
-			// },
+            // 获取图片路径
 			getImgPath(file){
 				if(file){
 					if(file.length<13){
@@ -190,7 +161,33 @@
 			handleAvatarSuccess(res, file) {
 				this.tempBrandDetail.weight_standard = URL.createObjectURL(file.raw);
 			},
-
+            // 增加供应商
+            addSupplier(){
+                this.newBrandDetail.supplier.push(
+                    {
+                        name : null
+                    }
+                );
+            },
+            // 删除供应商
+            delSupplier(index){
+                if(this.newBrandDetail.supplier.length > 1){
+					this.newBrandDetail.supplier.splice(index, 1);
+				}
+            },
+            addSupplierData(){
+                this.tempBrandDetail.supplier.push(
+                    {
+                        name : null
+                    }
+                );
+            },
+            // 删除供应商
+            delSupplierData(index){
+                if(this.tempBrandDetail.supplier.length > 1){
+					this.tempBrandDetail.supplier.splice(index, 1);
+				}
+            },
 		},
 	}
 </script>
@@ -250,7 +247,9 @@
 						</tr>
 						<tr>
 							<th>广东区域供应商</th>
-							<td>{{ item.supplier }}</td>
+                            <td>
+                                <span v-for="data in item.supplier">{{ data.name }}, </span>
+                            </td>
 						</tr>
 						<tr>
 							<th>操作</th>
@@ -262,13 +261,13 @@
 					</template>
 					<template v-else>
 						<el-form :model="tempBrandDetail" ref="tempBrandDetail" >
-							<form id="form" method="POST" action="dingoapi/editBrandInfo" enctype="multipart/form-data" >
+							<form id="form" name="form" enctype="multipart/form-data" >
 								<tr>
 									<th>品牌</th>
 									<td  class="same_padding">
 										<el-form-item prop="brands" label="" >
-											<el-input name="brands"  v-model='tempBrandDetail.brands' type="text"></el-input>
-											<el-input name="id"  v-model='tempBrandDetail.id' type="text" style="display:none;"></el-input>
+											<el-input size="small" name="brands"  v-model='tempBrandDetail.brands' type="text"></el-input>
+											<el-input size="small" name="id"  v-model='tempBrandDetail.id' type="text" style="display:none;"></el-input>
 										</el-form-item>
 									</td>
 								</tr>
@@ -276,7 +275,7 @@
 									<th>基本资料</th>
 									<td class="same_padding">
 										<el-form-item prop="context" label="" >
-											<el-input name="context"  v-model='tempBrandDetail.context' type="textarea" autosize></el-input>
+											<el-input size="small" name="context"  v-model='tempBrandDetail.context' type="textarea" autosize></el-input>
 										</el-form-item>
 									</td>
 								</tr>
@@ -284,7 +283,7 @@
 									<th>生产规格</th>
 									<td class="same_padding">
 										<el-form-item prop="cate_spec" label="" >
-											<el-input name="cate_spec"  v-model='tempBrandDetail.cate_spec' type="text"></el-input>
+											<el-input size="small" name="cate_spec"  v-model='tempBrandDetail.cate_spec' type="text"></el-input>
 										</el-form-item>
 									</td>
 								</tr>
@@ -295,17 +294,6 @@
 											<el-upload action="" :auto-upload="false" name="cate_style">
 												<el-button size="small" type="primary">点击上传</el-button>
 											</el-upload>
-
-											<!-- <input id='fileCate'  type="file"  @change='fileChanged' name="cate_style" v-show = 'false'/>
-											<el-button   @click="dialogVisible=true">查看</el-button>
-											<el-button  @click="modifyFile('fileCate')">修改</el-button>
-											<el-dialog title="提示" v-model="dialogVisible">
-												<img :src="getImgPath(tempBrandDetail.cate_style)" alt="" style="display:block;width:100%;">
-												<span slot="footer" class="dialog-footer">
-													<el-button @click="dialogVisible = false">取 消</el-button>
-													<el-button type="primary" @click="dialogVisible = false">确 定</el-button>
-												</span>
-											</el-dialog> -->
 										</el-form-item>
 
 									</td>
@@ -317,18 +305,6 @@
 											<el-upload action="" :auto-upload="false" name="weight_standard">
 												<el-button size="small" type="primary">点击上传</el-button>
 											</el-upload>
-
-											<!-- <input id='fileWeight'  type="file"  @change='fileWeightChanged' name="weight_standard" v-show = 'false'/>
-											<el-button   @click="dialogVisibleWeight=true">查看</el-button>
-											<el-button  @click="modifyFile('fileWeight')">修改</el-button>
-											<el-dialog title="提示" v-model="dialogVisibleWeight">
-												<img :src="getImgPath(tempBrandDetail.weight_standard)" alt="" style="display:block;width:100%;">
-												<span slot="footer" class="dialog-footer">
-													<el-button @click="dialogVisibleWeight = false">取 消</el-button>
-													<el-button type="primary" @click="dialogVisibleWeight = false">确 定</el-button>
-												</span>
-											</el-dialog> -->
-
 										</el-form-item>
 									</td>
 								</tr>
@@ -336,7 +312,7 @@
 									<th>承运方式</th>
 									<td class="same_padding">
 										<el-form-item prop="transport_way" label="" >
-											<el-input name="transport_way"  v-model='tempBrandDetail.transport_way' type="text"></el-input>
+											<el-input size="small" name="transport_way"  v-model='tempBrandDetail.transport_way' type="text"></el-input>
 										</el-form-item>
 									</td>
 								</tr>
@@ -344,10 +320,6 @@
 									<th>钢厂三证</th>
 									<td>
 										<el-form-item label="" prop="steel_certificate">
-											<!-- <el-input name="first" type="file" class="input_style"></el-input>
-											<el-input name="second" type="file" class="input_style"></el-input>
-											<el-input name="third" type="file" class="input_style"></el-input> -->
-
 											<el-upload action="" :auto-upload="false" name="first">
 												<el-button size="small" type="primary">点击上传</el-button>
 											</el-upload>
@@ -369,17 +341,6 @@
 											<el-upload action="" :auto-upload="false" name="quality_certificate">
 												<el-button size="small" type="primary">点击上传</el-button>
 											</el-upload>
-
-											<!-- <input id='fileQuality'  type="file"  @change='fileQualityChanged' name="quality_certificate" v-show = 'false'/>
-											<el-button   @click="dialogVisibleQuality=true">查看</el-button>
-											<el-button  @click="modifyFile('fileQuality')">修改</el-button>
-											<el-dialog title="提示" v-model="dialogVisibleQuality">
-												<img :src="getImgPath(tempBrandDetail.quality_certificate)" alt="" style="display:block;width:100%;">
-												<span slot="footer" class="dialog-footer">
-													<el-button @click="dialogVisibleQuality = false">取 消</el-button>
-													<el-button type="primary" @click="dialogVisibleQuality = false">确 定</el-button>
-												</span>
-											</el-dialog> -->
 										</el-form-item>
 									</td>
 
@@ -387,13 +348,19 @@
 								<tr>
 									<th>广东区域供应商</th>
 									<td class="same_padding">
-										<el-input name="supplier" v-model="tempBrandDetail.supplier" type="text"></el-input>
+                                        <template v-for="(item, index) in tempBrandDetail.supplier" >
+            								<p>
+            									<el-input size="small" name="supplier[]" type="text" v-model="item.name" style="width:50%;"></el-input>
+            									<el-button size="small" @click="delSupplierData(index)" :disabled="tempBrandDetail.supplier.length ==1? true:false" >删除</el-button>
+            								</p>
+            							</template>
+                                        <el-button type="primary" @click="addSupplierData" size="small">增加</el-button>
 									</td>
 								</tr>
 								<tr>
 									<th>操作</th>
 									<td>
-										<el-button size="small" type="info" @click="saveChanging('tempBrandDetail')">保存</el-button>
+										<el-button size="small" type="info" @click="saveChanging()">保存</el-button>
 										<el-button size="small" @click="cancelChanging()">取消</el-button>
 									</td>
 								</tr>
@@ -407,55 +374,53 @@
 			<!-- 新增品牌详情弹出框 -->
 			<el-dialog title="新增品牌详情" v-model="dialogFormVisible">
 				<el-form :model="newBrandDetail" ref="newBrandDetail" label-width="150px">
-					<form id="formAdd" method="POST" action="dingoapi/addBrandInfo" enctype="multipart/form-data" >
+					<form id="formAdd" name="formAdd" enctype="multipart/form-data" >
 						<el-form-item label="品牌名称" prop="brands">
-							<el-input name="brands" v-model="newBrandDetail.brands" auto-complete="off" class="input_style"></el-input>
+							<el-input size="small" name="brands" v-model="newBrandDetail.brands" auto-complete="off" class="input_style"></el-input>
 						</el-form-item>
 						<el-form-item label="基本资料" prop="context">
-							<el-input name="context" type="textarea" v-model="newBrandDetail.context" autosize class="input_style"></el-input>
+							<el-input size="small" name="context" type="textarea" v-model="newBrandDetail.context" autosize class="input_style"></el-input>
 						</el-form-item>
 						<el-form-item label="生产规格" prop="cate_spec">
-							<el-input name="cate_spec" v-model="newBrandDetail.cate_spec" auto-complete="off" class="input_style"></el-input>
+							<el-input size="small" name="cate_spec" v-model="newBrandDetail.cate_spec" auto-complete="off" class="input_style"></el-input>
 						</el-form-item>
 						<el-form-item label="钢牌/钢标样式" prop="cate_style" >
-							<!-- <el-input type="file" name="cate_style"  ></el-input> -->
-
 							<el-upload action="" :auto-upload="false" name="cate_style">
 								<el-button size="small" type="primary">点击上传</el-button>
 							</el-upload>
 						</el-form-item>
 						<el-form-item label="理计重量标准" prop="weight_standard" >
-							<!-- <el-input type="file" name="weight_standard"  ></el-input> -->
-
 							<el-upload action="" :auto-upload="false" name="weight_standard">
 								<el-button size="small" type="primary">点击上传</el-button>
 							</el-upload>
 						</el-form-item>
 						<el-form-item label="承运方式" prop="transport_way">
-							<el-input name="transport_way" v-model="newBrandDetail.transport_way" auto-complete="off" class="input_style"></el-input>
+							<el-input size="small" name="transport_way" v-model="newBrandDetail.transport_way" auto-complete="off" class="input_style"></el-input>
 						</el-form-item>
 						<el-form-item label="钢厂三证" v-for="data in newBrandDetail.steel_certificate">
-							<!-- <el-input :name="data.type" type="file" class="input_style"></el-input> -->
-
 							<el-upload action="" :auto-upload="false" :name="data.type">
 								<el-button size="small" type="primary">点击上传</el-button>
 							</el-upload>
 						</el-form-item>
 						<el-form-item label="质量认证书" prop="quality_certificate">
-							<!-- <el-input type="file" name="quality_certificate" ></el-input> -->
-
 							<el-upload action="" :auto-upload="false" name="quality_certificate">
 								<el-button size="small" type="primary">点击上传</el-button>
 							</el-upload>
 						</el-form-item>
 						<el-form-item label="广东区域供应商" >
-							<el-input name="supplier" v-model="newBrandDetail.supplier" auto-complete="off" class="input_style"></el-input>
+                            <template v-for="(item, index) in newBrandDetail.supplier" >
+                                <p>
+                                    <el-input size="small" type="text" v-model="item.name"  name="supplier[]" class="input_style"></el-input>
+                                    <el-button size="small" @click="delSupplier(index)" :disabled="newBrandDetail.supplier.length ==1? true:false" >删除</el-button>
+                                </p>
+                            </template>
+                            <el-button type="primary" @click="addSupplier" size="small">增加</el-button>
 						</el-form-item>
 					</form>
 				</el-form>
 				<div slot="footer" class="dialog-footer">
 					<el-button @click="dialogFormVisible = false">取 消</el-button>
-					<el-button type="primary" @click="newOneBrandInfo('newBrandDetail')">确 定</el-button>
+					<el-button type="primary" @click="newOneBrandInfo()">确 定</el-button>
 				</div>
 			</el-dialog>
 		</div>

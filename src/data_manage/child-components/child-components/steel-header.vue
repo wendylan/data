@@ -103,7 +103,7 @@
 			createPaymentKind(){
 				let msg = confirm("确定添加 \"" + this.createDatas.newPaymentKind + "\" ?");
 				if(msg){
-					ajaxCustom.ajaxPost("dingoapi/createPaymentKind", { payment_name : this.createDatas.newPaymentKind }, (responese)=>{
+					ajaxCustom.ajaxPost(this, "dingoapi/createPaymentKind", { payment_name : this.createDatas.newPaymentKind }, (responese)=>{
 						console.log(responese)
 						if(200<=responese.body.status_code<=299){
 							alert(responese.body.message);

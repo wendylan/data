@@ -65,7 +65,7 @@
 
 <template>
 	<div>
-		<headbar active_number="5-4" :identity="2" :text="['供应商出货统计表', '']">
+		<headbar active_number="suppilerSellForm" :identity="2" :text="['供应商出货统计表', '']">
 			<div class="">
 				<span>选择日期：</span>
 				<el-date-picker

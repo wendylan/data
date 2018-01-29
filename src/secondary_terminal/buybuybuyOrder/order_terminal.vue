@@ -444,7 +444,7 @@ export default{
 		                <th>下单数量(吨)</th>
 		                <th v-if="orderStatus>3">签收数量(吨)</th>
 		                <th>总价(元)</th>
-		                <th v-if="transportFunction==1">仓库</th>
+		                <th>仓库</th>
 		                <th v-if="transportFunction==1||orderStatus">车号</th>
 		                <th>备注</th>
 		            </tr>
@@ -472,7 +472,7 @@ export default{
 			                	*parseInt(order.amount)
 			                ) 
 		                }}</td>
-		                <td v-if="transportFunction==1">{{ order.warehouse }}</td>
+		                <td >{{ order.warehouse }}</td>
 		                <td v-if="transportFunction==1||orderStatus">
 		                	<el-select v-model='order.plate_num' type="text" size="small">
 		                		<el-option  :value='item.plate_number' v-for='item in logistics_info'></el-option>
@@ -491,7 +491,7 @@ export default{
 		            		{{totalReceived}}
 		            	</td>
 		            	<td>{{ totalPrice }}</td>
-		            	<td v-if="transportFunction==1"></td>
+		            	<td ></td>
 		            	<td v-if="transportFunction==1||orderStatus"></td>
 		            	<td></td>
 		            </tr>
@@ -505,7 +505,7 @@ export default{
 					<br>
 					<span>运输方式:</span>
 					{{transportFunction?'买方自提':'卖方承运'}}
-					<el-button size="small" @click="addCar" >新加车号</el-button>
+					<el-button size="small" @click="addCar"  v-if="transportFunction">新加车号</el-button>
 					<div style="margin-top:20px;">
 						<template v-for='(item, index) in logistics_info'>
 							<el-form :rules="rules" ref="ruleForm" :model="logistics_info[index]" :inline="true" style="margin-bottom:0;">
@@ -539,14 +539,14 @@ export default{
 							<span>送货地址:</span>
 							<el-input type="text" v-model="place_of_receipt" size="small" class="same_margin"></el-input>
 						</p>
-						<p>
+						<p v-if="daterange.length">
 							<span>供货时间:</span>
 							<el-date-picker v-model="daterange" type="daterange" :picker-options="pickerOptions" placeholder="请选择日期范围" @change='changeDate' style="width:280px;" size="small"></el-date-picker>
 						</p>
-						<p>
+						<!-- <p>
 							<span>付款时间:</span>
 							<span>见合同</span>
-						</p>
+						</p> -->
 						<label class="span_class">
 							<b>备  注：</b>
 						</label>
@@ -638,7 +638,7 @@ export default{
 		                <td>{{ order.amount }}</td>
 		                <td v-if="orderStatus>3">{{ order.out_warehouse_amount }}</td>
 		                <td>{{ makePriceStr((order.out_warehouse_amount?order.out_warehouse_amount:order.amount)*((order.unit_price|0)+(order.freight|0))) }}</td>
-		                <td v-if="transportFunction==1">{{ order.warehouse }}</td>
+		                <td >{{ order.warehouse }}</td>
 		                <td v-if="transportFunction==1||orderStatus">{{ order.plate_num }}</td>
 		                <td>{{ order.remark }}</td>
 		            </tr>
@@ -664,7 +664,6 @@ export default{
 					</label>
 					<br>
 					{{transportFunction?'买方自提':'卖方承运'}}
-					<el-button size="small" @click="addCar" >新加车号</el-button>
 					<div style="margin-top:20px;">
 						<template v-for='item in logistics_info'>
 							<p>
@@ -693,10 +692,10 @@ export default{
 						<p>
 							<span>供货时间:</span>{{ date_of_receipt }}
 						</p>
-						<p>
+						<!-- <p>
 							<span>付款时间:</span>
 							<span>见合同</span>
-						</p>
+						</p> -->
 						<label class="span_class">
 							<b>备  注：</b>
 						</label>{{ remarks }}

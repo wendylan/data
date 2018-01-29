@@ -2,6 +2,14 @@
 	import {Button, Dialog, Form, FormItem, Input} from 'element-ui';
 	import relateBox from './relate-box.vue';
 	export default{
+        components : {
+			relateBox,
+			elButton : Button,
+			elDialog : Dialog,
+			elForm : Form,
+			elFormItem : FormItem,
+			elInput : Input
+		},
 		props : ['projectId', 'userId', 'opencheck', 'projects', 'companys'],
 		data(){
 			return {
@@ -11,27 +19,19 @@
 				// 结算方式
 				projectPayItems : [
 					{ num : "1", text : "统一包干结算" },
-					{ num : "2", text : "分品牌包干结算" }, 
+					{ num : "2", text : "分品牌包干结算" },
 					{ num : "3", text : "分品名包干结算" },
 					{ num : "4", text : "统一分拆结算" },
 					{ num : "5", text : "分品牌分拆结算" },
 					{ num : "6", text : "综合费率结算" },
 					{ num : "7", text : "其他" },
 				],
-				labelWidth : '150px', 
+				labelWidth : '150px',
 				// 项目信息
 				projectInfo : {
 					settlement : {}
 				},
 			}
-		},
-		components : {
-			relateBox,
-			elButton : Button,
-			elDialog : Dialog,
-			elForm : Form,
-			elFormItem : FormItem,
-			elInput : Input
 		},
 		methods : {
 			// 结算方式转换
@@ -61,7 +61,7 @@
 			cancelRelate(id){
 				this.$emit('cancelRelate', id);
 			},
-			
+
 			// 确认关联
 			confirmRelate(id){
 				this.$emit('confirmRelate', id);
@@ -75,14 +75,14 @@
 				this.getProject();
 			},
 		},
-		
+
 	}
 </script>
 <template>
 	<div>
 		<el-dialog title="项目审核" v-model="isOpen" style="text-align:center;">
 			<el-form>
-				<el-form-item label="所属单位 : " :label-width="labelWidth" class="text_left"> 
+				<el-form-item label="所属单位 : " :label-width="labelWidth" class="text_left">
 					<span v-if="projectInfo.company">{{ projectInfo.company }}</span>
 					<span v-else>未关联<el-button size="small" @click="isShowRelate=!isShowRelate" style="margin-left:20px;">关联</el-button></span>
 				</el-form-item>

@@ -1,5 +1,6 @@
 <script>
-	import{ Tabs, TabPane, Form, FormItem, Input, Button } from 'element-ui';
+	import{ Tabs, TabPane, Form, FormItem, Input, Button, Popover } from 'element-ui';
+	import axios from 'axios';
 	export default{
 		components : {
 			elTabs : Tabs,
@@ -8,6 +9,7 @@
 			elFormItem : FormItem,
 			elInput : Input,
 			elButton : Button,
+			elPopover : Popover,
 		},
 		data(){
 			var validatePass1 = (rule, value, callback) => {
@@ -29,6 +31,8 @@
 				}
 			};
 			return {
+				captcha : null,
+				postcaptcha : null,
 				activeName : 'first',
 				registerInfo : {
 					mobile : null,
@@ -66,13 +70,14 @@
 						{ validator: validatePass2, trigger: 'blur' },
 					]
 				},
+				captcha_visible: false,
 			}
 		},
 		methods : {
-			submitInfo(name){
+			submitInfo( name ){
 				this.$refs[name].validate((valid) => {
 					if (valid) {
-						window.document.getElementById(name).submit();
+						window.document.getElementById(name).onSubmit();
 					} else {
 						console.log('error submit!!');
 						return false;
@@ -82,6 +87,41 @@
 			getVerifyCode(value){
 				console.log(value);
 			},
+			recaptcha(e){
+				// console.log(e);
+				this.captcha = e.target;
+				this.captcha.src='captcha/1?r='+Math.random();
+			},
+			reg_captcha_submit(){
+				axios.post('/regsms',{
+                                mobile : this.registerInfo.mobile,
+                                postcaptcha : this.postcaptcha
+                        })
+                        .then(resp => {
+                            console.log(resp.data);
+                        }).catch(err => {             //
+                            console.log('请求失败：'+err.status+','+err.statusText);
+                        });
+			},
+			onSubmit() {
+				console.log(this.registerInfo);
+				if (!!this.registerInfo.mobile){
+					axios.post("/register",{
+							mobile : this.registerInfo.mobile,
+							password : this.registerInfo.password,
+							password_confirmation : this.registerInfo.password_confirmation,
+							verifyCode : this.registerInfo.verifyCode	
+						})
+						.then(data => {
+							console.log(data.message);
+						})
+						.catch(errors => {
+							console.log(errors);
+						});
+				}else{
+					console.log('空数据');
+				}
+        	},
 		},
 	}
 </script>
@@ -133,7 +173,7 @@
 						<el-tabs v-model="activeName">
 							<el-tab-pane label="手机注册" name="first">
 								<el-form :model="registerInfo" :rules="rules" ref="registerInfo"  label-width="100px" style="margin-top: 30px;text-align: center;">
-									<form id="registerInfo" method="POST" action="register">
+									<form id="registerInfo" method="POST" action="/register" @submit.prevent="onSubmit">
 										<el-form-item prop="mobile" label="手机号码" >
 											<el-input name="mobile"  v-model='registerInfo.mobile' type="text" :maxlength="11" :minlength="13"></el-input>
 										</el-form-item>
@@ -143,16 +183,32 @@
 										<el-form-item prop="password_confirmation" label="再次输入密码" >
 											<el-input name="password_confirmation"  v-model='registerInfo.password_confirmation' type="password"></el-input>
 										</el-form-item>
+											<el-popover
+											ref="popover5"
+											placement="bottom"
+											width="160"
+											v-model="captcha_visible">
+											<p>请填写图中的验证码</p>
+											<div style="text-align: right; margin: 0">
+												<a @click="recaptcha">	
+													<img src="/captcha/1" id="img_captcha" alt="验证码" title="刷新图片">
+												</a><br><br>
+												<el-input name="captcha"  v-model='postcaptcha' type="text"></el-input>
+												<br><br>
+												<el-button size="mini" type="text" @click="captcha_visible = false">取消</el-button>
+												<el-button type="primary" size="mini" @click = "reg_captcha_submit()">确定</el-button>
+											</div>
+											</el-popover>
 										<el-form-item prop="verifyCode" label="手机验证" >
-											<el-input placeholder="请输入验证码" v-model="registerInfo.verifyCode" name="verifyCode">
-												<el-button slot="append" @click="getVerifyCode('ver')">获取验证码</el-button>
+											<el-input placeholder="请输入手机验证码" v-model="registerInfo.verifyCode" name="verifyCode">
+												<el-button slot="append" v-popover:popover5>获取验证码</el-button>
 											</el-input>
 										</el-form-item>
-										<el-button style="min-width: 100px;" type="success"  @click = "submitInfo('registerInfo')">注册</el-button>
+										<el-button style="min-width: 100px;" type="success"  @click = "onSubmit()">注册</el-button>
 									</form>
 								</el-form>
 							</el-tab-pane>
-							<el-tab-pane label="邮箱注册" name="second" >
+							<!-- <el-tab-pane label="邮箱注册" name="second" >
 								<el-form :model="registerInfoEmail" :rules="rules1" ref="registerInfoEmail"  label-width="100px" style="margin-top: 30px;text-align: center;">
 									<form id="registerInfoEmail" method="POST" action="">
 										<el-form-item prop="email" label="邮箱地址" >
@@ -167,7 +223,7 @@
 										<el-button  style="min-width: 100px;"type="success"  @click = "submitInfo('registerInfoEmail')">注册</el-button>
 									</form>
 								</el-form>
-							</el-tab-pane>
+							</el-tab-pane> -->
 						</el-tabs>
 					</div>
 				</div>

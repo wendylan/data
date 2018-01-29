@@ -26,7 +26,7 @@
 				proId : null,
 				// 公司table的邦定值
 				pageCompany : [],
-				showSearch : true 
+				showSearch : true
 			}
 		},
 		computed : {
@@ -53,7 +53,7 @@
 					}
 				}
 				this.isShowRelate = false;
-			}, 
+			},
 			// 确认关联
 			confirmRelate(companyid, proId){
 				this.$emit('confirmRelate', { companyid : companyid, proId : proId });
@@ -152,7 +152,6 @@
 							<td>{{item.name}}</td>
 							<td>
 								<el-button v-if="item.name == nowCompany" type="danger" @click="cancleRelate(item.user_id, proId)" size="small">解除关联</el-button>
-								<!-- <el-button v-else type="info" @click="confirmRelate(item.user_id)" size="small">确认关联</el-button> -->
 								<el-button v-else type="info" @click="confirmRelate(item.user_id, proId)" size="small">确认关联</el-button>
 							</td>
 						</tr>
@@ -164,7 +163,7 @@
 				    </el-pagination>
 				</div>
 			</div>
-		
+
 		</el-dialog>
 	</div>
 </template>

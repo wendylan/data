@@ -34,25 +34,37 @@
 		},
 		created(){
             this.allDatas = {
-                brands : JSON.parse(JSON.stringify(this.brands)),
-                suppliers : JSON.parse(JSON.stringify(this.suppliers)),
-                warehouses :JSON.parse(JSON.stringify(this.warehouses))
+                brands : [],
+                suppliers : [],
+                warehouses : []
             };
 
-            // 初始化数据
-            for(let key in this.allDatas){
-                let _this = this;
-                this.allDatas[key] = this.allDatas[key].map( (val)=>{
-                    this.$set(val, "selected", false);
-                    this.$set(val, "isWrited", false);
-                    return val;
-                } );
+            for(let data of this.brands){
+                this.allDatas.brands.push({
+                    name : data.abbreviation,
+                    selected : false,
+                    isWrited : false
+                });
+            }
+            for(let data of this.suppliers){
+                this.allDatas.suppliers.push({
+                    name : data.name,
+                    selected : false,
+                    isWrited : false
+                });
+            }
+            for(let data of this.warehouses){
+                this.allDatas.warehouses.push({
+                    name : data.warehouse_name,
+                    selected : false,
+                    isWrited : false
+                });
             }
 
             // 计算已录入品牌
             for(let data of this.treeModel){
                 for(let _data of this.allDatas.brands){
-                    if(data.name == _data.abbreviation){
+                    if(data.name == _data.name){
                         _data.isWrited = true;
                     }
                 }
@@ -77,17 +89,50 @@
                     suppliers : null,
                     warehouses : null
                 },
+				showNotWrited : {
+					brand : false,
+					supplier : false,
+					warehouse : false
+				},
                 optionsSequence : ["brands", "suppliers", "warehouses"]
 			}
 		},
 		methods : {
+            searchTreeModel(treeModel, firstStr, str){
+                let result = [];
+                if(firstStr){
+                    for(let data of treeModel){
+                        if(data.name == firstStr){
+                            for(let _data of data.childs){
+                                if(_data.name == str){
+                                    result.push(_data);
+                                }
+                            }
+                        }
+                    }
+                }else{
+                    for(let brand of treeModel){
+                        if(brand.name == str){
+                            result.push(brand);
+                        }else{
+                            for(let supplier of brand.childs){
+                                if(supplier.name == str){
+                                    result.push(supplier);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return result;
+            },
 			selectOption(option, key){
                 for(let data of this.allDatas[key]){
                     data.selected = false;
                 }
                 this.selectedDatas[key] = option;
                 option.selected = true;
-                this.renderWrited(key);
+                this.renderWrited(option, key);
 				this.$emit("optionChanging", this.selectedDatas, key);
 			},
 			removeSelected(option, key){
@@ -95,88 +140,60 @@
 				option.selected = false;
 				this.$emit("optionChanging", this.selectedDatas, key);
 			},
-            renderWrited(key){
-                if(this.selectedDatas.brands.length){
+            renderWrited(choosedData, key){
+                if(this.selectedDatas.brands === null){
                     return false;
                 }
 
-                if(key == "brands"){
-                    // 清空原有选中
-                    for(let key in this.allDatas){
-                        if(key != "brands"){
-                            this.selectedDatas[key] = null;
-                            for(let data of this.allDatas[key]){
-                                data.selected = false;
-                            }
-                        }
-                    }
-                }else if(key == "warehouses"){
-                    // for(let data of this.allDatas[key]){
-                    //     data.selected = false;
-                    // }
+                let index = 0;
+                for(let data of this.optionsSequence){
+                    if(data == key) { break; }
+                    index++;
                 }
 
-                if(!this.selectedDatas.suppliers){
-                    //先清空原有已录入样式
-                    for(let key in this.allDatas){
-                        if(key != "brands"){
-                            for(let data of this.allDatas[key]){
-                                data.isWrited = false;
+                // 清除联动的选项
+                if(this.optionsSequence[index+1] !== undefined){
+                    for(let i=(index+1); i<this.optionsSequence.length; i++){
+                        for(let data of this.allDatas[this.optionsSequence[i]]){
+                            data.selected = false;
+                            data.isWrited = false;
+                        }
+						this.selectedDatas[this.optionsSequence[i]] = null;
+                    }
+
+                }
+
+                // 重新计算联动值
+                if(this.optionsSequence[index+1] !== undefined){
+                    let previousKey = this.optionsSequence[index-1];
+                    let nextKey = this.optionsSequence[index+1];
+                    if(index === 0){
+                        // 是否已录入的品牌
+                        let gotTreeDatas = this.searchTreeModel(this.treeModel, null, choosedData.name);
+                        if(gotTreeDatas[0]){
+                            for(let data of this.allDatas[nextKey]){
+                                for(let _data of gotTreeDatas[0].childs){
+                                    if(data.name == _data.name){ data.isWrited = true; }
+                                }
                             }
                         }
-                    }
-                    for(let data of this.treeModel){
-                        if(data.name == this.selectedDatas.brands.abbreviation){
-                            for(let brandByModel of data.childs){
-                                for(let _data of this.allDatas.suppliers){
-                                    if(brandByModel.name == _data.name){
-                                        _data.isWrited = true;
-                                    }
+                    }else{
+                        let gotTreeDatas = this.searchTreeModel(this.treeModel, this.selectedDatas[previousKey].name, choosedData.name);
+                        for(let data of this.allDatas[nextKey]){
+                            for(let arr of gotTreeDatas){
+                                for(let _data of arr.childs){
+                                    if(data.name == _data){ data.isWrited = true; }
                                 }
                             }
                         }
                     }
-                    // 将已录入数据前置
-                    this.allDatas.suppliers.sort( (a, b)=>{
+                    this.allDatas[nextKey].sort( (a, b)=>{
                         a = a.isWrited ? 1 : 0;
                         b = b.isWrited ? 1 : 0;
                         return b - a;
-                    });
-                }else{
-                    //先清空原有已录入样式
-                    for(let key in this.allDatas){
-                        if(key == "warehouses"){
-                            for(let data of this.allDatas[key]){
-                                data.isWrited = false;
-                            }
-                        }
-                    }
-                    let warehouses = [];
-                    for(let data of this.treeModel){
-                        if(data.name == this.selectedDatas.brands.abbreviation){
-                            for(let _data of data.childs){
-                                if(_data.name == this.selectedDatas.suppliers.name){
-                                    warehouses = _data.childs;
-                                }
-                            }
-                        }
-                    }
-
-                    for(let data of warehouses){
-                        for(let _data of this.allDatas.warehouses){
-                            if(data == _data.warehouse_name){
-                                _data.isWrited = true;
-                            }
-                        }
-                    }
-                    // 将已录入数据前置
-                    this.allDatas.warehouses.sort( (a, b)=>{
-                        a = a.isWrited ? 1 : 0;
-                        b = b.isWrited ? 1 : 0;
-                        return b - a;
-                    });
+                    } );
                 }
-                // end
+                // end function
             }
 		}
 	}
@@ -189,28 +206,49 @@
             <li class="line-box" >
 				<div class="left_box">品牌 :</div>
 				<div class="main_box">
-					<template v-for="option of allDatas.brands"  >
-						<span v-if="!option.selected ? true : false" :class="option.isWrited ? 'writed' : 'not-writed'" @click="selectOption(option, 'brands')">{{ option.abbreviation }}</span>
-						<span v-else class="selected" :class="option.isWrited ? 'writed' : 'not-writed'" @click="removeSelected(option, 'brands')">{{ option.abbreviation }}</span>
+					<template v-for="option of allDatas.brands"  v-if="option.isWrited">
+						<span v-if="!option.selected ? true : false" :class="option.isWrited ? 'writed' : 'not-writed'" @click="selectOption(option, 'brands')">{{ option.name }}</span>
+						<span v-else class="selected" :class="option.isWrited ? 'writed' : 'not-writed'" @click="removeSelected(option, 'brands')">{{ option.name }}</span>
 					</template>
+					<template v-for="option of allDatas.brands" v-if="showNotWrited.brand">
+						<template v-if="!option.isWrited">
+							<span v-if="!option.selected ? true : false" :class="option.isWrited ? 'writed' : 'not-writed'" @click="selectOption(option, 'brands')">{{ option.name }}</span>
+							<span v-else class="selected" :class="option.isWrited ? 'writed' : 'not-writed'" @click="removeSelected(option, 'brands')">{{ option.name }}</span>
+						</template>
+					</template>
+					<span @click="showNotWrited.brand = !showNotWrited.brand"><i :class="showNotWrited.brand ? 'el-icon-d-arrow-left' : 'el-icon-more'"></i></span>
 				</div>
 			</li>
             <li class="line-box" >
 				<div class="left_box">供应商 :</div>
 				<div class="main_box">
-					<template v-for="option of allDatas.suppliers"  >
+					<template v-for="option of allDatas.suppliers" v-if="option.isWrited" >
 						<span v-if="!option.selected ? true : false" :class="option.isWrited ? 'writed' : 'not-writed'" @click="selectOption(option, 'suppliers')">{{ option.name }}</span>
 						<span v-else class="selected" :class="option.isWrited ? 'writed' : 'not-writed'" @click="removeSelected(option, 'suppliers')">{{ option.name }}</span>
 					</template>
+					<template v-for="option of allDatas.suppliers" v-if="showNotWrited.supplier">
+						<template v-if="!option.isWrited">
+							<span v-if="!option.selected ? true : false" :class="option.isWrited ? 'writed' : 'not-writed'" @click="selectOption(option, 'suppliers')">{{ option.name }}</span>
+							<span v-else class="selected" :class="option.isWrited ? 'writed' : 'not-writed'" @click="removeSelected(option, 'suppliers')">{{ option.name }}</span>
+						</template>
+					</template>
+					<span @click="showNotWrited.supplier = !showNotWrited.supplier"><i :class="showNotWrited.supplier ? 'el-icon-d-arrow-left' : 'el-icon-more'"></i></span>
 				</div>
 			</li>
             <li class="line-box" >
 				<div class="left_box">仓库 :</div>
 				<div class="main_box">
-					<template v-for="option of allDatas.warehouses"  >
-						<span v-if="!option.selected ? true : false" :class="option.isWrited ? 'writed' : 'not-writed'" @click="selectOption(option, 'warehouses')">{{ option.warehouse_name }}</span>
-						<span v-else class="selected" :class="option.isWrited ? 'writed' : 'not-writed'" @click="removeSelected(option, 'warehouses')">{{ option.warehouse_name }}</span>
+					<template v-for="option of allDatas.warehouses" v-if="option.isWrited" >
+						<span v-if="!option.selected ? true : false" :class="option.isWrited ? 'writed' : 'not-writed'" @click="selectOption(option, 'warehouses')">{{ option.name }}</span>
+						<span v-else class="selected" :class="option.isWrited ? 'writed' : 'not-writed'" @click="removeSelected(option, 'warehouses')">{{ option.name }}</span>
 					</template>
+					<template v-for="option of allDatas.warehouses" v-if="showNotWrited.warehouse">
+						<template v-if="!option.isWrited">
+							<span v-if="!option.selected ? true : false" :class="option.isWrited ? 'writed' : 'not-writed'" @click="selectOption(option, 'warehouses')">{{ option.name }}</span>
+							<span v-else class="selected" :class="option.isWrited ? 'writed' : 'not-writed'" @click="removeSelected(option, 'warehouses')">{{ option.name }}</span>
+						</template>
+					</template>
+					<span @click="showNotWrited.warehouse = !showNotWrited.warehouse"><i :class="showNotWrited.warehouse ? 'el-icon-d-arrow-left' : 'el-icon-more'"></i></span>
 				</div>
 			</li>
 		</ul>

@@ -36,6 +36,7 @@
 				}
 				this.allBrands.selected = '';
 			},
+            // 获取品牌的详细信息
 			getAllBrandsDetails(){
 				ajaxCustom.ajaxGet(this, 'dingoapi/getBrandInfo', (response)=>{
 					console.log(response);
@@ -140,7 +141,9 @@
 					</tr>
 					<tr>
 						<th>广东区域供应商</th>
-						<td>{{ item.supplier }}</td>
+						<td>
+						    <span v-for="data in item.supplier">{{ data.name }}, </span>
+						</td>
 					</tr>
 				</table>
 				<br>

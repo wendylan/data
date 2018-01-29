@@ -739,16 +739,16 @@ export default{
 			                <td style="width: 60px;">Φ{{ order.size }}</td>
 			                <td>{{ order.material }}</td>
 			                <!-- <td>{{ order.price }}</td> -->
-			                <td><el-input size="small" type="number" v-model="order.price" min="1000" max="10000" style="width:70px;" ></td>
+			                <td><el-input size="small" type="number" v-model="order.price" min="1000" max="10000" style="width:70px;" ></el-input></td>
 			                <!-- <td>{{ order.cost_freight }}</td> -->
 			                <td><el-input size="small" type='number' v-model="order.cost_freight" min="0"></el-input></td>
 			                <td>{{ order.amount }} </td>
 			                <td><el-input v-model="order.out_warehouse_amount" type="number" size="small" min="0" style="width:80px;" title="请输入一个确切的数"></el-input></td>
 			                <td>{{ makePriceStr( ((order.out_warehouse_amount?order.out_warehouse_amount:order.amount)*((order.price|0)+(order.cost_freight|0))) ) }}</td>
 			                <!-- <td>{{ order.price_source }}</td> -->
-			                <td><el-input size="small" type='text' v-model="order.price_source"></td>
+			                <td><el-input size="small" type='text' v-model="order.price_source"></el-input></td>
 			                <!-- <td>{{ order.warehouse }}</td> -->
-							<td><el-input size="small" type='text' v-model="order.warehouse"></td>
+							<td><el-input size="small" type='text' v-model="order.warehouse"></el-input></td>
 			                <td>{{ order.plate_num }}</td>
 			                <td>{{ order.remark }}</td>
 			            </tr>

@@ -137,7 +137,8 @@
 
 <template>
 	<div>
-		<headbar active_number="5-5" :identity="2" :text="['项目出货统计表', '']">
+		<!-- <headbar active_number="5-5" :identity="2" :text="['项目出货统计表', '']"> -->
+		<headbar active_number="projectSellForm" :identity="2" :text="['项目出货统计表', '']">
 			<div class="">
 				<span>选择日期：</span>
 				<el-date-picker

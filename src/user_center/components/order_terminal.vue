@@ -686,7 +686,7 @@ export default{
 					<br>
 					<span>运输方式:</span>
 					{{transportFunction?'买方自提':'卖方承运'}}
-					<el-button size="small" @click="addCar" >新加车号</el-button>
+					<el-button size="small" @click="addCar" v-if="orderStatus > 3" >新加车号</el-button>
 					<div style="margin-top:20px;">
 						<template v-for='item in logistics_info'>
 							<p>

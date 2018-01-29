@@ -237,12 +237,10 @@
 </script>
 
 <template>
-	<div class="table_box">
+	<div class="">
 		<!-- <div class="table-head" style="width: 100%; background-color:#eef1f6;padding-right: 17px;"> -->
-		<!-- <div class="table-head" style=" background-color:#eef1f6;padding-right: 17px;"> -->
-			<!-- <table class="table-style1" style="width: 100%; padding-right: 17px;"> -->
-		<div class="table-head" style=" background-color:#eef1f6;padding-right: 3px;">
-			<table class="table-style1" style="width: 100%;padding-right: 3px; ">
+		<div class="table-head" style=" background-color:#eef1f6;padding-right: 17px;">
+			<table class="table-style1" style="width: 100%; padding-right: 17px;">
 				<thead>
 					<!-- 此处修改了一下没有index的情况下,我自定义二级表头因为tr需要有外面带入，所以我修改了下thead部分，只是表template 的v-if及v-else放到tr前面 从而实现我的自定义二级表头 -->
 
@@ -258,8 +256,8 @@
 									<span>{{ item.title.replace('~', '') }}</span>
 									<div class="sort-icon">
 										<div class="sort-icon">
-											<div @click="sortPrice('asce', item.key)" style="color:#F56C6C;">▲</div>
-											<div @click="sortPrice('desc', item.key)" style="margin-top: -5px;color:#67C23A;">▼</div>
+											<div @click="sortPrice('asce', item.key)" >▲</div>
+											<div @click="sortPrice('desc', item.key)" style="margin-top: -5px;">▼</div>
 										</div>
 									</div>
 								</th>
@@ -281,8 +279,8 @@
 										<span>{{ data.title.replace('~', '') }}</span>
 										<div class="sort-icon">
 											<div class="sort-icon">
-												<div @click="sortPrice('asce', data.key)" style="color:#F56C6C;">▲</div>
-												<div @click="sortPrice('desc', data.key)" style="margin-top: -5px;color:#67C23A;">▼</div>
+												<div @click="sortPrice('asce', data.key)" >▲</div>
+												<div @click="sortPrice('desc', data.key)" style="margin-top: -5px;">▼</div>
 											</div>
 										</div>
 									</th>
@@ -298,25 +296,19 @@
 		<div class="table-body" style="width: 100%; overflow-y: scroll; height: 600px;">
 			<table class="table-style" style="width: 100%;">
 				<tbody>
-					<template v-for="line of tableDatas" v-if="line">
-						<tr v-if="line.display!=false">
-							<!-- 无index参数则是自定义table -->
-							<template v-if="index.length==0">
-								<slot name="tbody" :line="line"></slot>
-							</template>
-							<template v-else>
-								<template v-for="val of tbodyIndex">
-									<template v-for="(data, key) of line">
-										<td v-if="key == val.key">
-											<!-- 通过判断key 额外添加的涨跌箭头 -->
-											<span v-if="val.key =='price_change' && parseInt(line[val.key])" :class="parseInt(line[val.key])>0 ? 'green_sign' : 'red_sign'">{{ parseInt(line[val.key])>0 ? "⬆" : "⬇"}}</span>
-											{{ line[val.key]==9999 ? '-' : line[val.key] }}
-										</td>
-									</template>
+					<tr v-for="line of tableDatas" v-if="line.display!=false">
+						<!-- 无index参数则是自定义table -->
+						<template v-if="index.length==0">
+							<slot name="tbody" :line="line"></slot>
+						</template>
+						<template v-else>
+							<template v-for="val of tbodyIndex">
+								<template v-for="(data, key) of line">
+									<td v-if="key == val.key"> {{ line[val.key]==9999 ? '-' : line[val.key] }}</td>
 								</template>
 							</template>
-						</tr>
-					</template>
+						</template>
+					</tr>
 				</tbody>
 			</table>
 		</div>
@@ -384,30 +376,5 @@
 	table th{
 		font-weight:400;
 	}
-
-    .table_box ::-webkit-scrollbar {
-        width: 3px;
-        height:1px;
-        border-radius: 15px;
-        /*border:solid 1px #000;*/
-        /*border-left-width:2px;*/
-    }
-    .table_box ::-webkit-scrollbar-thumb {
-        -webkit-box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.3);
-        background:#dfe6ec;
-        opacity: 0.6;
-    }
-    .table_box ::-webkit-scrollbar-thumb:window-inactive {
-        -webkit-box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.3);
-        background:#dfe6ec;
-        opacity: 0.6;
-    }
-
-    .red_sign{
-    	color:red;
-    }
-    .green_sign{
-    	color:green;
-    }
 
 </style>

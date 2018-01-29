@@ -39,6 +39,7 @@
 		},
 		created(){
 			this.getAllBrands();
+            this.getCity();
 		},
 		data(){
 			return {
@@ -55,6 +56,7 @@
 			}
 		},
 		methods:{
+            // 获取所有品牌
 			getAllBrands(){
 				ajaxCustom.ajaxGet(this, "api/getAllBrandsWillHeader", (responese)=>{
 					console.log(responese)
@@ -64,9 +66,7 @@
 					alert(responese.body.message);
 				});
 			},
-			getCondition(data){
-				this.formDatas.condition = data;
-			},
+            // 保存结算方式条款信息
 			getFormDatas(){
 				var myreg = /^(((13[0-9]{1})|(15[0-9]{1})|(17[0-9]{1})|(18[0-9]{1}))+\d{8})$/;
 				let receive = this.formDatas.receiverInfo;
@@ -88,10 +88,20 @@
 			clearAllBrand(){
 				this.formDatas.brands = [];
 			},
+            // 取消修改
 			cancelUpdate(){
 				this.isOpenBox = false;
 				this.$emit('cancelUpdate', this.formDatas);
 			},
+            // 根据选择的省份获取市区
+            getCity(){
+                for (var i = 0; i < this.addsData.province.length; i++) {
+                    if (this.addsData.province[i].name==this.province) {
+                        this.cityOption=this.addsData.province[i].cityList;
+                    }
+                }
+            },
+            // 根据选择的城市获取地区
 			getArea(){
 				this.formDatas.area = "";
 				for (var i = 0; i < this.cityOption.length; i++) {
@@ -127,13 +137,6 @@
 				return this.data;
 			}
 		},
-		mounted(){
-			for (var i = 0; i < this.addsData.province.length; i++) {
-				if (this.addsData.province[i].name==this.province) {
-					this.cityOption=this.addsData.province[i].cityList;
-				}
-			}
-		}
 	}
 </script>
 
@@ -147,8 +150,6 @@
 					</el-form-item>
 					<el-form-item label="项目地址 :" label-width="120px">
 						<span>广东省</span>
-						<!-- <addr-selecting province="广东" @getAddressData="getAddress" :grade="1"></addr-selecting> -->
-
 						<el-select v-model="formDatas.city" @change="getArea()" size="small" placeholder="城市">
 							<el-option v-for="item in cityOption " :label="item.name" :value="item.name"></el-option>
 						</el-select>

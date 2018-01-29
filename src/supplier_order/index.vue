@@ -28,7 +28,6 @@
 			elStep : Step,
 			elTag : Tag,
 			proTable : proTable,
-			filterBar : filterBar
 		},
 		created(){
 			let index = 0;
@@ -384,7 +383,7 @@
 </script>
 <template>
 	<div>
-		<headerbar active_number="4-2-1" :identity="2" :text="['现货订单','钢材现货购买']">
+		<headerbar active_number="supplier_order" :identity="2" :text="['现货订单','钢材现货购买']">
 			<div class="page-tools">
 				<h1>订单处理与查询</h1>
 				<div>
@@ -631,6 +630,7 @@
 
 	html .table-body{
 		overflow: hidden !important;
+        height: auto !important;
 	}
 
 	html body .table-style{

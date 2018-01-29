@@ -4,11 +4,12 @@
 	import planList from "../components/demand_plan.vue";
 	import projectChanger from '../components/project_to_text.js';
 	import createProjectBox from '../components/ProjectCreating/project-creating-box.vue';
-	import order from './order_deal.vue';
-	import proTable from '../components/table.vue';
+	import order from './child-components/order_deal.vue';
+	import proTable from './child-components/table.vue';
 	import filterBar from '../components/filter-bar.vue';
-	import sortMethods from '../components/steel-sort.js';
+	import sortMethods from './child-components/steel-sort.js';
 	import { Table, TableColumn, Button, Select, Option, Dialog, Input, DatePicker } from 'element-ui';
+	import _ from 'lodash';
 	export default{
 		components : {
 			headerbar,
@@ -29,12 +30,17 @@
 		created(){
 				// 全局变量 配合组件通信
 				console.log(window._defaultDatas)
+				let webPrice = window._defaultDatas.webPriceDatas;
+				let marketPrice = window._defaultDatas.marketPriceDatas;
 				this.allWebPrice = window._defaultDatas.webPriceDatas;
 				this.allMainDatas = window._defaultDatas.marketPriceDatas;
 				this.project.list = (window._defaultDatas.projectDatas).reverse();
 				this.companys.list = window._defaultDatas.agentCompanys;
 				this.nameList = window._defaultDatas.nameList;
-				this.tempTableDatas = this.addAttrToTable(this.combinDatas(window._defaultDatas.marketPriceDatas[window._defaultDatas.marketPriceDatas.length-1].childDatas, window._defaultDatas.webPriceDatas[window._defaultDatas.webPriceDatas.length-1].childDatas));
+				// 组合网价和现货价
+				let combineMarket = marketPrice.length ? marketPrice[marketPrice.length-1].childDatas : [];
+				let combineWeb = webPrice.length ? webPrice[webPrice.length-1].childDatas : [];
+				this.tempTableDatas = this.addAttrToTable(this.combinDatas(combineMarket, combineWeb));
 				this.tableDatas = JSON.parse(JSON.stringify(this.tempTableDatas));
 				this.fiterData = this.tableDatas;
 				this.getAllBrands();
@@ -113,6 +119,7 @@
 			},
 			// 使用Vue.set添加table属性
 			addAttrToTable(tableDatas){
+				console.log(tableDatas)
 				for(let data of tableDatas){
 					this.$set(data, "amount", null);
 					this.$set(data, "countPrice", null);
@@ -121,6 +128,21 @@
 			},
 			// 整合网价与市场价
 			combinDatas(marketDatas, webDatas){
+				// 如果网价和现货价其中一项为空
+				if(!marketDatas.length && webDatas.length){
+					webDatas = _.map(webDatas, (val)=>{
+						val.price = '';
+						return val;
+					});
+					return webDatas;
+				}else if(marketDatas.length && !webDatas.length){
+					marketDatas = _.map(marketDatas, (val)=>{
+						val.webPrice = '';
+						return val;
+					});
+					return marketDatas;
+				}
+				// 网价与现货价都不为空
 				for(let market of marketDatas){
 					// 加入品牌别名
 					for(let item of this.nameList){
@@ -206,19 +228,31 @@
 					for(let rule of this.contractPriceRule){
 						// 品牌相同 规格相同
 						if( (data.brand == rule.brand || data.elseName == rule.brand || data.correctName == rule.brand) && data.cate_spec == rule.specification){
-							if(data.webPrice&&data.webPrice!='-'){
-								data.countPrice = parseInt(data.webPrice) + (parseInt(rule.count_number) | 0) + (parseInt(rule.crane) | 0) + (parseInt(rule.freight) | 0) + (parseInt(rule.funds_rate) | 0) + (parseInt(rule.ponderation) | 0);
+							// 按市场价结算
+							if(rule.reference === "现货价"){
+								if(data.price&&data.price!='-'){
+									data.countPrice = parseInt(data.price) + (parseInt(rule.count_number) | 0) + (parseInt(rule.crane) | 0) + (parseInt(rule.freight) | 0) + (parseInt(rule.funds_rate) | 0) + (parseInt(rule.ponderation) | 0);
+								}else{
+									// 网价为空
+									// data.price = '-';
+									data.countPrice = '-';
+								}
 							}else{
-								// 网价为空
-								// data.webPrice = '-';
-								data.countPrice = '-';
+							// 按网价结算
+								if(data.webPrice&&data.webPrice!='-'){
+									data.countPrice = parseInt(data.webPrice) + (parseInt(rule.count_number) | 0) + (parseInt(rule.crane) | 0) + (parseInt(rule.freight) | 0) + (parseInt(rule.funds_rate) | 0) + (parseInt(rule.ponderation) | 0);
+								}else{
+									// 网价为空
+									// data.webPrice = '-';
+									data.countPrice = '-';
+								}
 							}
+
 							door = 0;
 							break;
 						}
 					}
 					if(door){
-						// data.webPrice = '-';
 						data.countPrice = '-';
 					}
 				}
@@ -268,15 +302,17 @@
 				for (var i = 0; i < data.length; i++) {
 					if(data[i].amount){
 						selectData.push({
-							'id':data[i].id,
-							'plate_num':null,
-							'amount':data[i].amount,
-							'brand':data[i].brand,
-							'warehouse':data[i].warehouse,
-							'cate_spec':data[i].cate_spec,
-							'price':data[i].countPrice,
-							'material':data[i].material,
-							'size':data[i].size
+							'id' : data[i].id,
+							'plate_num' : null,
+							'amount' : data[i].amount,
+							'brand' : data[i].brand,
+							'warehouse' : data[i].warehouse,
+							'cate_spec' : data[i].cate_spec,
+							'price' : data[i].countPrice,
+							'material' : data[i].material,
+							'size' : data[i].size,
+							'marketPrice' : data[i].price,
+							'webPrice' : data[i].webPrice
 						});
 					}
 				}
@@ -301,14 +337,15 @@
 				// 筛选出计划单内规格datas
 				let planDatas = [];
 				for(let plan of this.planList){
-					for(let data of this.tableDatas){
-						if(plan.spec==data.cate_spec && plan.material==data.material && plan.size==data.size){
-							planDatas.push(data);
+					for(let _data of this.tempTableDatas){
+						if(plan.spec==_data.cate_spec && plan.material==_data.material && plan.size==_data.size){
+							planDatas.push(_data);
 						}
 					}
 				}
 				this.tableDatas = planDatas;
 				this.showPlanDatas();
+				this.showSelect();
 			},
 			// 最低价格算法
 			showPlanDatas(){
@@ -394,6 +431,7 @@
 					this.$set(this.tableDatas[index], "display", true);
 					index++;
 				}
+				this.sortPrice("desc", "webPrice", "网价");
 			},
 			// 查看所选
 			showSelect(){
@@ -429,6 +467,9 @@
 					}
 				}
 				this.tableDatas = tempDatas;
+			},
+            back(){
+				this.demand = true;
 			}
 		}
 	}
@@ -436,7 +477,7 @@
 
 <template>
 	<div>
-		<headerbar active_number="3" :identity="1" :text="['需求计划单', '需求计划单']"  >
+		<headerbar active_number="userDeal" :identity="1" :text="['需求计划单', '需求计划单']"  >
 			<div class="main_box">
 				<div style="background-color: #fff;padding: 10px 0;padding-left: 15px;">
 					<div v-show="!project.selected">
@@ -471,7 +512,7 @@
 					<div>
 						<!-- 下单管理计划单弹出框 -->
 						<el-dialog v-model="isOpenDialog" title="计划单"  size="large" style="text-align:center;">
-							<order :data="selectData" :project="this.project.selected" :project-info="project.info" @order="createOrder" @exit="exitOrder">
+							<order v-if="isOpenDialog" :data="selectData" :countRules="contractPriceRule" :project="this.project.selected" :project-info="project.info" @order="createOrder" @exit="exitOrder">
 							</order>
 						</el-dialog>
 
@@ -484,6 +525,15 @@
 									<th>钢厂/品牌</th>
 									<th>
 										<span>网价</span>
+										<div class="sort-icon">
+											<div class="sort-icon">
+												<div @click="sortPrice('asce', 'webPrice', '网价')" >▲</div>
+												<div @click="sortPrice('desc', 'webPrice', '网价')" style="margin-top: -5px;">▼</div>
+											</div>
+										</div>
+									</th>
+									<th>
+										<span>现货价</span>
 										<div class="sort-icon">
 											<div class="sort-icon">
 												<div @click="sortPrice('asce', 'webPrice', '网价')" >▲</div>
@@ -509,6 +559,7 @@
 		    							<td>{{ props.line.material }}</td>
 		    							<td>{{ props.line.brand }}</td>
 		    							<td>{{ props.line.webPrice }}</td>
+		    							<td>{{ props.line.price }}</td>
 		    							<td>
 		    								<i class="el-icon-information" v-show="!project.selected"></i>
 		    								{{ project.selected ? props.line.countPrice : "请先选择项目" }}
@@ -531,6 +582,7 @@
 			<plan-list :brands='allBrands' @confirm='demandConfirm' @cancel='demandCancel' v-show='demand' :way="false" :data="project" :project_id="project.selected" :cancel="true"></plan-list>
 			<div class="bottom-bar" v-if="!demand">
 				<div>
+                    <el-button class="same_test" @click='back'>返回</el-button>
 					<el-button @click="showPlanBrandsDatas" type="warning" class="same_test">查看范围内品牌</el-button>
 					<el-button @click="showSelect" type="success" class="same_test">查看选中品牌</el-button>
 					<el-button @click="makeOrder()" type="primary" class="same_test">下单</el-button>

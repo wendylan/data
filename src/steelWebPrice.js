@@ -3,6 +3,7 @@ import VueResource from 'vue-resource';
 import App from './steel_web_price/index.vue';
 import VueRouter from 'vue-router';
 import { Loading } from "element-ui";
+import store from './vuex/store';
 
 Vue.use(VueRouter);
 Vue.use(VueResource);
@@ -20,5 +21,6 @@ var router = new VueRouter({
 new Vue({
 	el: '#app',
 	router: router,
+	store:store,
 	template: "<router-view></router-view>"
 });

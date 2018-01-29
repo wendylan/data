@@ -127,16 +127,16 @@
 				}
 			},
 			// 额外需求, 添加8-10和18-25的筛选项目, 封装已有方法解决
-			addExtraSize(datas,uiSelected, type){
+			addExtraSize(datas, uiSelected, type){
 				// 先取消已选择的项
 				[this.extraSize[0].selected, this.extraSize[1].selected] = [false, false];
-				for(let data of this.allDatas){
-					for(let _data of data.datas){
-						if(_data.selected){
-							this.removeSelected(_data);
-						}
-					}
-				}
+				// for(let data of this.allDatas){
+				// 	for(let _data of data.datas){
+				// 		if(_data.selected){
+				// 			this.removeSelected(_data);
+				// 		}
+				// 	}
+				// }
 				let size = (type==1 ? [18, 20, 22, 25] : [8, 10]);
 				uiSelected.selected = true;
 				for(let data of datas){
@@ -162,13 +162,13 @@
 				let size = (type==1 ? [18, 20, 22, 25] : [8, 10]);
 				uiSelected.selected = false;
 				// 取消所有选中项
-				for(let data of this.allDatas){
-					for(let _data of data.datas){
-						if(_data.selected){
-							this.removeSelected(_data);
-						}
-					}
-				}
+				// for(let data of this.allDatas){
+				// 	for(let _data of data.datas){
+				// 		if(_data.selected){
+				// 			this.removeSelected(_data);
+				// 		}
+				// 	}
+				// }
 				for(let data of datas){
 					for(let _data of size){
 						if(data.name == _data){

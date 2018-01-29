@@ -186,6 +186,20 @@ export default{
 		},
 	},
 	methods : {
+        // 获取所有品牌
+        getAllProduct(){
+            ajaxCustom.ajaxGet(this, "dingoapi/getAllProduct", (responese)=>{
+                console.log(responese)
+                let resData = responese.body;
+                let arr = [];
+                for(let brand of resData.brand){
+                    arr.push({ "value" : brand.brand});
+                }
+                this.brands = arr;
+            }, (responese)=>{
+                alert(responese.body.message);
+            });
+        },
 		// 对已经菜单的已拆单数据进行整合
 		orderRightSequence(arr){
 			let isMenuArr = []
@@ -517,18 +531,8 @@ export default{
 	},
 	mounted(){
 		this.getOrderHistoryData({id:this.data.id, project_id:this.data.project_id});
+        this.getAllProduct();
 
-		ajaxCustom.ajaxGet(this, "dingoapi/getAllProduct", (responese)=>{
-			console.log(responese)
-			let resData = responese.body;
-			let arr = [];
-			for(let brand of resData.brand){
-				arr.push({ "value" : brand.brand});
-			}
-			this.brands = arr;
-		}, (responese)=>{
-			alert(responese.body.message);
-		});
 	},
 }
 </script>
@@ -889,7 +893,6 @@ export default{
 		</div>
 
 		<div slot="footer" class="dialog-footer" v-if="!isSelectNeeding">
-			<!-- <el-button @click="checkCarIsChange" >check car is change</el-button> -->
 			<el-button @click='exit'>返回</el-button>
 			<el-button type="primary" @click="saveOrder">保存</el-button>
 			<el-button type="danger" @click="cancelOrder" v-if='orderStatus==1'>取消订单</el-button>

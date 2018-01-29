@@ -15,6 +15,14 @@
 			elDialog : Dialog,
 			elRadio : Radio,
 		},
+        data(){
+            return {
+                brandInfo : [],
+                selectInfo :[],
+                showSort : false,
+                sortWay : null
+            }
+        },
 		computed: {
 			...mapGetters([
 				'getsocket'
@@ -33,7 +41,7 @@
 						){
 							selectInfo[i].value=value;
 							return;
-						} 
+						}
 					}
 					selectInfo.push({'spec' : spec, 'material' : material, 'size' : size, 'value' : value});
 				}else{
@@ -49,6 +57,7 @@
 					}
 				}
 			},
+            // 终端的自选品牌,次终端的确认
 			confirm(data){
 				if (data) {
 					if(this.sortWay){
@@ -65,8 +74,10 @@
 				}
 				this.showSort = false;
 			},
+            // 根据传进来的品牌获取品名，材质，规格等数据
 			getBrandData(){
 				let brand = this.brands;
+				this.selectInfo = [];
 				if(brand.length){
 					ajaxCustom.ajaxGet(this, "dingoapi/getBrandGroupSpec", { params : { 'brand' : brand } }, (responese)=>{
 						console.log(responese);
@@ -77,6 +88,7 @@
 					});
 				}
 			},
+            // 终端的发送计划单
 			send(){
 				let count = 0;
 				for(let i = 0; i < this.selectInfo.length; i++){
@@ -110,15 +122,15 @@
 					});
 				}
 			},
+            // 调整顺序材质：HRB400E，HRB400；规格：40， 36
 			sortData(arr){
-				console.log(arr);
 				for(let i = 0; i < arr.length; i++){
 					arr[i].material.sort(function(a, b){
 						let tmpA = a.name.replace("HRB400", 1);
 						let tmpB = b.name.replace("HRB400E", 2);
 						return tmpB - tmpA;
 					});
-					
+
 					for(let size of arr[i].material){
 						size.size.sort(function(a, b){
 							let tmpS1 = a.name.replace("36", 36);
@@ -129,18 +141,12 @@
 				}
 				return arr;
 			},
+            // 发送计划单的时候进行通知
 			send_notify() {
 				var that = this;
+				console.log(that);
                 that.getsocket.send(this.data.info.supplier_id);
             },
-		},
-		data(){
-			return {
-				brandInfo : [],
-				selectInfo :[],
-				showSort : false,
-				sortWay : null
-			}
 		},
 		watch : {
 			brands(){

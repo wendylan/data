@@ -1,11 +1,14 @@
 <script>
 import headerbar from '../../components/admin-headerbar.vue';
 import ajaxCustom from '../../components/ajax-custom.js';
-import { Button } from 'element-ui';
+import { Button, Input, Form, FormItem } from 'element-ui';
 	export default{
 		components : {
 			headerbar,
 			elButton : Button,
+            elInput : Input,
+            elForm : Form,
+            elFormItem : FormItem
 		},
 		created(){
 			this.getCarInfo();

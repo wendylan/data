@@ -260,8 +260,8 @@
 
 </script>
 <template>
-	<div>		
-		<headerbar active_number="5" :identity="1" :text="['项目管理','查看所有项目']">
+	<div>
+		<headerbar active_number="terminalUsercenter" :identity="1" :text="['项目管理','查看所有项目']">
 			<div>
 				<el-tabs type="border-card">
 					<el-tab-pane label="全部地区">

@@ -33,7 +33,7 @@
 					{ name : "历史数据", link : "./historyData.html", icon : 'fa fa-tasks margin' },
 					{ name : "数据管理", link : "./dataManage.html", icon : ' fa fa-wrench margin' },
 					{ name : "后台数据", childs : [
-						{ name : "市场价格数据", link : "/dataManage.html#/market_price_data", icon : 'fa fa-th-list margin' },
+						// { name : "市场价格数据", link : "/dataManage.html#/market_price_data", icon : 'fa fa-th-list margin' },
 						{ name : "品牌数据", link : "admin/product", icon : 'fa fa-th-list margin' },
 						{ name : "运费数据", link : "/dataManage.html#/freightData", icon : 'fa fa-th-list margin' },
 						{ name : "浮动设置", link : "/dataManage.html#/priceRangeData", icon : 'fa fa-th-list margin' },
@@ -41,6 +41,7 @@
 						{ name : "供应商别名", link : "/dataManage.html#/price_source_data", icon : 'fa fa-th-list margin' },
 						{ name : "品牌详情", link : "/dataManage.html#/brand_manage_data", icon : 'fa fa-th-list margin' },
 						{ name : "物流司机数据", link : "/dataManage.html#/car_info_data", icon : 'fa fa-th-list margin' },
+						{ name : "后台补录", link : "/dataManage.html#/data_search", icon : 'fa fa-th-list margin' },
 					], icon : 'fa fa-th-large margin' },
 				],
 				nowIndex : null,
@@ -48,14 +49,7 @@
 			}
 		},
 		methods:{
-			hasPermission(permission){
-				for(let i = 0; i<this.user.permissions.length; i++){
-					if(permission==this.user.permissions[i].name){
-						return true;
-					}
-				}
-				return false;
-			},
+            // 获取用户信息
 			getUserInfo(){
 				ajaxCustom.ajaxGet(this, "dingoapi/getUserInfo", (response)=>{
 					response = response.body;
@@ -65,6 +59,7 @@
 					alert(response.body.message);
 				});
 			},
+            // 设置当前的选择状态是否active
 			showSelect(){
 				this.nowIndex = this.active_number;
 			},
@@ -85,7 +80,6 @@
 						<a href="/companyInfo">
 							<img src="/data/images/icon.png" alt="">
 						</a>
-						<!-- <span>管理员</span> -->
 						<span>{{ user.name }}</span>
 					</div>
 				</div>
@@ -207,7 +201,6 @@
 	}
 	.logo_box{
 		text-align: center;
-		/*margin-top: 10px;*/
 	}
 	.logo_box img{
 		text-align: center;

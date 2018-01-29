@@ -46,10 +46,12 @@
 					area : null,
 					addr : null,
 					brands : [],
+                    // 收货联系人
 					receiverInfo : [{
 						receiver : null,
 						receiver_tel : null
 					}],
+                    // 买卖方经办人信息
 					handlerInfo : {
 						buyer : [{
 							handler : null,
@@ -72,7 +74,7 @@
 						// 下单后或者到货后
 						beginCalculateType : "下单后",
 						// 网价或者现货价
-						priceType : "网价",
+						priceType : "最新网价",
 						price : null,
 						// 按照规格来算
 						cate_spec : [
@@ -83,7 +85,7 @@
 						// 按照品牌来算的各个品牌的计算方式
 						childData : [{
 							onemoreBrand : '',
-							priceType : "网价",
+							priceType : "最新网价",
 							calculateType : "上浮",
 							price : null
 						}],
@@ -101,15 +103,18 @@
 						elsePayWay : null
 					}
 				},
+                // 品牌数组
 				brands : {
 					item : []
 				},
+                // 弹出框是否打开
 				isOpenBox : false,
+                // 是否打开结算条件的弹出框
 				isSelectNeeding : false,
-				radioTab : null,
 			}
 		},
 		methods:{
+            // 获取所有品牌
 			getAllBrands(){
 				ajaxCustom.ajaxGet(this, "api/getAllBrandsWillHeader", (responese)=>{
 					console.log(responese)
@@ -119,13 +124,12 @@
 					alert(responese.body.message);
 				});
 			},
+            // 获取城市地区
 			getAddress(data){
 				this.formDatas.city = data.city;
 				this.formDatas.area = data.area;
 			},
-			getCondition(data){
-				this.formDatas.settlement = data;
-			},
+            // 保存输入的结算方式条款的信息
 			getFormDatas(){
 				var myreg = /^(((13[0-9]{1})|(15[0-9]{1})|(17[0-9]{1})|(18[0-9]{1}))+\d{8})$/;
 				let receive = this.formDatas.receiverInfo;

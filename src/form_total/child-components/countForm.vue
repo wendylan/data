@@ -49,7 +49,7 @@
 
 <template>
 	<div>
-		<headbar active_number="5-2" :identity="2" :text="['结余统计表', '']">
+		<headbar active_number="countForm" :identity="2" :text="['结余统计表', '']">
 			<div style="width:100%; overflow:hidden;">
 				<el-table :data="tableDatas">
 					<el-table-column label="序列" prop="a"></el-table-column>

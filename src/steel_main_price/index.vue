@@ -61,7 +61,11 @@
 					date : '',
 					pickerOptions:{
 						disabledDate(time) {
-	                        return time.getTime() > Date.now() ;
+                            let tmp = time.getDay();
+                            if(tmp == 0 || tmp == 6 ){
+                                return true;
+                            }
+                            return time.getTime() > Date.now();
 	                    }
 					},
 					times : "",
@@ -280,7 +284,7 @@
 
 <template>
 	<div>
-		<headerbar active_number="2" :identity="1" :text="['现货价', '查看现货价数据']">
+		<headerbar active_number="mainprice" :identity="1" :text="['现货价', '查看现货价数据']">
 			<div>
 				<filter-bar :data="filterDatas" :index="[
 					{ title : '品名', key : 'cate_spec' },

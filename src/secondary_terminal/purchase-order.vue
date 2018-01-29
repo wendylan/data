@@ -231,6 +231,7 @@
 					}
 				}
 			},
+            // 时间规范
 			finalDateContrast(date){
 				if(date && this.foremost){
 					let final = date.getTime()/1000;
@@ -404,7 +405,7 @@
 </script>
 <template>
 	<div>
-		<headerbar active_number="4-1-1" :identity="2" :text="['采购订单', '提供每日最新钢材现货价']">
+		<headerbar active_number="purchaseOrder" :identity="2" :text="['采购订单', '提供每日最新钢材现货价']">
 			<div>
 				<div class="order_search">
 					<h1 style="font-size:18px;font-weight:400;color:#999;">订单处理与查询</h1>

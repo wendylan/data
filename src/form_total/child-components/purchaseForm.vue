@@ -213,7 +213,7 @@
 
 <template>
 	<div style="padding-bottom:50px;">
-		<headbar active_number="5-1" :identity="2" :text="['采购台账', '']">
+		<headbar active_number="purchaseForm" :identity="2" :text="['采购台账', '']">
 			<div class="">
 				<filter-bar :data="tableDatas" :index="[
 					{ title : '项目' , key : 'b'},

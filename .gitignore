@@ -1,4 +1,4 @@
-﻿.DS_Store
+.DS_Store
 node_modules/
 npm-debug.log
 src/components/ajax-custom.js
@@ -6,3 +6,5 @@ webpack.config.js
 备份/
 dist/
 output_path.json
+images
+package.json-old

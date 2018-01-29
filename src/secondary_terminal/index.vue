@@ -40,7 +40,11 @@
 				date : Date.now(),
 				pickerOptions: {
 					disabledDate(time) {
-						return time.getTime() > Date.now() ;
+                        let tmp = time.getDay();
+                        if(tmp == 0 || tmp == 6 ){
+                            return true;
+                        }
+                        return time.getTime() > Date.now();
 					}
 				},
 				loading : false,
@@ -249,7 +253,7 @@
 
 <template>
 	<div>
-		<headerbar active_number="1" :identity="2" :text="['现货价', '提供每日最新钢材现货价']">
+		<headerbar active_number="secondaryTerminal" :identity="2" :text="['现货价', '提供每日最新钢材现货价']">
 			<div class="main_box">
 				<filter-bar :data="filterDatas" :index="[
 						{ title : '品名', key : 'cate_spec' },

@@ -312,16 +312,11 @@ import {Select, Table, TableColumn, DatePicker, Loading } from 'element-ui';
 	}
 </script>
 <template>
-	<headerbar :text="['后台补录','管理后台的市场价数据']">
-	<!-- <div class="main-warpper"> -->
+	<headerbar :text="['后台补录','管理后台的市场价数据']" active_number="5-8">
 		<div>
-			<!-- <h1>后台补录</h1> -->
-			<!-- <h4 style="color:#8492A6">管理后台的市场价数据</h4> -->
-			<!-- <br><br> -->
 			<div class="block" style="padding-left:50px;">
 				<span class="demonstration">选择时间</span>
-				<el-date-picker v-model="date" :picker-options="pickerOptions" @change="getRecord(date)">
-				</el-date-picker>
+				<el-date-picker v-model="date" :picker-options="pickerOptions" @change="getRecord(date)"></el-date-picker>
 			</div>
 			<div>
 				<br><br>
@@ -399,7 +394,6 @@ import {Select, Table, TableColumn, DatePicker, Loading } from 'element-ui';
 			    </el-table>
 			</div>
 		</div>
-	<!-- </div> -->
 	</headerbar>
 </template>
 

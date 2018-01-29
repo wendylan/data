@@ -7,7 +7,7 @@ import countForm from './form_total/child-components/countForm.vue';
 import brandSellForm from './form_total/child-components/brandSellForm.vue';
 import suppilerSellForm from './form_total/child-components/suppilerSellForm.vue';
 import projectSellForm from './form_total/child-components/projectSellForm.vue';
-
+import store from './vuex/store';
 Vue.use(VueRouter);
 Vue.use(VueResource);
 
@@ -26,5 +26,6 @@ var router = new VueRouter({
 new Vue({
 	el:'#app',
 	router:router,
+	store:store,
 	template:"<router-view></router-view>"
 });

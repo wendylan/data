@@ -2,6 +2,7 @@ import Vue from 'vue';
 import VueResource from 'vue-resource';
 import VueRouter from 'vue-router';
 import App from './userInfo/sign-company.vue';
+import store from './vuex/store';
 
 Vue.use(VueRouter);
 Vue.use(VueResource);
@@ -18,5 +19,6 @@ var router = new VueRouter({
 new Vue({
 	el: '#app',
 	router: router,
+	store: store,
 	template: "<router-view></router-view>"
 });

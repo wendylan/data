@@ -547,7 +547,7 @@
 </script>
 <template>
 	<div>
-		<headerbar active_number="4-1-2" :identity="2" :text="['销售订单','查看订单']">
+		<headerbar active_number="salesOrder" :identity="2" :text="['销售订单','查看订单']">
 			<div>
 				<div class="order_search">
 					<h1 style="font-size:18px;font-weight:400;color:#999;">订单处理与查询</h1>

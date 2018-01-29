@@ -454,8 +454,11 @@
 			},
 			// 默认显示现货价最优价格的数据
 			demandConfirm(data){
+				// console.log(data);
 				this.sortWay = data.way;
+
 				this.planDataSelect = data.selectData;
+
 				this.demand = false;
 
 			},
@@ -481,6 +484,7 @@
 			},
 			back(){
 				this.demand = true;
+				this.sortWay = null;
 			},
 			// 生成订单
 			createOrder(){
@@ -546,7 +550,14 @@
 				let data = this.spotPriceAll[this.selectQuotation];
 				for (var i = 0; i < data.length; i++) {
 					if(this.isInBrandsArray(data[i])&&this.isInType(data[i])){
-						this.spotPrice.push(data[i]);
+						// console.log(data[i].freight);
+						if(this.spotTable){
+							this.spotPrice.push(data[i]);
+						}else{
+							if(data[i].freight!='-'){
+								this.spotPrice.push(data[i]);
+							}
+						}
 					}
 				}
 
@@ -616,16 +627,10 @@
 			bestDiffPrice(data){
 				let items = this.planDataSelect;
 				let recorddata = [];
-				for(let j = 0; j<items.length; j++){
-					recorddata.push({});
-					for (var i = 0; i < data.length; i++) {
-						if( data[i].size == items[j].size && data[i].material == items[j].material && data[i].cate_spec == items[j].spec
-							&& this.isInBrandsLimit(this.selectBrands, data[i].brand) && data[i].web_spot_diff!='-'){
-							if(!recorddata[j].id || recorddata[j].web_spot_diff < data[i].web_spot_diff){
-								recorddata[j] = data[i];
-							}
-						}
-					}
+				if(this.spotTable){
+					recorddata = this.pickOutBestSource(items,data,"web_spot_diff","web_spot_diff","asc");
+				}else{
+					recorddata = this.pickOutBestSource(items,data,"web_total_diff","web_total_diff","asc");
 				}
 				recorddata = this.deleteNullObject(recorddata);
 				return recorddata;
@@ -634,18 +639,36 @@
 			bestPrice(data){
 				let items = this.planDataSelect;
 				let recorddata = [];
+				if(this.spotTable){
+					recorddata = this.pickOutBestSource(items,data,"price","price");
+				}else{
+					recorddata = this.pickOutBestSource(items,data,"price","web_total_diff");
+				}
+				recorddata = this.deleteNullObject(recorddata);
+				return recorddata;
+			},
+			//选出最佳资源
+			pickOutBestSource(items,data,key,limitKey,method){
+				let recorddata = [];
+				let judge = false;
 				for(let j = 0; j<items.length; j++){
 					recorddata.push({});
 					for (var i = 0; i < data.length; i++) {
 						if( data[i].size == items[j].size && data[i].material == items[j].material && data[i].cate_spec == items[j].spec
-							&& this.isInBrandsLimit(this.selectBrands, data[i].brand)){
-							if(!recorddata[j].id || recorddata[j].price > data[i].price){
-								recorddata[j] = data[i];
+							&& this.isInBrandsLimit(this.selectBrands, data[i].brand) ){
+							if(method == "asc"){
+								judge = ((!recorddata[j].id)||recorddata[j][key] < data[i][key]);
+							}else{
+								judge = ((!recorddata[j].id)||recorddata[j][key] > data[i][key]);
+							}
+							if( judge ){
+								if(data[i][key]&&data[i][limitKey]!="-"&&data[i][key]!="-"){
+									recorddata[j] = data[i];
+								}
 							}
 						}
 					}
 				}
-				recorddata = this.deleteNullObject(recorddata);
 				return recorddata;
 			},
 			//品牌优先
@@ -773,13 +796,36 @@
 				for ( let item of this.planDataSelect ) {
 					for (var i = 0; i < data.length; i++) {
 						if(data[i].size == item.size && data[i].material == item.material && data[i].cate_spec == item.spec){
-							returndata.push(data[i]);
-							priceSum+=item.value*data[i].web_spot_diff;
+							if(!this.dataExist(returndata,data[i])&&this.judgeFreight(data[i])){
+								returndata.push(data[i]);
+								priceSum+=item.value*data[i].web_spot_diff;
+							}
 							break;
 						}
 					}
 				}
 				return {data:returndata, priceSum:priceSum};
+			},
+			//由于现在页面上会存在同规格的数据（最低价存在多个数据源），所以增加了这一步的筛选
+			dataExist(data,item){
+				for (var i = 0; i < data.length; i++) {
+					if(data[i].size == item.size && data[i].material == item.material && data[i].cate_spec == item.spec){
+						return true;
+					}
+				}
+				return false;
+			},
+			//为包到价的同仓库和同品牌筛选增加运费过滤
+			judgeFreight(item){
+				if(this.spotTable){
+					return true;
+				}else{
+					if( item.freight=="-" || !item.freight ){
+						return false;
+					}else{
+						return true;
+					}
+				}
 			},
 			//赋值
 			addAmount(data){
@@ -862,36 +908,49 @@
 			},
 			closeOrder(){
 				this.showOrder = !this.showOrder;
+			},
+			test(){
+				console.log('select',this.planDataSelect);
+				console.log('table',this.spotPrice);
 			}
 
 		},
 		watch : {
-			sortWay(n){
-				this.spotPrice = this.spotPriceAll[this.selectQuotation];
-				this.deleteAmount(this.spotPrice);
-				if(n==1){
-					let spot = this.bestDiffPrice(this.spotPrice);
-					this.addAmount(spot);
-				}else if(n==2){
-					let spot = this.bestPrice(this.spotPrice);
-					this.addAmount(spot);
-				}else if(n==4){
-					let spot = this.sortByBrand(this.spotPrice);
-					this.addAmount(spot);
-				}else if(n==3){
-					let spot = this.sortByWarehouse(this.spotPrice);
-					this.addAmount(spot);
+			sortWay(n,o){
+				if(n){
+					this.spotPrice = this.spotPriceAll[this.selectQuotation];
+					this.deleteAmount(this.spotPrice);
+					if(n==1){
+						let spot = this.bestDiffPrice(this.spotPrice);
+						// console.log("test",spot);
+						this.addAmount(spot);
+					}else if(n==2){
+						let spot = this.bestPrice(this.spotPrice);
+						this.addAmount(spot);
+					}else if(n==4){
+						let spot = this.sortByBrand(this.spotPrice);
+						this.addAmount(spot);
+					}else if(n==3){
+						let spot = this.sortByWarehouse(this.spotPrice);
+						this.addAmount(spot);
+					}
+					// this.showTableAll(1);
+					this.showSelect();
+					this.updateAllCal();
 				}
-				// this.showTableAll(1);
-				this.showSelect();
-				this.updateAllCal();
+			},
+			spotTable(n,o){
+				if(!o&&n){
+					this.sortWay = null;
+				}
+				this.showTableAll();
 			}
 		}
 	}
 </script>
 <template>
 	<div>
-		<headerbar active_number="2" :identity="2" :text="['需求计划单','钢材现货购买']">
+		<headerbar active_number="purchase" :identity="2" :text="['需求计划单','钢材现货购买']">
 			<div>
 				<div class="box_project">
 					<el-tabs v-model="activeName">
@@ -1125,27 +1184,32 @@
 		</headerbar>
 		<div class="main_top">
 			<div class="bottom-bar" v-show='!demand'>
-				<div style="margin-left: 45px;margin-right: 38px" >
-					<table>
-						<tr>
-							<td>合计：</td>
-							<td>网价*数量</td>
-							<td>{{webPriceTotal}}</td>
-							<td v-show='!spotTable'>包到价*数量</td>
-							<td v-show='spotTable'>现货价*数量</td>
-							<td>{{spotPriceTotal}}</td>
-							<td>差价*数量</td>
-							<td>{{priceDifftTotal}}</td>
-							<td>总吨数</td>
-							<td>{{amountTotal}}</td>
-						</tr>
-					</table>
+				<div class="fix_main">
+                    <div class="fix_box">
+                        <div style="padding-right:17px;">
+                            <table>
+        						<tr>
+        							<td>合计：</td>
+        							<td>网价总计</td>
+        							<td>{{webPriceTotal}}</td>
+        							<td v-show='!spotTable'>包到价总计</td>
+        							<td v-show='spotTable'>现货价总计</td>
+        							<td>{{spotPriceTotal}}</td>
+        							<td>差价总计</td>
+        							<td>{{priceDifftTotal}}</td>
+        							<td>总吨数</td>
+        							<td>{{amountTotal}}</td>
+        						</tr>
+        					</table>
+                        </div>
+                    </div>
 				</div>
 				<div>
 					<el-button class="same_box_width" @click='back'>返回</el-button>
 					<el-button type="warning" class="same_box_width" @click='showTableAll'>查看所有</el-button>
 					<el-button type="success" class="same_box_width" @click='showSelect'>查看所选</el-button>
 					<el-button type="primary" class="same_box_width" @click='createOrder'>下单</el-button>
+					<!-- <el-button type="primary" class="same_box_width" @click='test'>test</el-button> -->
 				</div>
 			</div>
 
@@ -1191,7 +1255,7 @@
 	    height: 100px;
 	    line-height: 50px;
 	    z-index: 100;
-	    padding-right: 220px;
+	    padding-right: 210px;
 	    background: aliceblue;
 	    text-align: center;
 	}
@@ -1251,4 +1315,16 @@
 	.same_top{
 		margin-top: -5px;
 	}
+    .fix_main{
+        margin: 0 auto;
+        padding-left: 15px;
+        padding-right: 15px;
+        max-width: 1280px;
+    }
+    .fix_box{
+        margin: 0 15px;
+        padding: 0px 15px;
+        /*background-color: #fff;*/
+        max-width: 1280px;
+    }
 </style>
