@@ -1,4 +1,5 @@
 <script>
+    import _ from 'lodash';
 	import {Tabs, TabPane, Table, TableColumn, Button, Pagination, Input, Select, Option, Switch, Message} from 'element-ui';
 	import ajaxCustom from '../../components/ajax-custom.js';
 	import projectToText from '../../components/project_to_text.js';
@@ -38,8 +39,6 @@
 				projects : [],
 				// 当前页
 				currentPage : 1,
-				// 修改项目之前的缓存
-				cache : '',
 				// 修改项目的数据传值
 				relateData : {},
 				// 结算方式
@@ -52,6 +51,7 @@
 					{ num : "6", text : "综合费率结算" },
 					{ num : "7", text : "其他" },
 				],
+                // 搜索的关键词
 				keyword : '',
 				// 珠三角地区
 				riverArea : ['广州市', '深圳市', '佛山市', '中山市', '惠州市', '东莞市', '珠海市', '江门市', '肇庆市'],
@@ -60,12 +60,16 @@
 				// 粤西地区
 				westernGuang : ['阳江市', '湛江市', '茂名市', '云浮市'],
 				// 粤北地区
-				northGaung : ['韶关市', '清远市'],
+				northGuang : ['韶关市', '清远市'],
 				// 当前项目信息
 				currentProject : [],
+                // 是否显示新建项目弹出框
 				openBox : false,
+                // 是否显示关联公司的弹出框
 				isShowRelate : false,
+                // 是否显示审核弹出框（只有状态为审核中才会显示）
 				isShowCheck : false,
+                // 是否打开项目修改弹出框
 				openpro : false,
 				// 项目关联id
 				proReateId : null,
@@ -78,21 +82,15 @@
 		methods:{
 			// 获取广东省所有市区
 			initJsonData(jsonData){
-				for(let data of jsonData.province){
-					if(data.name == "广东"){
-						this.provinceList = data.cityList;
-					}
-				}
+                this.provinceList =  _.find(jsonData.province, ['name', '广东']).cityList;
 			},
 			// 获取项目数据
 			getProject(){
 				ajaxCustom.ajaxGet(this, 'dingoapi/getUserProjectDatas', (response)=>{
 					response = response.body.data;
 					this.projects = response.projects;
-					let project = this.projects.reverse();
-
 					this.companys = response.companys;
-					this.currentProject = project;
+					this.currentProject = this.projects.reverse();
 					this.changePage(1);
 				}, (response)=>{
 					console.log('请求数据失败');
@@ -112,14 +110,13 @@
 			},
 			// 编辑项目
 			updateProject(index){
-				this.cache = JSON.parse(JSON.stringify(this.currentProject[index]));
 				this.relateData = JSON.parse(JSON.stringify(this.currentProject[index]));
 				this.openpro = !this.openpro;
 			},
 			// 删除项目
 			delProject(index, id){
-				var proId = id;
-				var _this = this;
+				let proId = id;
+				let _this = this;
 				ajaxCustom.ajaxGet(this, 'dingoapi/delProjectDatas', { params : { id : proId }}, (response)=>{
 					console.log(response);
 					if(response.body.status_code == 200){
@@ -129,7 +126,6 @@
 					}else{
 						alert(response.body.message);
 					}
-
 				}, (response)=>{
 					alert(response.body.message);
 				});
@@ -140,63 +136,40 @@
 					console.log(response.body);
 					alert(response.body.message);
 					if(response.body.status_code == 200){
-						for(let i = 0; i < this.projects.length;i++){
-							if(this.projects[i].project_info_id == data.project_info_id){
-								this.projects.splice(i, 1, data);
-								break;
-							}
-						}
-						for(let i = 0; i < this.currentProject.length;i++ ){
-							if(this.currentProject[i].project_info_id == data.project_info_id){
-								this.currentProject.splice(i, 1, data);
-								break;
-							}
-						}
+                        let index = _.findIndex(this.projects, ['project_info_id', data.project_info_id]);
+                        this.projects.splice(index, 1, data);
+                        let currentIndex = _.findIndex(this.currentProject, ['project_info_id', data.project_info_id]);
+                        this.currentProject.splice(index, 1, data);
 					}
 				}, (response)=>{
 					alert(response.body.message);
 				});
 			},
-			// 取消更改
-			cacelUpdate(data){
-				for(let i = 0; i < this.projects.length; i++){
-					if(this.projects[i].project_info_id == data.project_info_id){
-						this.projects[i] = this.cache;
-						this.projects[i].status == 7;
-					}
-				}
-			},
 			// 结算方式转换
 			payToText(pay_items){
-				for(let data of this.projectPayItems){
-					if(data.num == pay_items){
-						return data.text;
-					}
-				}
+                let text = _.find(this.projectPayItems, function(item){
+                    return item.num == pay_items;
+                });
+                return text?text.text:'';
 			},
 			// 搜索功能
 			handleIconClick() {
 				this.showPage = false;
-				this.currentProject = [];
-				for(let data of this.projects){
-					if(
-						data.name.includes(this.keyword) ||
-						data.city.includes(this.keyword) ||
-						data.area.includes(this.keyword)
-						){
-						this.currentProject.push(data);
-					}
-				}
+                let _this = this;
+                this.currentProject = _.filter(this.projects, function(item){
+                    return (
+                        item.name.includes(_this.keyword) ||
+						item.city.includes(_this.keyword) ||
+						item.area.includes(_this.keyword)
+                    );
+                });
 			},
 			// 分地区搜索
 			searchPro(value) {
 				this.showPage = false;
-				this.currentProject = [];
-				for(let data of this.projects){
-					if(data.city.includes(value)){
-						this.currentProject.push(data);
-					}
-				}
+                this.currentProject = _.filter(this.projects, function(item){
+                    return item.city.includes(value);
+                });
 			},
 			// 分页
 			changePage(page){
@@ -224,13 +197,10 @@
 			},
 			// 审核通过
 			succesCheck(data){
-				let pro = this.projects;
-				for(let i = 0; i < pro.length; i++){
-					if(pro[i].project_info_id == data.project_info_id){
-						pro.splice(i, 1, data);
-						pro[i].settlement.conditionType = 8;
-					}
-				}
+                let proIndex = _.findIndex(this.projects, ['project_info_id', data.project_info_id]);
+                this.projects.splice(proIndex, 1, data);
+                this.projects[proIndex].settlement.conditionType = 8;
+
 				this.isShowCheck = false;
 			},
 			// 结算方式转换为文本
@@ -261,7 +231,7 @@
 </script>
 <template>
 	<div>
-		<headerbar active_number="secondUsercenter" :identity="2" :text="['项目管理','查看所有项目']">
+		<headerbar active_number="secondUsercenter" :text="['项目管理','查看所有项目']">
 			<div>
 				<el-tabs type="border-card">
 					<el-tab-pane label="全部地区">
@@ -294,7 +264,7 @@
 					</el-tab-pane>
 					<el-tab-pane label="粤北地区">
 						<div class="cityBox">
-							<ul v-for="item of northGaung">
+							<ul v-for="item of northGuang">
 								<li><el-button @click="searchPro(item);" size="small">{{item}}</el-button></li>
 							</ul>
 						</div>

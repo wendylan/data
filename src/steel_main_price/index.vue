@@ -6,6 +6,7 @@
 	import filterBar from '../components/filter-bar.vue';
 	import ajaxCustom from '../components/ajax-custom.js';
 	import sortMethods from '../components/steel-sort.js';
+	import _ from "lodash";
 	import { Button, DatePicker, Select, Option, Table, TableColumn, Loading, Message} from 'element-ui';
 	export default{
 		components : {
@@ -40,10 +41,10 @@
 			this.filterDatas = JSON.parse(JSON.stringify(this.tableDatas));
 			this.tempTableDatas = JSON.parse(JSON.stringify(this.tableDatas));
 			// 时间控件默认值
-			this.report.date = window._defultDatas.marketPriceDatas[window._defultDatas.marketPriceDatas.length-1].created_at;
+			this.report.date = window._defultDatas.marketPriceDatas[window._defultDatas.marketPriceDatas.length-1].updated_at;
 			this.report.timesOptions = window._defultDatas.marketPriceDatas;
 			// 获取最后一次报价 计算报价时间与次数
-			this.report.times = this.numChangeText(window._defultDatas.marketPriceDatas.length-1) + '(' +this.changsDateStr(window._defultDatas.marketPriceDatas[window._defultDatas.marketPriceDatas.length-1].created_at) + ')';
+			this.report.times = this.numChangeText(window._defultDatas.marketPriceDatas.length-1) + '(' +this.changsDateStr(window._defultDatas.marketPriceDatas[window._defultDatas.marketPriceDatas.length-1].updated_at) + ')';
 		},
 		data(){
 			return {
@@ -76,7 +77,8 @@
 					mill : null,
 					warehouse : null
 				},
-				isShowFreight : false
+				isShowFreight : false,
+				isCounting : false
 			}
 		},
 		methods : {
@@ -147,14 +149,23 @@
 					console.log(response)
 					this.allWebDatas = response.body.data.webPriceDatas;
 					this.allMainDatas = response.body.data.marketPriceDatas;
+					this.countResultPrice();
 					// 设置时间控件值
-					this.report.date = this.allMainDatas[this.allMainDatas.length-1].created_at;
+					this.report.date = this.allMainDatas[this.allMainDatas.length-1].updated_at;
 					this.report.timesOptions = this.allMainDatas;
 					this.report.times = this.numChangeText(this.allMainDatas.length-1);
+					this.report.times = this.numChangeText(this.allMainDatas.length-1) + '(' +this.changsDateStr(this.allMainDatas[this.allMainDatas.length-1].updated_at) + ')';
 
 					// 设置table数据
-					let lastWebDatas = response.body.data.webPriceDatas[response.body.data.webPriceDatas.length-1].childDatas;
-					let lastMainDatas = this.allMainDatas[this.allMainDatas.length-1].childDatas;
+					let lastWebDatas = [];
+					let lastMainDatas = [];
+					if(response.body.data.webPriceDatas.length){
+						lastWebDatas = response.body.data.webPriceDatas[response.body.data.webPriceDatas.length-1].childDatas;
+					}
+					if(this.allMainDatas.length){
+						lastMainDatas = this.allMainDatas[this.allMainDatas.length-1].childDatas;
+					}
+					
 					this.tableDatas = this.combineDatas(lastMainDatas, lastWebDatas);
 					let result = sortMethods.todo(this.tableDatas, [
 							{ text : "品名", key : "cate_spec" },
@@ -162,7 +173,7 @@
 							{ text : "材质", key : "material" }
 						], "desc", "price");
 					this.tableDatas = result;
-					this.countResultPrice();
+					
 					this.tempTableDatas = JSON.parse(JSON.stringify(this.tableDatas));
 
 					loadingInstance.close();
@@ -201,8 +212,8 @@
 						this.freightInfo.warehouse = response.body.data.warehouse;
 						this.countResultPrice();
 						this.isShowFreight = true;
-
-						this.tempTableDatas = JSON.parse(JSON.stringify(this.tableDatas));
+						
+						this.tableDatas = this.tempTableDatas;
 
 						loadingInstance.close();
 					}, (response)=>{
@@ -236,7 +247,7 @@
 						}
 					}
 					// table组件已解除绑，需额外操作
-					for(let data of this.tableDatas){
+					for(let data of this.tempTableDatas){
 						if(data.transport === "直送"){
 							let isHere = false;
 							for(let key in this.freightInfo.mill){
@@ -284,7 +295,7 @@
 
 <template>
 	<div>
-		<headerbar active_number="mainprice" :identity="1" :text="['现货价', '查看现货价数据']">
+		<headerbar active_number="mainprice" :text="['现货价', '查看现货价数据']">
 			<div>
 				<filter-bar :data="filterDatas" :index="[
 					{ title : '品名', key : 'cate_spec' },
@@ -304,9 +315,9 @@
 					<div class="report-search">
 						<el-date-picker v-model="report.date" type="date" placeholder="选择日期" :picker-options="report.pickerOptions" @change="getWebPriceByDate" size="small"></el-date-picker>
 					    <el-select placeholder="报价次序" v-model="report.times" @change="showTableDatas" size="small">
-							<el-option v-if="report.timesOptions.length" v-for="(item, index) in report.timesOptions" :value="item.id" :key="item.id" :label="numChangeText(index)+'('+changsDateStr(item.created_at)+')'">
+							<el-option v-if="report.timesOptions.length" v-for="(item, index) in report.timesOptions" :value="item.id" :key="item.id" :label="numChangeText(index)+'('+changsDateStr(item.updated_at)+')'">
 								<span style="float: left">{{ numChangeText(index) }}</span>
-								<span style="float: right; font-size: 13px">{{ changsDateStr(item.created_at) }}</span>
+								<span style="float: right; font-size: 13px">{{ changsDateStr(item.updated_at) }}</span>
 							</el-option>
 						</el-select>
 					</div>
@@ -335,7 +346,7 @@
 							{ title : '~运费', key : 'freight' },
 							{ title : '~总价', key : 'resultPrice' },
 						]},
-						{ title : '差价', key : 'diffPrice' },
+						{ title : '~差价', key : 'diffPrice' },
 						{ title : '库存', key : 'inventory' }
 					]"></pro-table>
 				</div>

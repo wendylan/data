@@ -1,4 +1,5 @@
 <script>
+    import _ from 'lodash';
 	import ajaxCustom from '../components/ajax-custom.js';
 	import headerbar from '../components/same-headerbar.vue';
 	import multiple from "../components/multiple.vue";
@@ -148,29 +149,24 @@
 		methods: {
 			/*table过滤器信息获取*/
 			getFiltersData(data){
-				let filters = this.filters;
-				for (var i = 0; i < data.length; i++) {
-						// this.getFilter(filters.size, data[i].size);
-						this.getFilter(filters.brand, data[i].brand);
-				}
+                let result = _.uniqWith(_.flatMap(data, (val)=>{
+                    return{
+                        text : val,
+                        value : val
+                    };
+                }), _.isEqual);
+                return result;
 			},
-			getFilter(filter, data){
-				for (var i = 0; i < filter.length; i++) {
-					if(filter[i].text == data){
-						return ;
-					}
-				}
-				filter.push({'text':data, 'value':data});
-			},
+            // 联动初始
 			getInitTableData(arr){
 				let temp = {};
 				temp.brand = undefined;
 				for(let i=0; i< arr.length;i++){
 					this.getBrandData(temp, arr[i]);
 				}
-				console.log(temp.brand);
 				this.tableData = temp.brand;
 			},
+            // 获取联动的品牌
 			getBrandData(brand, data){
 				if(brand.brand == undefined){
 					brand.brand = [{ brand : data.brand, display : true, children : [{ product : data.cate_spec, display : true, size : [data.size] }] }];
@@ -184,6 +180,7 @@
 					brand.brand.push({ brand : data.brand, display : true, children : [{ product : data.cate_spec, display : true, size : [ data.size ] }] });
 				}
 			},
+            // 获取联动的材质
 			getChildrenData(brand, data){
 				for(let i = 0; i < brand.children.length; i++ ){
 					if(brand.children[i].product == data.cate_spec){
@@ -193,6 +190,7 @@
 				}
 				brand.children.push({ product : data.cate_spec, display : true, size : [ data.size ] });
 			},
+            // 获取联动的规格
 			getSizeData(children, size){
 				// children.size.push(size);
 				for(let i = 0; i < children.size.length; i++){
@@ -285,13 +283,13 @@
 </script>
 <template>
 	<div>
-		<headerbar :identity="1" :text="['缺货查询',' 查询当天现货缺货规格']">
+		<headerbar :text="['缺货查询',' 查询当天现货缺货规格']">
 			<div>
 				<span>选择项目 ： </span>
 				<el-select size="small" placeholder="请选择" v-model="userProject.selected" @change="changeProject">
 					<el-option v-for="pro in userProject.item" :label="pro.name" :value="pro.name"></el-option>
 				</el-select>
-				<el-button size="small" @click="clearPro">重置</el-button>				
+				<el-button size="small" @click="clearPro">重置</el-button>
 				<table>
 					<thead>
 						<tr>
@@ -321,12 +319,12 @@
 										</td>
 									</template>
 								</tr>
-								
+
 							</template>
 						</template>
 
 					</tbody>
-				</table>	
+				</table>
 
 				<!-- 分页 -->
 				<!-- <div class="block">

@@ -494,7 +494,7 @@
 
 <template>
 	<div>
-		<headerbar active_number="dealing_tool" :identity="2" :text="['下单助手', '下单助手']">
+		<headerbar active_number="dealing_tool" :text="['下单助手', '下单助手']">
 			<div>
 				<filter-bar :data="filterDatas" :index="[
 					{ title : '品名', key : 'cate_spec' },

@@ -1,5 +1,4 @@
 <!-- active_number ： 传入的值进行侧边栏相对应的选中
-identity: 1 为终端，2为次终端，传这个值进来只是为了区分样式以及功能的区分
 text ： 需要在右上方显示的文本
 -->
 <script>
@@ -10,13 +9,11 @@ text ： 需要在右上方显示的文本
 	import ajaxCustom from './ajax-custom.js';
 	export default{
 		props : {
+            // 左侧栏的active显示
 			active_number : {
 				type : String
 			},
-			identity : {
-				type : Number,
-				default : 1
-			},
+            // 右上方的文本显示
 			text : {
 				type : Array
 			},
@@ -33,7 +30,7 @@ text ： 需要在右上方显示的文本
 		created(){
 			this.getUserInfo();
 			this.showSelect();
-			this.initMessage();
+			// this.initMessage();
 			this.loadMsgList();
 		},
 		data(){
@@ -45,6 +42,14 @@ text ： 需要在右上方显示的文本
 						icon : 'fa fa-line-chart margin',
 						index : 'secondaryTerminal',
 						roles : ['次终端用户'],
+						permission : '现货价格指数'
+					},
+					{
+						name : "现货价格指数",
+						link : "/mainprice",
+						icon : 'fa fa-line-chart margin',
+						index : 'mainprice',
+						roles : ['终端用户'],
 						permission : '现货价格指数'
 					},
                     {
@@ -107,14 +112,6 @@ text ： 需要在右上方显示的文本
 						permission : '表单管理'
 					},
 					{
-						name : "项目管理",
-						link : "/agentProject#/usercenter",
-						icon : 'fa fa-tasks margin',
-						index : 'secondUsercenter',
-						roles : ['次终端用户'],
-						permission : '项目管理'
-					},
-					{
 						name : "下单助手",
 						link : "/dealing_tool",
 						icon : ' fa fa-wrench margin',
@@ -122,22 +119,12 @@ text ： 需要在右上方显示的文本
 						roles : ['次终端用户'],
 						permission : '下单助手'
 					},
-
-
-					{
-						name : "现货价格指数",
-						link : "/mainprice",
-						icon : 'fa fa-line-chart margin',
-						index : 'mainprice',
-						roles : ['终端用户'],
-						permission : '现货价格指数'
-					},
 					{
 						name : "下单管理",
 						link : "/userdeal",
 						icon : 'fa fa-shopping-cart margin',
 						index : 'userDeal',
-						roles : ['终端用户'],
+						roles : ['次终端用户', '终端用户'],
 						permission : '下单管理'
 					},
 					{
@@ -147,6 +134,14 @@ text ： 需要在右上方显示的文本
 						index : 'terminalUserorder',
 						roles : ['终端用户'],
 						permission : '我的订单'
+					},
+					{
+						name : "项目管理",
+						link : "/agentProject#/usercenter",
+						icon : 'fa fa-tasks margin',
+						index : 'secondUsercenter',
+						roles : ['次终端用户'],
+						permission : '项目管理'
 					},
 					{
 						name : "项目管理",
@@ -200,7 +195,7 @@ text ： 需要在右上方显示的文本
 				}
 			},
 			initMessage(){
-				var wsServer = 'ws://192.168.2.108:9501?uid='+window.User.id;
+				var wsServer = 'ws://127.0.0.1:9501?uid='+window.User.id;
 				var ws = new WebSocket(wsServer);
 				// console.log(ws);
 				var that = this;
@@ -385,7 +380,7 @@ text ： 需要在右上方显示的文本
 								</div>
 							</li>
 							<li>
-								<a href="/companyInfo" title="设置">
+								<a href="/passwordModify" title="设置">
 									<i class="fa fa-cog margin" ></i>
 									<div class="notify"><span class="heartbit"></span><span class="point"></span></div>
 								</a>
@@ -491,7 +486,8 @@ text ： 需要在右上方显示的文本
 		margin: 0 auto;
 	}
 	.logo_box span{
-		margin-top: 5px;
+		margin-top: 6px;
+        display: inline-block;
 	}
 	.top-left-part{
 		margin-bottom: 10px;

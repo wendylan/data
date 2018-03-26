@@ -1,4 +1,5 @@
 <script>
+    import _ from 'lodash';
 	import addsData from "../../res/json/provinceList.json";
 	import ajaxCustom from '../components/ajax-custom.js';
 	import { Select, Option, Radio, Dialog, Input, Button, Form, FormItem} from 'element-ui';
@@ -8,7 +9,7 @@
 			elOption : Option,
 			elRadio : Radio,
 			elDialog : Dialog,
-			elInput : Input, 
+			elInput : Input,
 			elButton : Button,
 			elForm : Form,
 			elFormItem : FormItem
@@ -18,11 +19,16 @@
 		},
 		data(){
 			return {
+                // 查看图片弹出框
 				dialogVisible : false,
+                // 是否修改
 				showCheck : false,
 				addsData,
+                // 市区
 				cityOption : [],
+                // 地区
 				areaOption : [],
+                // 企业信息
 				companyInfo : {
 					company_file : null,
 					province : '',
@@ -80,6 +86,7 @@
 			}
 		},
 		methods : {
+            // 获取企业信息
 			getCompayInfo(){
 				ajaxCustom.ajaxGet(this, "dingoapi/getCompanyInfo", (response)=>{
 					console.log(response);
@@ -91,20 +98,13 @@
 					alert(response.body.message);
 				});
 			},
+            // 获取市区
 			getCity(){
-				for (var i = 0; i < this.addsData.province.length; i++) {
-					if (this.addsData.province[i].name==this.companyInfo.province) {
-						this.cityOption=this.addsData.province[i].cityList;
-
-					} 
-				}
+                this.cityOption = _.find(this.addsData.province, ['name', this.companyInfo.province]).cityList;
 			},
+            // 获取地区
 			getArea(){
-				for (var i = 0; i < this.cityOption.length; i++) {
-					if (this.cityOption[i].name==this.companyInfo.city) {
-						this.areaOption=this.cityOption[i].areaList;
-					}
-				}
+                this.areaOption = _.find(this.cityOption, ['name', this.companyInfo.city]).areaList;
 				let data = {
 					city : this.companyInfo.city,
 					area : this.companyInfo.county
@@ -155,14 +155,7 @@
 						console.log('error submit!!');
 						return false;
 					}
-				});				
-			}
-		},
-		mounted(){
-			for (var i = 0; i < this.addsData.province.length; i++) {
-				if (this.addsData.province[i].name==this.province) {
-					this.cityOption=this.addsData.province[i].cityList;
-				} 
+				});
 			}
 		},
 	}
@@ -176,15 +169,15 @@
 		<div class="text_box">
 			<el-form :model="companyInfo" :rules="rules" ref="companyInfo"  label-width="150px" >
 				<form id="form" method="POST" action="dingoapi/postCompanyInfo" enctype="multipart/form-data" >
-					
+
 					<div class="inline_box" >
-						<el-form-item prop="name" label="企业名称" > 
+						<el-form-item prop="name" label="企业名称" >
 							<el-input name="company"  v-model='companyInfo.name' type="text"></el-input>
 						</el-form-item>
 					</div>
-				
+
 					<div class="inline_box">
-						<el-form-item prop="adds" label="企业地址"> 
+						<el-form-item prop="adds" label="企业地址">
 							<el-select name="province" v-model="companyInfo.province" @change="getCity" >
 								<el-option v-for="item in addsData.province" :label="item.name" :value="item.name"></el-option>
 							</el-select>
@@ -203,41 +196,41 @@
 							<el-radio  name="company_type" v-model='companyInfo.company_type' label="1" class="radio" >终端</el-radio>
 							<el-radio  name="company_type" v-model='companyInfo.company_type' label="2" class="radio" >次终端</el-radio>
 						</el-form-item>
-					</div>				  
-				
+					</div>
+
 					<div class="inline_box">
-						<el-form-item prop="company_attr" label="企业性质"> 
+						<el-form-item prop="company_attr" label="企业性质">
 							<el-radio name="company_attr" v-model='companyInfo.company_attr' label="1" class="radio" >国有</el-radio>
 							<el-radio name="company_attr" v-model='companyInfo.company_attr' label="2" class="radio" >集体</el-radio>
 							<el-radio name="company_attr" v-model='companyInfo.company_attr' label="3" class="radio" >外资</el-radio>
 							<el-radio name="company_attr" v-model='companyInfo.company_attr' label="5" class="radio" >民营</el-radio>
 							<el-radio name="company_attr" v-model='companyInfo.company_attr' label="4" class="radio" >其他</el-radio>
 						</el-form-item>
-					</div>				  
-				
+					</div>
+
 					<div class="inline_box">
-						<el-form-item prop="is_listed" label="是否上市" > 
+						<el-form-item prop="is_listed" label="是否上市" >
 							<el-radio name="is_listed" v-model='companyInfo.is_listed' :label="1" class="radio" >是</el-radio>
 							<el-radio name="is_listed" v-model='companyInfo.is_listed' :label="2" class="radio" >否</el-radio>
 						</el-form-item>
-					</div>	  
-												
+					</div>
+
 					<div class="inline_box">
-						<el-form-item prop="company_number" label="营业执照号码"> 
+						<el-form-item prop="company_number" label="营业执照号码">
 							<el-input name="company_number" v-model="companyInfo.company_number" ></el-input>
 						</el-form-item>
 					</div>
-					
+
 					<div class="inline_box">
-						<el-form-item prop="register_money" label="注册资本(万元)"> 
+						<el-form-item prop="register_money" label="注册资本(万元)">
 							<el-input name="register_money" v-model="companyInfo.register_money" ></el-input>
 						</el-form-item>
 					</div>
-					
+
 					<div class="inline_box">
-						<el-form-item prop="company_file_path" label="营业执照"> 
+						<el-form-item prop="company_file_path" label="营业执照">
 							<input id='file'  type="file"  @change='fileChanged' name="company_file_path" v-show = 'false'/>
-							<template v-if="companyInfo.company_file_path!=''&&companyInfo.company_file_path!=null">
+							<template v-if="companyInfo.company_file_path!=''&& companyInfo.company_file_path!=null">
 								<el-button   @click="modal()">查看</el-button>
 								<el-button  @click="modifyFile()">修改</el-button>
 							</template>
@@ -254,27 +247,27 @@
 							</el-dialog>
 						</el-form-item>
 					</div>
-		  			
+
 	  				<div class="inline_box">
-		  				<el-form-item prop="company_boss" label="法定代表人"> 
+		  				<el-form-item prop="company_boss" label="法定代表人">
 		  					<el-input name="company_boss" v-model="companyInfo.company_boss" ></el-input>
 		  				</el-form-item>
 	  				</div>
-		  			
+
 		  			<div class="inline_box">
-		  				<el-form-item prop="company_contacts" label="联系人"> 
+		  				<el-form-item prop="company_contacts" label="联系人">
 		  					<el-input name="company_contacts" v-model="companyInfo.company_contacts" ></el-input>
 		  				</el-form-item>
 	  				</div>
 
 	  				<div class="inline_box">
-		  				<el-form-item prop="company_tel" label="联系电话"> 
+		  				<el-form-item prop="company_tel" label="联系电话">
 		  					<el-input name="company_tel" v-model="companyInfo.company_tel" :maxlength="11" :minlength="13"></el-input>
 		  				</el-form-item>
 	  				</div>
-		  			
+
 	  				<div class="inline_box">
-		  				<el-form-item prop="idcard_number" label="身份证号码"> 
+		  				<el-form-item prop="idcard_number" label="身份证号码">
 		  					<el-input name="idcard_number" v-model="companyInfo.idcard_number" :maxlength="18" :minlength="18"></el-input>
 		  				</el-form-item>
 	  				</div>
@@ -323,7 +316,7 @@
 	.el-input{
 		width: 200px;
 	}
-	
+
 	.el-form-item label{
 		font-weight: 300;
 	}
@@ -336,6 +329,6 @@
 		height: 60px;
 		line-height: 60px;
 		padding:0 15px;
-		margin:0px auto 20px auto; 
+		margin:0px auto 20px auto;
 	}
 </style>

@@ -159,7 +159,7 @@
 				}
 			},
 			timestampToDate(date){
-				return new Date(parseInt(date) * 1000).toLocaleString('chinese', { hour12 : false }).split(' ')[1].substring(0, 5);
+				return new Date(parseInt(date) * 1000).toLocaleString('en-GB', { hour12 : false }).split(' ')[1].substring(0, 5);
 			}
 		},
 		watch : {
@@ -172,8 +172,7 @@
 
 <template>
 	<div>
-		<!-- <headerbar active_number="1" :identity="1" :text="['网价', '查看网价数据']" > -->
-		<headerbar active_number="webPrice" :identity="1" :text="['网价', '查看网价数据']" >
+		<headerbar active_number="webPrice" :text="['网价', '查看网价数据']" >
 			<div>
 				<div>
 					<filter-bar :data="filterDatas" :index="[

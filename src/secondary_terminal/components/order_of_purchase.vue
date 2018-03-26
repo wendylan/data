@@ -150,7 +150,11 @@ export default{
 			let order = this.orderList;
 			let num = 0;
 			for(let i = 0; i < order.length;i++){
-				num += parseInt(order[i].amount);
+				let amount = order[i].amount;
+				if(amount == ''){
+					amount = 0;
+				}
+				num += parseInt(amount);
 			}
 			return num;
 		},

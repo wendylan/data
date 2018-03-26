@@ -1,4 +1,5 @@
 <script>
+    import _ from 'lodash';
 	import {Button, Dialog, Form, FormItem, Input} from 'element-ui';
 	import relateBox from './relate-box.vue';
 	export default{
@@ -36,11 +37,10 @@
 		methods : {
 			// 结算方式转换
 			payToText(pay_items){
-				for(let data of this.projectPayItems){
-					if(data.num == pay_items){
-						return data.text;
-					}
-				}
+                let text = _.find(this.projectPayItems, function(item){
+                    return item.num == pay_items;
+                });
+                return text?text.text:'';
 			},
 			// 审核
 			finishCheck(){
@@ -50,12 +50,7 @@
 			},
 			// 获取当前项目
 			getProject(){
-				let pro = this.projects;
-				for(let i = 0; i < pro.length; i++ ){
-					if(pro[i].project_id == this.projectId){
-						this.projectInfo = pro[i];
-					}
-				}
+                this.projectInfo =  _.find(this.projects, ['project_id', this.projectId]);
 			},
 			// 取消关联
 			cancelRelate(id){

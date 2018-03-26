@@ -4,6 +4,7 @@
 	import headerbar from '../components/same-headerbar.vue';
 	import order from "./components/order.vue";
 	import plan from "./components/plan_secondTerminal.vue";
+	import _ from "lodash";
 	export default{
 		components:{
 			headerbar,
@@ -29,26 +30,12 @@
 		created : function(){
 			ajaxCustom.ajaxGet(this, "dingoapi/getOrder", (response)=>{
 				console.log(response);
-				response = response.body;
-				let project = response;
-				let tmp = [];
-				for(let i=0; i < project.length; i++){
-					let menu = 1;
-					for(let j = 0; j < tmp.length; j++){
-						if((project[i].project) && (tmp[j].project_name == project[i].project.name)){
-							menu = 0;
-						}
-					}
-					if(menu && project[i].project ){
-						tmp.push({ 'project_name' : project[i].project.name, 'project_id' :  project[i].project_id, 'project_company' : project[i].tradeBetween.buyercompany });
-					}
-				}
-				this.userProjectInfo.item = tmp;
-				let userOrder = response;
-				this.orderInfo = [];
-				for(let item in userOrder){
-					this.orderInfo.push(userOrder[item]);
-				}
+				let project = response.body;
+				this.userProjectInfo.item = _.uniqWith(_.flatMap(project, (val)=>{
+					val.project.company = val.tradeBetween.buyercompany;
+					return val.project;
+				}), _.isEqual);
+				this.orderInfo = _.cloneDeep(project);
 				this.handleClick();
 				this.getTableFilter();
 			}, (response)=>{
@@ -68,11 +55,6 @@
                         return time.getTime() > Date.now() ;
                     }
                 },
-                pickerOptions1 : {
-					disabledDate(time) {
-						return time.getTime() <= Date.now() ;
-					}
-				},
 				foremost : '',
 				final : '',
 				activeName : 'six',
@@ -137,23 +119,13 @@
 		methods: {
 			// 过滤去重
 			getTableFilter(){
-				let collectArr = {};
-				for(let datas of this.orderInfo){
-					for(let item in datas){
-						collectArr[item] ? collectArr[item] : collectArr[item] = [];
-						let hasData = false;
-						for(let arr of collectArr[item]){
-							if(arr.value == datas[item]){
-								hasData = true;
-								break;
-							}
-						}
-						if(!hasData){
-							collectArr[item].push({ text : datas[item], value : datas[item] });
-						}
+				let userNameArr = _.uniqWith(_.flatMap(this.orderInfo, (val)=>{
+					return {
+						text : val.user_name,
+						value : val.user_name
 					}
-				}
-				this.filter.userName = collectArr.user_name;
+				}), _.isEqual);
+				this.filter.userName = userNameArr;
 			},
 			userNameFilter(value, row){
 				return row.user_name === value;
@@ -163,26 +135,16 @@
 				let order = this.orderInfo;
 				let count = 0;
 				let countNum = 0;
-				if(this.userProjectInfo.selected){
-					for(let data of this.cacheOrder){
-						if((data.project_id == this.userProjectInfo.selected) && (parseInt(data.status) == 5)){
-							for(let item of data.orderDetail){
-								countNum += parseInt(item.amount | 0);
-								count += (parseInt(item.amount | 0)  + parseInt(item.freight | 0 ))*parseInt(item.unit_price |0);
-							}
-						}
-					}
-				}else{
-					for(let data of order){
-						if(parseInt(data.status) == 5){
-							for(let item of data.orderDetail){
-								countNum += parseInt(item.amount | 0);
-								count += (parseInt(item.amount | 0)  + parseInt(item.freight | 0 ))*parseInt(item.unit_price |0);
-							}
-						}
-					}
-				}
-				if(type=="price"){
+
+				let finishOrder = this.userProjectInfo.selected ? _.filter(this.cacheOrder, { "project_id" : this.userProjectInfo.selected, "status" : 5 }) : _.filter(this.orderInfo, { "status" : 5 });
+
+				let finishOrderDetail = _.flatMap(finishOrder, "orderDetail");
+				_.forEach(finishOrderDetail, (val)=>{
+					countNum += (parseInt(val.amount) | 0);
+					count += (parseInt(val.amount | 0)  + parseInt(val.freight | 0 ))*parseInt(val.unit_price |0);
+				});
+
+				if(type == "price"){
 					return count;
 				}else{
 					return countNum;
@@ -198,95 +160,41 @@
 			},
 			// 状态转换为文本
 			statusToText(status){
-				for(let data of this.orderStatus){
-					if(data.num == status){
-						return  data;
-					}
-				}
+				return _.find(this.orderStatus, { "num" : status });
 			},
 			// tab控件
 			handleClick() {
-					this.userProjectInfo.selected = '';
-					this.foremost = '';
-					this.final = '';
+				this.userProjectInfo.selected = '';
+				this.foremost = '';
+				this.final = '';
+				this.currentOrderInfo = [];
+				const processArr = [
+					{ active : "six", status : 100 },
+					{ active : "zero", status : 0 },
+					{ active : "one", status : 1 },
+					{ active : "two", status : 2 },
+					{ active : "three", status : 3 },
+					{ active : "four", status : 4 },
+					{ active : "five", status : 5 },
+					{ active : "seven", status : -1 }
+				]
 
-					let active = this.activeName;
-					// 全部订单
-					if(active == 'six') {
-						this.currentOrderInfo = [];
-						this.currentOrderInfo = this.orderInfo;
-						this.changePage(1);
+				let selected = _.find(processArr, { "active" : this.activeName });
+				if(selected.active !== "six" && selected.active !== "seven"){
+					let orders = _.filter(this.orderInfo, { "status" : selected.status });
+					if(orders.length){
+						this.currentOrderInfo = _.concat(this.currentOrderInfo, orders);
 					}
-					// 未处理
-					if(active == 'zero') {
-						this.currentOrderInfo = [];
-						for(let data of this.orderInfo){
-							if(data.status == 0 ){
-								this.currentOrderInfo.push(data);
-							}
-						}
-						this.changePage(1);
-					}
-					// 处理中
-					if(active == 'one') {
-						this.currentOrderInfo = [];
-						for(let data of this.orderInfo) {
-							if(data.status == 1) {
-								this.currentOrderInfo.push(data);
-							}
-						}
-						this.changePage(1);
-					}
-					// 待确认
-					if(active == 'two') {
-						this.currentOrderInfo = [];
-						for(let data of this.orderInfo){
-							if(data.status == 2 ){
-								this.currentOrderInfo.push(data);
-							}
-						}
-						this.changePage(1);
-					}
-					// 待发货
-					if(active == 'three') {
-						this.currentOrderInfo = [];
-						for(let data of this.orderInfo){
-							if(data.status == 3 ){
-								this.currentOrderInfo.push(data);
-							}
-						}
-						this.changePage(1);
-					}
-					// 待收货
-					if(active == 'four') {
-						this.currentOrderInfo = [];
-						for(let data of this.orderInfo){
-							if(data.status == 4 ){
-								this.currentOrderInfo.push(data);
-							}
-						}
-						this.changePage(1);
-					}
-					// 已完成
-					if(active == 'five') {
-						this.currentOrderInfo = [];
-						for(let data of this.orderInfo){
-							if(data.status == 5 ){
-								this.currentOrderInfo.push(data);
-							}
-						}
-						this.changePage(1);
-					}
-					// 已取消
-					if(active == 'seven') {
-						this.currentOrderInfo = [];
-						for(let data of this.orderInfo) {
-							if(data.status < 0){
-								this.currentOrderInfo.push(data);
-							}
-						}
-						this.changePage(1);
-					}
+				}
+				if(selected.active == 'six'){
+					this.currentOrderInfo = this.orderInfo;
+				}
+				if(selected.active == 'seven'){
+					this.currentOrderInfo = _.concat(this.currentOrderInfo, _.filter(this.orderInfo, (val)=>{
+						return val.status < 0;
+					}));
+				}
+				this.changePage(1);
 			},
 			// 导出订单
 			downLoad(){
@@ -302,15 +210,8 @@
 			selectProject(data){
 				if(data){
 					this.activeName = null;
-					let order = this.orderInfo;
-					let arr= [];
-					for(let i = 0; i < order.length; i++){
-						if(order[i].project_id == data){
-							arr.push(order[i]);
-						}
-					}
-					this.currentOrderInfo = arr;
-					this.cacheOrder = JSON.parse(JSON.stringify(this.currentOrderInfo));
+					this.currentOrderInfo = _.filter(this.orderInfo, { "project_id" : data });
+					this.cacheOrder = _.cloneDeep(this.currentOrderInfo);
 					this.changePage(1);
 				}
 				this.totalNum = this.getSomeCount('num');
@@ -536,18 +437,16 @@
 			// 分页功能
 			changePage(page){
 				let total = this.currentOrderInfo.length;
-				this.pageOrderInfo = [];
-				for(let i = (page-1)*6; i < (page*6<total ? page*6 : total);i++){
-					this.pageOrderInfo.push(this.currentOrderInfo[i]);
-				}
-			},
-
-		},
+				let start = page * 6 - 6;
+				let end = (start + 6) > total ? (start + total - start) : (start + 6);
+				this.pageOrderInfo = _.slice(this.currentOrderInfo, start, end);
+			}
+		}
 	}
 </script>
 <template>
 	<div>
-		<headerbar active_number="salesOrder" :identity="2" :text="['销售订单','查看订单']">
+		<headerbar active_number="salesOrder" :text="['销售订单','查看订单']">
 			<div>
 				<div class="order_search">
 					<h1 style="font-size:18px;font-weight:400;color:#999;">订单处理与查询</h1>
@@ -555,7 +454,7 @@
 						<div class="left">
 							<span>选择项目:</span>
 							<el-select size="small" v-model="userProjectInfo.selected" @change="selectProject">
-								<el-option v-for="option in userProjectInfo.item" :label="`${option.project_name}(${option.project_company})`" :value="option.project_id"></el-option>
+								<el-option v-for="option in userProjectInfo.item" :label="`${option.name}(${option.company})`" :value="option.project_info_id"></el-option>
 							</el-select>
 							<el-button @click="clearProject" size="small">全部订单</el-button>
 						</div>
@@ -610,8 +509,8 @@
 					    <el-table-column prop="user_name" label="下单用户" :filters="filter.userName" :filter-method="userNameFilter" align="center"></el-table-column>
 					    <el-table-column label="订单类型" width="80" align="center">
 							<template scope="scope">
-								<span v-if="!scope.row.project_id">批次销售</span>
-								<span v-if="scope.row.project_id">项目销售</span>
+								<span v-if="scope.row.price_type == 2">批次销售</span>
+								<span v-if="scope.row.price_type == 1">项目销售</span>
 							</template>
 					    </el-table-column>
 					    <el-table-column prop="project.name" label="项目名称" align="center"></el-table-column>

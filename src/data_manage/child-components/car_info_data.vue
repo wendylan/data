@@ -1,7 +1,8 @@
 <script>
-import headerbar from '../../components/admin-headerbar.vue';
-import ajaxCustom from '../../components/ajax-custom.js';
-import { Button, Input, Form, FormItem } from 'element-ui';
+    import _ from 'lodash';
+    import headerbar from '../../components/admin-headerbar.vue';
+    import ajaxCustom from '../../components/ajax-custom.js';
+    import { Button, Input, Form, FormItem } from 'element-ui';
 	export default{
 		components : {
 			headerbar,
@@ -104,16 +105,13 @@ import { Button, Input, Form, FormItem } from 'element-ui';
 			},
 			// 搜索功能
 			handleIconClick() {
-				this.currentcarInfoData = [];
-				for(let data of this.carInfoData){
-					if(
-						data.plate_number.includes(this.keyword) ||
-						data.driver.includes(this.keyword) ||
-						data.driver_tel.includes(this.keyword)
-						){
-						this.currentcarInfoData.push(data);
-					}
-				}
+                this.currentcarInfoData = _.filter(this.carInfoData, (val)=>{
+                    return (
+                        val.plate_number.includes(this.keyword) ||
+						val.driver.includes(this.keyword) ||
+						val.driver_tel.includes(this.keyword)
+                    );
+                });
 			},
 		}
 	}

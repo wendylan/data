@@ -535,7 +535,7 @@
 </script>
 <template>
 	<div>
-		<headerbar active_number="terminalUserorder" :identity="1" :text="['我的订单','查看订单']">
+		<headerbar active_number="terminalUserorder" :text="['我的订单','查看订单']">
 			<div>
 				<div class="order_search">
 					<h1 style="font-size:18px;font-weight:400;color:#999;">订单处理与查询</h1>
@@ -593,8 +593,8 @@
 					    </el-table-column>
 					    <el-table-column label="订单类型" header-align="center">
 							<template scope="scope">
-								<span v-if="!scope.row.project_id">批次销售</span>
-								<span v-if="scope.row.project_id">项目销售</span>
+								<span v-if="scope.row.price_type == 2">批次销售</span>
+								<span v-if="scope.row.price_type == 1">项目销售</span>
 							</template>
 					    </el-table-column>
 					    <el-table-column prop="project_name" label="项目名称" header-align="center"></el-table-column>

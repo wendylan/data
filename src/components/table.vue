@@ -63,6 +63,11 @@
 			}
 		},
 		created(){
+			//
+			this.systemName = navigator.platform.indexOf("Win")==0 ? "win" : "mac";
+			this.theadStyle = navigator.platform.indexOf("Win")==0 ? 'width:calc( 100% - 17px );' : 'width:100%;';
+
+			//
 			let keysArr = [];
 			this.theadDatas = JSON.parse(JSON.stringify(this.index));
 			this.tableDatas = this.value;
@@ -100,6 +105,7 @@
 			}
 		},
 		beforeUpdate(){
+			this.theadDatas = this.index;
 			this.tableDatas = this.value;
 		},
 		data(){
@@ -112,6 +118,7 @@
 				// 用来排序的品名/规格/材质的key值
 				steelKey : [],
 				splitResult : [],
+				theadStyle : "",
 				isSeccondHead : false
 			}
 		},
@@ -238,88 +245,80 @@
 
 <template>
 	<div class="table_box">
-		<!-- <div class="table-head" style="width: 100%; background-color:#eef1f6;padding-right: 17px;"> -->
-		<!-- <div class="table-head" style=" background-color:#eef1f6;padding-right: 17px;"> -->
-			<!-- <table class="table-style1" style="width: 100%; padding-right: 17px;"> -->
-		<div class="table-head" style=" background-color:#eef1f6;padding-right: 3px;">
-			<table class="table-style1" style="width: 100%;padding-right: 3px; ">
-				<thead>
-					<!-- 此处修改了一下没有index的情况下,我自定义二级表头因为tr需要有外面带入，所以我修改了下thead部分，只是表template 的v-if及v-else放到tr前面 从而实现我的自定义二级表头 -->
+		<div v-if="systemName == 'win'"></div>
+		<table class="table-style" style="width: 100%;">
+			<thead class="table-head" :style="theadStyle">
+				<!-- 此处修改了一下没有index的情况下,我自定义二级表头因为tr需要有外面带入，所以我修改了下thead部分，只是表template 的v-if及v-else放到tr前面 从而实现我的自定义二级表头 -->
 
-					<!-- 无index参数则是自定义table -->
-					<template v-if="index.length==0">
-						<slot name="thead"></slot>
-					</template>
-					<template v-else>
-						<tr>
-							<template v-for="item of theadDatas">
-								<!-- 是否启用排序功能 -->
-								<th v-if="item.title[0]=='~'" :rowspan="isSeccondHead ? 2 : 0" >
-									<span>{{ item.title.replace('~', '') }}</span>
+				<!-- 无index参数则是自定义table -->
+				<template v-if="index.length==0">
+					<slot name="thead"></slot>
+				</template>
+				<template v-else>
+					<tr>
+						<template v-for="item of theadDatas">
+							<!-- 是否启用排序功能 -->
+							<th v-if="item.title[0]=='~'" :rowspan="isSeccondHead ? 2 : 0" >
+								<span>{{ item.title.replace('~', '') }}</span>
+								<div class="sort-icon">
+									<div class="sort-icon">
+										<div @click="sortPrice('asce', item.key)" style="color:#F56C6C;">▲</div>
+										<div @click="sortPrice('desc', item.key)" style="margin-top: -5px;color:#67C23A;">▼</div>
+									</div>
+								</div>
+							</th>
+							<!-- 一级表头 ：无排序 -->
+							<template v-if="!isSeccondHead && item.title[0]!='~'">
+								<th >{{ item.title }}</th>
+							</template>
+
+							<!-- 二级表头 ：包含的表头 -->
+							<th v-else-if="item.isGroup" :colspan="item.child.length"> {{ item.title }} </th>
+							<!-- 二级表头 ：设置其他一级表头的高度 -->
+							<th v-else-if="secondHead.length>0 && item.title[0]!='~'" :rowspan="2"> {{ item.title }} </th>
+						</template>
+					</tr>
+					<tr>
+						<template v-for="item of theadDatas" v-if="item.isGroup">
+							<template  v-for="data of item.child">
+								<th v-if="data.title[0]=='~'">
+									<span>{{ data.title.replace('~', '') }}</span>
 									<div class="sort-icon">
 										<div class="sort-icon">
-											<div @click="sortPrice('asce', item.key)" style="color:#F56C6C;">▲</div>
-											<div @click="sortPrice('desc', item.key)" style="margin-top: -5px;color:#67C23A;">▼</div>
+											<div @click="sortPrice('asce', data.key)" style="color:#F56C6C;">▲</div>
+											<div @click="sortPrice('desc', data.key)" style="margin-top: -5px;color:#67C23A;">▼</div>
 										</div>
 									</div>
 								</th>
-								<!-- 一级表头 ：无排序 -->
-								<template v-if="!isSeccondHead && item.title[0]!='~'">
-									<th >{{ item.title }}</th>
-								</template>
+								<th v-else>{{ data.title }}</th>
+							</template>
+						</template>
+					</tr>
+				</template>
 
-								<!-- 二级表头 ：包含的表头 -->
-								<th v-else-if="item.isGroup" :colspan="item.child.length"> {{ item.title }} </th>
-								<!-- 二级表头 ：设置其他一级表头的高度 -->
-								<th v-else-if="secondHead.length>0 && item.title[0]!='~'" :rowspan="2"> {{ item.title }} </th>
-							</template>
-						</tr>
-						<tr>
-							<template v-for="item of theadDatas" v-if="item.isGroup">
-								<template  v-for="data of item.child">
-									<th v-if="data.title[0]=='~'">
-										<span>{{ data.title.replace('~', '') }}</span>
-										<div class="sort-icon">
-											<div class="sort-icon">
-												<div @click="sortPrice('asce', data.key)" style="color:#F56C6C;">▲</div>
-												<div @click="sortPrice('desc', data.key)" style="margin-top: -5px;color:#67C23A;">▼</div>
-											</div>
-										</div>
-									</th>
-									<th v-else>{{ data.title }}</th>
+			</thead>
+			<tbody>
+				<template v-for="line of tableDatas" v-if="line">
+					<tr v-if="line.display!=false">
+						<!-- 无index参数则是自定义table -->
+						<template v-if="index.length==0">
+							<slot name="tbody" :line="line"></slot>
+						</template>
+						<template v-else>
+							<template v-for="val of tbodyIndex">
+								<template v-for="(data, key) of line">
+									<td v-if="key == val.key">
+										<!-- 通过判断key 额外添加的涨跌箭头 -->
+										<span v-if="val.key =='price_change' && parseInt(line[val.key])" :class="parseInt(line[val.key])>0 ? 'red_sign' : 'green_sign'">{{ parseInt(line[val.key])>0 ? "⬆" : "⬇"}}</span>
+										{{ line[val.key]==9999 ? '-' : line[val.key] }}
+									</td>
 								</template>
 							</template>
-						</tr>
-					</template>
-
-				</thead>
-			</table>
-		</div>
-		<div class="table-body" style="width: 100%; overflow-y: scroll; height: 600px;">
-			<table class="table-style" style="width: 100%;">
-				<tbody>
-					<template v-for="line of tableDatas" v-if="line">
-						<tr v-if="line.display!=false">
-							<!-- 无index参数则是自定义table -->
-							<template v-if="index.length==0">
-								<slot name="tbody" :line="line"></slot>
-							</template>
-							<template v-else>
-								<template v-for="val of tbodyIndex">
-									<template v-for="(data, key) of line">
-										<td v-if="key == val.key">
-											<!-- 通过判断key 额外添加的涨跌箭头 -->
-											<span v-if="val.key =='price_change' && parseInt(line[val.key])" :class="parseInt(line[val.key])>0 ? 'green_sign' : 'red_sign'">{{ parseInt(line[val.key])>0 ? "⬆" : "⬇"}}</span>
-											{{ line[val.key]==9999 ? '-' : line[val.key] }}
-										</td>
-									</template>
-								</template>
-							</template>
-						</tr>
-					</template>
-				</tbody>
-			</table>
-		</div>
+						</template>
+					</tr>
+				</template>
+			</tbody>
+		</table>
 	</div>
 </template>
 
@@ -329,7 +328,7 @@
 		/*padding: 0;*/
 		margin: 0;
 	}
-	.table-style1{
+	table.table-style{
 		margin-top: 20px;
 		width: 100%;
 	    table-layout: fixed;
@@ -338,22 +337,13 @@
 		text-align:center;
 		font-size:14px;
 	}
-	.table-style1 thead{
+	table.table-style thead{
 		background-color:#eef1f6;
 	}
-	.table-style1 thead th{
+	table.table-style thead th{
 		text-align: center;
 		padding:10px 0px;
 		border:1px solid #dfe6ec;
-	}
-	table.table-style{
-		margin-bottom: 30px;
-		width: 100%;
-	    table-layout: fixed;
-	    border-collapse:collapse;
-		border:1px solid #e0e6ed;
-		text-align:center;
-		font-size:14px;
 	}
 	table.table-style td{
 		padding:10px;
@@ -384,23 +374,37 @@
 	table th{
 		font-weight:400;
 	}
+	tbody {
+	    display:block;
+	    height:500px;
+	    overflow-y: scroll;
+	}
+	thead, tbody tr {
+	    display:table;
+	    width:100%;
+	    table-layout:fixed;
+	}
+	thead {
+	    width:100%;
+	}
+	table {
+	    width:400px;
+	}
 
-    .table_box ::-webkit-scrollbar {
-        width: 3px;
-        height:1px;
-        border-radius: 15px;
-        /*border:solid 1px #000;*/
-        /*border-left-width:2px;*/
+    .table_box{
+    	margin-top: 10px;
     }
-    .table_box ::-webkit-scrollbar-thumb {
-        -webkit-box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.3);
-        background:#dfe6ec;
-        opacity: 0.6;
-    }
-    .table_box ::-webkit-scrollbar-thumb:window-inactive {
-        -webkit-box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.3);
-        background:#dfe6ec;
-        opacity: 0.6;
+
+    .table_box>div{
+    	background: #eef1f6;
+	    width: 19px;
+	    height: 112px;
+	    float: right;
+	    z-index: 99999;
+	    margin-bottom: -112px;
+	    border: 2px solid #dfe6ec;
+	    border-left: 0px solid #dfe6ec;
+	    border-right: 1px solid #dfe6ec;
     }
 
     .red_sign{

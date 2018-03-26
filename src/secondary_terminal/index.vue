@@ -21,8 +21,8 @@
 		},
 		data(){
 			return {
-				priceDisplayChange : true,
-				recordDate : null,
+                // 用来判断是否选择城市有运费
+				freightHasNaN : false,
 				quotation : ['首次', '二次', '三次', '四次', '五次'],
 				// 选择次数数组
 				selectQuotationOption : [],
@@ -38,6 +38,7 @@
 				// 运费数组
 				freight : [],
 				date : Date.now(),
+                // 时间控件将来和周末的时间不可选
 				pickerOptions: {
 					disabledDate(time) {
                         let tmp = time.getDay();
@@ -47,26 +48,7 @@
                         return time.getTime() > Date.now();
 					}
 				},
-				loading : false,
-				allFilters : {
-					cate_spec : [
-						{
-							text : "螺纹钢",
-							value : "螺纹钢"
-						},
-						{
-							text : "盘螺",
-							value : "盘螺"
-						},
-						{
-							text : "高线",
-							value : "高线"
-						}
-					],
-					size : [],
-					material : [],
-					brand : []
-				},
+                // fillbar的数据源
 				filterDatas : [],
 				tempTableDatas : [],
 			}
@@ -103,7 +85,7 @@
 			//报价次序选择（同时渲染table）
 			setQuotation(value){
 				if(value >= 0 && value != null){
-					this.marketPrice = this.marketPriceAll[value];
+					this.marketPrice = this.getTableCanDisplayData(this.marketPriceAll[value]);
 					this.marketPrice = sortMethods.todo(this.marketPrice, [
 						{ text : "品名", key : "cate_spec" },
 						{ text : "规格", key : "size" },
@@ -112,28 +94,37 @@
 					this.tempTableDatas = JSON.parse(JSON.stringify(this.marketPrice));
 				}
 			},
+			//table可显示数据筛选
+			getTableCanDisplayData(data){
+				let returndata = [];
+				for(let item of data){
+					if(item.total){
+						returndata.push(item);
+					}
+				}
+				return returndata;
+			},
 			//获取现货价格
 			getSoptPrice(date){
 				this.selectQuotation = null;
 				let loadingInstance = Loading.service({ fullscreen : true});
 				ajaxCustom.ajaxGet(this, "dingoapi/getSoptPrice", { params : { 'date' : date } }, (responese)=>{
-					this.recordDate = responese.body.date;
-					if (!responese.body.soptPrice.length) {
+					let responeseData = responese.body.data;
+                    this.date = responeseData.date;
+					if (!responeseData.soptPrice.length) {
 						//当日无数据，清空表数据
 						this.marketPrice = [];
 						alert('当天没有数据,请查看其他的日期');
 					}else{
-						this.date = responese.body.date;
 						//获取数据
-						let index = responese.body.soptPrice.length-1;
-						// console.log(index);
-						this.marketPriceAll = responese.body.soptPrice;
+						let index = responeseData.soptPrice.length-1;
+						this.marketPriceAll = responeseData.soptPrice;
 						if (this.marketPriceAll.length) {
 							for (let i = 0; i < this.marketPriceAll.length; i++) {
 								this.marketPriceAll[i] = this.getPriceTotal(this.SoptPriceAddFreight(this.marketPriceAll[i], this.freight));
 							}
 						}
-						let times = responese.body.times;
+						let times = responeseData.times;
 						//报价次数选择框操作
 						this.selectQuotationOption = [];
 						for (let i = 0; i <= index; i++) {
@@ -145,7 +136,6 @@
 						}
 						this.selectQuotation = index;
 					}
-					// window.document.getElementById('total').click();
 					console.log(responese);
 					loadingInstance.close();
 				}, (responese)=>{
@@ -155,20 +145,25 @@
 			},
 			// 改变日期获取现货价和网价
 			changeDate(date){
-				if(date != this.recordDate){
+				if(date != this.date){
 					this.getSoptPrice(date);
 				}
 			},
 			// 改变地址获取运费
 			changeAdds(adds){
+				if(adds.city){
+					this.freightHasNaN = true;
+				}else{
+					this.freightHasNaN = false;
+				}
 				this.city = adds.city;
 				this.getFreight(adds);
 				this.priceDisplay = this.priceLabel(this.city);
-				this.priceDisplayChange = !this.priceDisplayChange;
 			},
 			// 为数据添加上运费
 			SoptPriceAddFreight(info, freight){
 				for (var i = 0; i < info.length; i++) {
+					info[i].freight = NaN;
 					if (info[i].transport=='广州仓发货') {
 						if (freight.warehouse){
 							info[i].freight=parseInt(freight.warehouse);
@@ -182,16 +177,13 @@
 							}
 						}
 					}
-					if(!info[i].freight){
-						info[i].freight = 0;
-					}
 				}
 				return info;
 			},
 			// 总价
 			getPriceTotal(info){
 				for (var i = 0; i < info.length; i++) {
-					if(info[i].freight){
+					if(this.freightHasNaN){
 						info[i].total=info[i].freight+info[i].price;
 					}else {
 						info[i].total=info[i].price;
@@ -253,7 +245,7 @@
 
 <template>
 	<div>
-		<headerbar active_number="secondaryTerminal" :identity="2" :text="['现货价', '提供每日最新钢材现货价']">
+		<headerbar active_number="secondaryTerminal" :text="['现货价', '提供每日最新钢材现货价']">
 			<div class="main_box">
 				<filter-bar :data="filterDatas" :index="[
 						{ title : '品名', key : 'cate_spec' },
@@ -276,17 +268,7 @@
 							</el-select>
 						</div>
 					</div>
-					<div v-if="!priceDisplayChange">
-						<proe-table v-model="marketPrice" :index="[
-							{ title : '品名', key : 'cate_spec' },
-							{ title : '规格', key : 'size' },
-							{ title : '材质', key : 'material' },
-							{ title : '品牌', key : 'brand' },
-							{ title : priceDisplay, key : 'total' },
-							{ title : '市场库存', key : 'inventory' },
-						]"></proe-table>
-					</div>
-					<div v-if="priceDisplayChange">
+					<div >
 						<proe-table v-model="marketPrice" :index="[
 							{ title : '品名', key : 'cate_spec' },
 							{ title : '规格', key : 'size' },

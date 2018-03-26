@@ -396,7 +396,7 @@
 </script>
 <template>
 	<div>
-		<headerbar active_number="stUserOrder" :identity="2" :text="['采购订单','查看订单']">
+		<headerbar active_number="stUserOrder" :text="['采购订单','查看订单']">
 			<div>
 				<div class="order_search">
 					<div style="clear: both;">

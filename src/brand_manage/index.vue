@@ -1,4 +1,5 @@
 <script>
+    import _ from 'lodash';
 	import headerbar from '../components/same-headerbar.vue';
 	import ajaxCustom from '../components/ajax-custom.js';
 	import { Select, Option} from 'element-ui';
@@ -10,7 +11,6 @@
 		},
 		created : function() {
 			this.getAllBrandsDetails();
-			this.getAllBrands();
 		},
 		data(){
 			return{
@@ -21,6 +21,7 @@
 					item : [],
 					selected : null
 				},
+                // 表格数据
 				filterBrands : [],
 			}
 		},
@@ -28,48 +29,30 @@
 			// 通过传过来的路由显示现对应的品牌详情
 			showBrandDetail(){
 				let brand = this.$route.query.brand;
-				for(let data of this.brandsData){
-					if(data.brands == brand){
-						this.allBrands.selected = brand;
-						return;
-					}
-				}
-				this.allBrands.selected = '';
+				this.allBrands.selected = _.find(this.brandsData, ['brands', brand]).brands;
 			},
             // 获取品牌的详细信息
 			getAllBrandsDetails(){
 				ajaxCustom.ajaxGet(this, 'dingoapi/getBrandInfo', (response)=>{
 					console.log(response);
 					this.brandsData = response.body.data;
+                    // 获取所有品牌
+                    this.allBrands.item = _.uniq(_.flatMap(this.brandsData, (val)=>{
+                        return val.brands;
+                    }));
+                    // 表格默认显示第一个数据
 					this.filterBrands.push(this.brandsData[0]);
+                    // 选择框默认显示一个品牌
 					this.allBrands.selected = this.filterBrands[0].brands;
+                    // 如果路由有传过来有值
 					this.showBrandDetail();
 				}, (response)=>{
 					console.log(response);
 				});
 			},
-			// 获取所有品牌
-			getAllBrands(){
-				ajaxCustom.ajaxGet(this, "dingoapi/getAllProduct", (responese)=>{
-					console.log(responese)
-					let resData = responese.body;
-					let arr = [];
-					for(let brand of resData.brand){
-						arr.push(brand.brand);
-					}
-					this.allBrands.item = arr;
-				}, (responese)=>{
-					alert(responese.body.message);
-				});
-			},
 			// 查询相对应的品牌数据
 			searchBrand(){
-				this.filterBrands = [];
-				for(let data of this.brandsData){
-					if(data.brands == this.allBrands.selected){
-						this.filterBrands.push(data);
-					}
-				}
+                this.filterBrands = _.filter(this.brandsData, ['brands', this.allBrands.selected]);
 			},
 			// 获取图片路径
 			getImgPath(file){
@@ -89,7 +72,7 @@
 </script>
 <template>
 	<div>
-		<headerbar :identity="2" :text="['品牌详情', '查看品牌详细情况']">
+		<headerbar :text="['品牌详情', '查看品牌详细情况']">
 			<div class="some_style">
 				<span>请选择品牌:</span>
 				<el-select placeholder="请选择" v-model="allBrands.selected" @change="searchBrand" size="small">

@@ -3,6 +3,7 @@
 	import ajaxCustom from '../components/ajax-custom.js';
 	import headerbar from '../components/same-headerbar.vue';
 	import order from "./components/order_of_purchase.vue";
+	import _ from "lodash";
 	export default{
 		components:{
 			headerbar,
@@ -65,14 +66,9 @@
                         return time.getTime() > Date.now() ;
                     }
                 },
-                pickerOptions1 : {
-					disabledDate(time) {
-						return time.getTime() <= Date.now() ;
-					}
-				},
 				foremost : '',
 				final : '',
-				activeName : '3',
+				activeName : 'three',
 				orderStatus : [
 					{num : 0, text : "未处理"},
 					{num : 1, text : "处理中"},
@@ -82,13 +78,19 @@
 					{num : -2, text : "已撤回"},
 					{num : -3, text : "已取消"}
 				],
+                // 总的订单信息
 				orderInfo : [],
+                // 搜索后的订单信息
 				searchOrderInfo : [],
-				currentOrderInfo : [],	//当前的订单信息
+                //当前的不分页面的订单信息
+				currentOrderInfo : [],
+                // 当前页面的订单信息
 				pageOrderInfo : [],
+                // 默认的当前页面
 				currentPage : 1,
-				dialogOrderVisible : false,
+                // 是否打开订单弹出框
 				showOrder : false,
+                // 传入订单弹出框的信息
 				buyData : {
 					rebarData : [],
 					transport : {
@@ -116,6 +118,7 @@
 				cacheOrder : [],
 				// 总的出货量
 				totalNum : 0,
+                // 总的价格
 				totalPrice : 0,
 			}
 		},
@@ -156,42 +159,32 @@
 				this.showOrder = !this.showOrder;
 			},
 			statusToText(status){
-				for(let data of this.orderStatus){
-					if(data.num == status){
-						return  data.text;
-					}
-				}
+                return _.find(this.orderStatus, { 'num': status});
 			},
 			// tab控件
 			handleClick() {
 				this.userProjectInfo.selected = '';
 				this.foremost = '';
 				this.final = '';
+                this.currentOrderInfo = [];
 
-				let active = this.activeName;
-				if(active == "1") {
-					this.currentOrderInfo = [];
-					for(let data of this.orderInfo){
-						if(data.send_for_purchar == 1 ){
-							this.currentOrderInfo.push(data);
-						}
+                const statusArr = [
+					{ active : "one", status : 1 },
+					{ active : "two", status : 2 },
+					{ active : "three", status : 3 }
+				]
+
+				let selected = _.find(statusArr, { "active" : this.activeName });
+				if(selected.active !== "three"){
+					let orders = _.filter(this.orderInfo, { "send_for_purchar" : selected.status });
+					if(orders.length){
+						this.currentOrderInfo = _.concat(this.currentOrderInfo, orders);
 					}
-					this.changePage(1);
 				}
-				if(active == "2") {
-					this.currentOrderInfo = [];
-					for(let data of this.orderInfo) {
-						if(data.send_for_purchar == 2) {
-							this.currentOrderInfo.push(data);
-						}
-					}
-					this.changePage(1);
-				}
-				if(active == "3") {
-					this.currentOrderInfo = [];
+				if(selected.active == 'three'){
 					this.currentOrderInfo = this.orderInfo;
-					this.changePage(1);
 				}
+				this.changePage(1);
 			},
 			// 导出订单
 			downLoad(){
@@ -205,19 +198,13 @@
 			},
 			// 根据项目来查询
 			selectProject(data){
-				if(data){
-					this.activeName ='';
-					let order = this.orderInfo;
-					let arr= [];
-					for(let i = 0; i < order.length; i++){
-						if(order[i].project_id == data){
-							arr.push(order[i]);
-						}
-					}
-					this.currentOrderInfo = arr;
-					this.cacheOrder = JSON.parse(JSON.stringify(this.currentOrderInfo));
+                if(data){
+					this.activeName = '';
+					this.currentOrderInfo = _.filter(this.orderInfo, { "project_id" : data });
+					this.cacheOrder = _.cloneDeep(this.currentOrderInfo);
 					this.changePage(1);
 				}
+
 				this.totalNum = this.getSomeCount('num');
 				this.totalPrice = this.getSomeCount('price');
 			},
@@ -284,14 +271,14 @@
 			clearProject(){
 				this.userProjectInfo.selected = '';
 				this.cacheOrder = [];
-				this.activeName = '1';
+				this.activeName = 'three';
 				this.handleClick();
 			},
 			// 清空
 			clearAll(){
 				this.foremost = '';
 				this.final = '';
-				this.activeName = '1';
+				this.activeName = 'three';
 				this.handleClick();
 			},
 			//日期对象格式化
@@ -405,7 +392,7 @@
 </script>
 <template>
 	<div>
-		<headerbar active_number="purchaseOrder" :identity="2" :text="['采购订单', '提供每日最新钢材现货价']">
+		<headerbar active_number="purchaseOrder" :text="['采购订单', '提供每日最新钢材现货价']">
 			<div>
 				<div class="order_search">
 					<h1 style="font-size:18px;font-weight:400;color:#999;">订单处理与查询</h1>
@@ -443,9 +430,9 @@
 				</div>
 				<div style="background-color: #fff;padding: 20px; margin-top: 20px;">
 					<el-tabs v-model="activeName" @tab-click="handleClick" type="card">
-					    <el-tab-pane label="全部订单" name="3"></el-tab-pane>
-					    <el-tab-pane label="待处理" name="1" ></el-tab-pane>
-					    <el-tab-pane label="已处理" name="2"></el-tab-pane>
+					    <el-tab-pane label="全部订单" name="three"></el-tab-pane>
+					    <el-tab-pane label="待处理" name="one" ></el-tab-pane>
+					    <el-tab-pane label="已处理" name="two"></el-tab-pane>
 					</el-tabs>
 
 					<el-table :data="pageOrderInfo" border style="font-size: 14px;">

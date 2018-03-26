@@ -73,7 +73,7 @@
 
 <template>
 	<div>
-		<headbar active_number="brandSellForm" :identity="2" :text="['品牌出货统计表', '']">
+		<headbar active_number="brandSellForm" :text="['品牌出货统计表', '']">
 			<div class="">
 				<span>选择日期：</span>
 				<el-date-picker

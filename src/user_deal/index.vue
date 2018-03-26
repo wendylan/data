@@ -30,27 +30,17 @@
 		created(){
 				// 全局变量 配合组件通信
 				console.log(window._defaultDatas)
-				let webPrice = window._defaultDatas.webPriceDatas;
-				let marketPrice = window._defaultDatas.marketPriceDatas;
-				this.allWebPrice = window._defaultDatas.webPriceDatas;
-				this.allMainDatas = window._defaultDatas.marketPriceDatas;
 				this.project.list = (window._defaultDatas.projectDatas).reverse();
 				this.companys.list = window._defaultDatas.agentCompanys;
 				this.nameList = window._defaultDatas.nameList;
-				// 组合网价和现货价
-				let combineMarket = marketPrice.length ? marketPrice[marketPrice.length-1].childDatas : [];
-				let combineWeb = webPrice.length ? webPrice[webPrice.length-1].childDatas : [];
-				this.tempTableDatas = this.addAttrToTable(this.combinDatas(combineMarket, combineWeb));
+				// 初始化主要参数
+				this.tempTableDatas = window._defaultDatas.megerDatas;
 				this.tableDatas = JSON.parse(JSON.stringify(this.tempTableDatas));
 				this.fiterData = this.tableDatas;
 				this.getAllBrands();
 		},
 		data(){
 			return {
-				// 当天全部网价
-				allWebPrice : null,
-				// 当天全部市场价
-				allMainDatas : null,
 				tableDatas : null,
 				tempTableDatas : null,
 				// 合同价计算规则
@@ -119,92 +109,38 @@
 			},
 			// 使用Vue.set添加table属性
 			addAttrToTable(tableDatas){
-				console.log(tableDatas)
 				for(let data of tableDatas){
 					this.$set(data, "amount", null);
 					this.$set(data, "countPrice", null);
 				}
 				return tableDatas;
 			},
-			// 整合网价与市场价
-			combinDatas(marketDatas, webDatas){
-				// 如果网价和现货价其中一项为空
-				if(!marketDatas.length && webDatas.length){
-					webDatas = _.map(webDatas, (val)=>{
-						val.price = '';
-						return val;
-					});
-					return webDatas;
-				}else if(marketDatas.length && !webDatas.length){
-					marketDatas = _.map(marketDatas, (val)=>{
-						val.webPrice = '';
-						return val;
-					});
-					return marketDatas;
-				}
-				// 网价与现货价都不为空
-				for(let market of marketDatas){
-					// 加入品牌别名
-					for(let item of this.nameList){
-						if(market.brand == item.abbreviation){
-							market.elseName = item.full_name;
-							break;
-						}else if(market.brand == item.full_name){
-							market.elseName = item.abbreviation;
-							break;
-						}
-					}
-					for(let web of webDatas){
-						if( (market.brand==web.brands || market.elseName==web.brands || market.correctName == web.brands) && market.cate_spec==web.product && market.material==web.material && market.size==web.type){
-							// 整合网价
-							market.webPrice = web.web_price;
-						}
-					}
-				}
-				return marketDatas;
-			},
 			// 计算品牌范围内数据
 			brandFilter(tableDatas){
-				let brands = [];
-				for(let proData of this.project.list){
-					if(proData.project_info_id === this.project.selected){
-						brands = proData.brands;
-					}
-				}
+				let brands = _.filter(this.project.list, [ "project_info_id", this.project.selected ]);
+				brands = brands.length ? brands[0].brands : [];
 				let result = [];
-
 				for(let data of tableDatas){
-					for(let brand of brands){
-						if(brand === data.brand){
-							result.push(data);
-						}
+					if(_.includes(brands, data.brand)){
+						result.push(data);
 					}
 				}
 				return result;
 			},
 			// 请求合同价计算规则 并计算合同价
 			getContractPrice(id){
-				// 计算品牌范围内数据
-				this.tableDatas = this.brandFilter(this.tempTableDatas);
-				let pro = this.project.list;
-				for(let i = 0; i < pro.length; i++ ){
-					if(pro[i].project_info_id == id){
-						this.selectBrands = pro[i].brands;
-					}
-				}
+				if(parseInt(id)){
+					// 计算品牌范围内数据
+					this.tableDatas = this.brandFilter(this.tempTableDatas);
+					this.selectBrands = _.filter(this.project.list, [ "project_info_id", id])[0].brands;
 
-				if(id){
 					ajaxCustom.ajaxGet(this, "dingoapi/getSettlementInfo", {params : { id : id }}, (responese)=>{
 						console.log(responese)
 						this.contractPriceRule = responese.body.data;
 						// 显示选中的项目信息
-						for(let data of this.project.list){
-							if(data.project_info_id == id){
-								this.project.info = data;
-								this.project.info.settlementText = projectChanger.todo(data, true);
-								break;
-							}
-						}
+						let pickedProject = _.filter(this.project.list, [ "project_info_id", id ])[0];
+						this.project.info = pickedProject;
+						this.project.info.settlementText = projectChanger.todo(pickedProject, true);
 
 						// 合同价 : 计算并排序
 						this.countContractPrice();
@@ -214,7 +150,10 @@
 								{ text : "规格", key : "size" },
 								{ text : "材质", key : "material" }
 							], 'desc');
-						this.fiterData = this.tableDatas;
+						// 禁止将错误数据传到 filterBar
+						if(this.tableDatas.length && this.tableDatas[0]!==null){
+							this.fiterData = JSON.parse(JSON.stringify(this.tableDatas));
+						}
 					}, (responese)=>{
 						alert(responese.body.message);
 					});
@@ -223,38 +162,31 @@
 			},
 			// 计算合同价
 			countContractPrice(){
+				let priceType = this.project.info.settlementText.indexOf("网价")>=0 ? 1 : 2;
 				for(let data of this.tempTableDatas){
-					let door = 1;
-					for(let rule of this.contractPriceRule){
-						// 品牌相同 规格相同
-						if( (data.brand == rule.brand || data.elseName == rule.brand || data.correctName == rule.brand) && data.cate_spec == rule.specification){
-							// 按市场价结算
-							if(rule.reference === "现货价"){
-								if(data.price&&data.price!='-'){
-									data.countPrice = parseInt(data.price) + (parseInt(rule.count_number) | 0) + (parseInt(rule.crane) | 0) + (parseInt(rule.freight) | 0) + (parseInt(rule.funds_rate) | 0) + (parseInt(rule.ponderation) | 0);
-								}else{
-									// 网价为空
-									// data.price = '-';
-									data.countPrice = '-';
-								}
-							}else{
-							// 按网价结算
-								if(data.webPrice&&data.webPrice!='-'){
-									data.countPrice = parseInt(data.webPrice) + (parseInt(rule.count_number) | 0) + (parseInt(rule.crane) | 0) + (parseInt(rule.freight) | 0) + (parseInt(rule.funds_rate) | 0) + (parseInt(rule.ponderation) | 0);
-								}else{
-									// 网价为空
-									// data.webPrice = '-';
-									data.countPrice = '-';
-								}
-							}
-
-							door = 0;
-							break;
-						}
+					// 获取符合品牌名称的rule
+					let rules = _.filter(this.contractPriceRule, { "brand" : data.brand, "specification" : data.cate_spec });
+					let _rules = _.filter(this.contractPriceRule, { "elseName" : data.brand, "specification" : data.cate_spec });
+					let matchRule = _.concat(rules, _rules);
+					// 分别获取 现货价 和 网价 的 rule
+					let matchMarketRule = _.filter(matchRule, { "reference" : "现货价" });
+					let matchWebRule = _.filter(matchRule, { "reference" : "网价" });
+					matchWebRule = _.concat(matchWebRule, _.filter(matchRule, { "reference" : "最新网价" }));
+					// 计算合同价
+					let rule = matchMarketRule.length ? matchMarketRule[0] : matchWebRule[0];
+					data.countPrice =  _.sum(_.map(_.values(rule), (val)=>{
+						if(parseInt(val) > 0) { return parseInt(val); }
+					}));
+					data.countPrice = data.countPrice ? data.countPrice : 0;
+					// 按网价还是现货价结算, 如果没有该价格, 则不计算合同价
+					if(priceType === 1 && !data.web_price){
+						data.countPrice = 0;
+						return false;
+					}else if(priceType === 2 && !data.price){
+						data.countPrice = 0;
+						return false;
 					}
-					if(door){
-						data.countPrice = '-';
-					}
+					data.countPrice += parseInt(matchMarketRule.length ? (parseInt(data.price) || 0) : (parseInt(data.web_price) || 0 ));
 				}
 			},
 			// 物流信息 : 添加车辆信息
@@ -312,7 +244,7 @@
 							'material' : data[i].material,
 							'size' : data[i].size,
 							'marketPrice' : data[i].price,
-							'webPrice' : data[i].webPrice
+							'web_price' : data[i].web_price
 						});
 					}
 				}
@@ -350,25 +282,18 @@
 			// 最低价格算法
 			showPlanDatas(){
 				this.confirmOrcancel = true;
-				let selecteDatasByPlan = [];
-				let bestPrice = [];
-				for(let brand of this.selectBrands){
-					for(let data of this.tableDatas){
-						if(brand === data.brand){
-							selecteDatasByPlan.push(data);
-							for(let plan of this.planList){
-								if(
-									data.material ==  plan.material&&
-									data.cate_spec == plan.spec&&
-									data.size == plan.size
-								){
-									bestPrice.push(data);
-								}
-							}
+
+				let _this = this;
+				this.tableDatas = _.filter(this.tableDatas, function(data) { 
+					return _.includes(_this.selectBrands, data.brand); 
+				});
+				let bestPrice = _.filter(this.tableDatas, function(data){
+					return _.forEach(_this.planList, function(item){
+						if( data.material == item.material&&data.cate_spec == item.spec&&data.size == item.size){
+							return true;
 						}
-					}
-				}
-				this.tableDatas = selecteDatasByPlan;
+					});
+				});
 
 				let suitableDatas = [];
 				for(let data of sortMethods.classify(bestPrice, "material")){
@@ -431,7 +356,7 @@
 					this.$set(this.tableDatas[index], "display", true);
 					index++;
 				}
-				this.sortPrice("desc", "webPrice", "网价");
+				this.sortPrice("desc", "web_price", "网价");
 			},
 			// 查看所选
 			showSelect(){
@@ -477,7 +402,7 @@
 
 <template>
 	<div>
-		<headerbar active_number="userDeal" :identity="1" :text="['需求计划单', '需求计划单']"  >
+		<headerbar active_number="userDeal" :text="['需求计划单', '需求计划单']"  >
 			<div class="main_box">
 				<div style="background-color: #fff;padding: 10px 0;padding-left: 15px;">
 					<div v-show="!project.selected">
@@ -512,7 +437,7 @@
 					<div>
 						<!-- 下单管理计划单弹出框 -->
 						<el-dialog v-model="isOpenDialog" title="计划单"  size="large" style="text-align:center;">
-							<order v-if="isOpenDialog" :data="selectData" :countRules="contractPriceRule" :project="this.project.selected" :project-info="project.info" @order="createOrder" @exit="exitOrder">
+							<order v-if="isOpenDialog" :data="selectData" :countRules="contractPriceRule" :project="this.project.selected" :project-info="project.info" @order="createOrder" @exit="isOpenDialog = false;">
 							</order>
 						</el-dialog>
 
@@ -527,8 +452,8 @@
 										<span>网价</span>
 										<div class="sort-icon">
 											<div class="sort-icon">
-												<div @click="sortPrice('asce', 'webPrice', '网价')" >▲</div>
-												<div @click="sortPrice('desc', 'webPrice', '网价')" style="margin-top: -5px;">▼</div>
+												<div @click="sortPrice('asce', 'web_price', '网价')" >▲</div>
+												<div @click="sortPrice('desc', 'web_price', '网价')" style="margin-top: -5px;">▼</div>
 											</div>
 										</div>
 									</th>
@@ -536,8 +461,8 @@
 										<span>现货价</span>
 										<div class="sort-icon">
 											<div class="sort-icon">
-												<div @click="sortPrice('asce', 'webPrice', '网价')" >▲</div>
-												<div @click="sortPrice('desc', 'webPrice', '网价')" style="margin-top: -5px;">▼</div>
+												<div @click="sortPrice('asce', 'web_price', '网价')" >▲</div>
+												<div @click="sortPrice('desc', 'web_price', '网价')" style="margin-top: -5px;">▼</div>
 											</div>
 										</div>
 									</th>
@@ -558,7 +483,7 @@
 		    							<td>{{ props.line.size }}</td>
 		    							<td>{{ props.line.material }}</td>
 		    							<td>{{ props.line.brand }}</td>
-		    							<td>{{ props.line.webPrice }}</td>
+		    							<td>{{ props.line.web_price }}</td>
 		    							<td>{{ props.line.price }}</td>
 		    							<td>
 		    								<i class="el-icon-information" v-show="!project.selected"></i>

@@ -134,7 +134,7 @@
 </script>
 <template>
 	<div>
-		<headerbar :identity="hasRole('次终端用户') ? 2 : 1" :text="['个人信息', '个人信息']">
+		<headerbar :text="['个人信息', '个人信息']">
 			<div>
 				<div class="text_box">
 					<el-form :model="userInfo" :rules="rules" ref="userInfo"  label-width="150px" >

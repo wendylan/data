@@ -1,4 +1,5 @@
 <script>
+    import _ from 'lodash';
 	import headerbar from "../components/same-headerbar.vue";
 	import addsData from "../../res/json/provinceList.json";
 	import ajaxCustom from '../components/ajax-custom.js';
@@ -16,37 +17,41 @@
 			elFormItem : FormItem
 		},
 		created(){
-			this.roles = this.toJson(role);
 			this.getCompayInfo();
 		},
 		data(){
 			return {
+                // 是否显示弹出框
 				dialogVisible : false,
+                // 地区json数据
 				addsData,
+                // 是否可编辑
+                isEdit : false,
+                // 城市
 				cityOption : [],
+                // 市区
 				areaOption : [],
-				roles : [],
+                // 所有公司信息
+                allCompanyInfo : [],
+                // 修改的时候信息存储
 				companyInfo : {
-					company_file : null,
-					province : '',
-					city : '',
-					county : '',
-					address : '',
-					company_attr : '',
-					company_boss : '',
-					company_file_path : '',
-					company_number : '',
-					company_contacts : '',
-					company_tel : '',
-					company_type : '',
-					idcard_number : '',
-					id : '',
-					is_listed : '',
-					is_review : '',
-					name : '',
-					register_money : '',
-					user_id : ''
-				},
+                    name : '',
+                    province : '',
+                    city : '',
+                    county : '',
+                    address : '',
+                    company_attr : '',
+                    company_boss : '',
+                    company_contacts : '',
+                    company_file_path : '',
+                    company_number : '',
+                    company_tel : '',
+                    company_type : '',
+                    idcard_number : '',
+                    is_listed : '',
+                    is_review : '',
+                    register_money : ''
+                },
 				rules : {
 					name : [
 						{ required: true, message: '请输入活动名称', trigger: 'blur' },
@@ -83,53 +88,45 @@
 			}
 		},
 		methods : {
-			toJson(data){
-				data = data.replace(/&quot;/g, '"');
-				data = JSON.parse(data);
-				return data;
-			},
-			hasRole(role){
-				for (var i = 0; i < this.roles.length; i++) {
-					if(this.roles[i].name==role){
-						return true;
-					}
-				}
-				return false;
-			},
+            // 获取个人信息功能
 			getCompayInfo(){
 				ajaxCustom.ajaxGet(this, "dingoapi/getCompanyInfo", (response)=>{
 					console.log(response);
+					console.log(response.data);
 					if(response.data.length){
-						this.companyInfo = response.data[0];
+						this.allCompanyInfo = response.data;
 					}
+                    console.log(this.companyInfo);
 				}, (response)=>{
 					alert(response.body.message);
 				});
 			},
+            // 获取市区
 			getCity(){
-				for (var i = 0; i < this.addsData.province.length; i++) {
-					if (this.addsData.province[i].name==this.companyInfo.province) {
-						this.cityOption=this.addsData.province[i].cityList;
-
-					}
-				}
+                this.cityOption = _.find(this.addsData.province, ['name', this.companyInfo.province]).cityList;
 			},
+            // 获取地区
 			getArea(){
-				for (var i = 0; i < this.cityOption.length; i++) {
-					if (this.cityOption[i].name==this.companyInfo.city) {
-						this.areaOption=this.cityOption[i].areaList;
-					}
-				}
+                this.areaOption = _.find(this.cityOption, ['name', this.companyInfo.city]).areaList;
 				let data = {
 					city : this.companyInfo.city,
 					area : this.companyInfo.county
 				}
 				this.$emit("change", data);
 			},
+            // 修改企业信息
+            editCompany(){
+                this.isEdit = !this.isEdit;
+                this.companyInfo = JSON.parse(JSON.stringify(this.allCompanyInfo[0]));
+            },
 			modal(){
 				this.dialogVisible = true;
 			},
+            // 获取路径
 			getImgPath(file){
+				if(!file){
+					return null;
+				}
 				if(file.length<13){
 					return null;
 				}
@@ -157,6 +154,7 @@
 					}
 				}
 			},
+            // 提交信息
 			submitInfo(name){
 				console.log(this.$refs[name]);
 				this.$refs[name].validate((valid) => {
@@ -165,28 +163,111 @@
 							alert('请上传营业执照！');
 							return false;
 						}
-						window.document.getElementById('form').submit();
+						this.savePostFile();
 					} else {
 						console.log('error submit!!');
 						return false;
 					}
 				});
-			}
-		},
-		mounted(){
-			for (var i = 0; i < this.addsData.province.length; i++) {
-				if (this.addsData.province[i].name==this.province) {
-					this.cityOption=this.addsData.province[i].cityList;
-				}
-			}
+			},
+			savePostFile(){
+				var formData=new FormData(window.document.getElementById('form'));
+				ajaxCustom.ajaxPost(this, "dingoapi/postCompanyInfo", formData,(response)=>{
+					console.log(response);
+                    alert(response.body.message);
+                    this.allCompanyInfo[0] = this.companyInfo;
+                    this.isEdit = false;
+				},(response)=>{
+					console.log(response);
+				});
+			},
+            // 取消提交数据
+            cancelSubmit(){
+                this.isEdit = false;
+            },
 		},
 	}
 </script>
 <template>
 	<div>
-		<headerbar :identity="hasRole('次终端用户') ? 2 : 1" :text="['企业信息', '企业信息']">
+		<headerbar :text="['企业信息', '企业信息']">
 			<div>
-				<div class="text_box">
+                <div class="text_box" v-if="(!isEdit) ">
+                    <template v-for="item in allCompanyInfo">
+                        <div class="inline" >
+                            <label>企业名称：</label>
+                            <span>{{item.name}}</span>
+						</div>
+
+						<div class="inline">
+                            <label>企业地址：</label>
+                            <span>{{item.province}}省</span>
+                            <span>{{item.city}}</span>
+                            <span>{{item.county}}</span>
+                            <span>{{item.address}}</span>
+						</div>
+
+						<div class="inline">
+                            <label>企业类型：</label>
+                            <span>{{item.company_type==1?'终端':'次终端'}}</span>
+						</div>
+
+						<div class="inline">
+                            <label>企业性质：</label>
+                            <span v-if="item.company_attr==1">国有</span>
+                            <span v-if="item.company_attr==2">集体</span>
+                            <span v-if="item.company_attr==3">外资</span>
+                            <span v-if="item.company_attr==5">民营</span>
+                            <span v-if="item.company_attr==4">其他</span>
+						</div>
+
+						<div class="inline">
+                            <label>是否上市：</label>
+                            <span>{{item.is_listed==1?'是':'否'}}</span>
+						</div>
+
+						<div class="inline">
+                            <label>营业执照号码:</label>
+                            <span>{{item.company_number}}</span>
+						</div>
+
+						<div class="inline">
+                            <label>注册资本(万元):</label>
+                            <span>{{item.register_money}}</span>
+						</div>
+
+						<div class="inline">
+                            <label>营业执照:</label>
+                            <span>
+                                <img :src="getImgPath(item.company_file_path)" alt="">
+                            </span>
+						</div>
+
+		  				<div class="inline">
+                            <label>法定代表人:</label>
+                            <span>{{item.company_boss}}</span>
+		  				</div>
+
+			  			<div class="inline">
+                            <label>联系人:</label>
+                            <span>{{item.company_contacts}}</span>
+		  				</div>
+
+		  				<div class="inline">
+                            <label>联系电话:</label>
+                            <span>{{item.company_tel}}</span>
+		  				</div>
+
+		  				<div class="inline">
+                            <label>身份证号码:</label>
+                            <span>{{item.idcard_number}}</span>
+		  				</div>
+			  			<p style="margin-left: 140px; margin-bottom:20px;">
+				  			<el-button type="success"  @click = "editCompany">修改信息</el-button>
+			  			</p>
+                    </template>
+				</div>
+				<div class="text_box" v-if="isEdit||(!(allCompanyInfo.length))">
 					<el-form :model="companyInfo" :rules="rules" ref="companyInfo"  label-width="150px" >
 						<form id="form" method="POST" action="dingoapi/postCompanyInfo" enctype="multipart/form-data" >
 
@@ -250,7 +331,7 @@
 							<div class="inline_box">
 								<el-form-item prop="company_file_path" label="营业执照">
 									<input id='file'  type="file"  @change='fileChanged' name="company_file_path" v-show = 'false'/>
-									<template v-if="companyInfo.company_file_path!=''&&companyInfo.company_file_path!=null">
+									<template v-if="companyInfo.company_file_path!=''&& companyInfo.company_file_path!=null">
 										<el-button   @click="modal()">查看</el-button>
 										<el-button  @click="modifyFile()">修改</el-button>
 									</template>
@@ -292,7 +373,8 @@
 				  				</el-form-item>
 			  				</div>
 				  			<p style="margin-left: 140px;">
-					  			<el-button type="primary"  @click = "submitInfo('companyInfo')">提交信息</el-button>
+					  			<el-button type="danger"  @click = "cancelSubmit()">取消</el-button>
+					  			<el-button type="primary"  @click = "submitInfo('companyInfo')">保存信息</el-button>
 				  			</p>
 						</form>
 					</el-form>
@@ -317,4 +399,20 @@
 	.el-form-item__error{
 		width : 200px;
 	}
+    .inline{
+        margin:20px;
+    }
+    .inline label{
+        display: inline-block;
+        width: 150px;
+        text-align: right;
+        font-weight: bold;
+        font-size: 14px;
+        margin-right: 15px;
+    }
+    .inline img{
+        display: inline-block;
+        width: 40%;
+        vertical-align:middle;
+    }
 </style>

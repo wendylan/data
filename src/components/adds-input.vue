@@ -1,4 +1,5 @@
 <script>
+    import _ from 'lodash';
 	import {Select, Option, Button} from "element-ui"
 	import addsData from "../../res/json/provinceList.json";
 	export default{
@@ -12,20 +13,13 @@
 		/*	getCity(){
 				this.cityChoose="";
 				this.areaChoose="";
-				for (var i = 0; i < this.addsData.province.length; i++) {
-					if (this.addsData.province[i].name==this.provinceChoose) {
-						this.cityOption=this.addsData.province[i].cityList;
-
-					}
-				}
+				this.cityOption = _.find(this.addsData.province, ['name', this.provinceChoose]).cityList;
 			},*/
 			getArea(){
 				this.areaChoose = "";
-				for (var i = 0; i < this.cityOption.length; i++) {
-					if (this.cityOption[i].name==this.cityChoose) {
-						this.areaOption=this.cityOption[i].areaList;
-					}
-				}
+                if(this.cityChoose){
+                    this.areaOption = _.find(this.cityOption, ['name', this.cityChoose]).areaList;
+                }
 				let data = {
 					city : this.cityChoose,
 					area : this.areaChoose
@@ -42,6 +36,7 @@
 			emptyAdds(){
 				this.cityChoose = null;
 				this.areaChoose = null;
+                this.areaOption = [];
 			},
 		},
 		data(){
@@ -55,11 +50,7 @@
 			}
 		},
 		mounted(){
-			for (var i = 0; i < this.addsData.province.length; i++) {
-				if (this.addsData.province[i].name==this.province) {
-					this.cityOption=this.addsData.province[i].cityList;
-				}
-			}
+            this.cityOption = _.find(this.addsData.province, ['name', this.province]).cityList;
 		}
 	}
 </script>

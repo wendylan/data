@@ -1,4 +1,5 @@
 <script>
+    import _ from 'lodash';
 	import {Tabs, TabPane, Table, TableColumn, Button, Pagination, Input, Select, Option, Switch, Message} from 'element-ui';
 	import ajaxCustom from '../components/ajax-custom.js';
 	import projectToText from '../components/project_to_text.js';
@@ -6,7 +7,6 @@
 	import projectCreat from '../components/ProjectCreating/project-creating-box.vue';
 	import headerbar from "../components/same-headerbar.vue";
 	import relateBox from '../agent_order/child-components/relate-box.vue';
-	import projectCheck from '../agent_order/child-components/project-check.vue';
 	import showPro from '../components/projectUpdate/project-condition.vue';
 	export default{
 		created : function(){
@@ -16,7 +16,6 @@
 		components : {
 			headerbar,
 			relateBox,
-			projectCheck,
 			projectCreat,
 			showPro,
 			elTabs : Tabs,
@@ -38,8 +37,6 @@
 				projects : [],
 				// 当前页
 				currentPage : 1,
-				// 修改项目之前的缓存
-				cache : '',
 				// 修改项目的数据传值
 				relateData : {},
 				// 结算方式
@@ -60,12 +57,14 @@
 				// 粤西地区
 				westernGuang : ['阳江市', '湛江市', '茂名市', '云浮市'],
 				// 粤北地区
-				northGaung : ['韶关市', '清远市'],
+				northGuang : ['韶关市', '清远市'],
 				// 当前项目信息
 				currentProject : [],
+                // 是否显示新建项目弹出框
 				openBox : false,
+                // 是否显示关联弹出框
 				isShowRelate : false,
-				isShowCheck : false,
+                // 是否显示项目修改框
 				openpro : false,
 				// 项目关联id
 				proReateId : null,
@@ -78,21 +77,15 @@
 		methods:{
 			// 获取广东省所有市区
 			initJsonData:function(jsonData){
-				for(let data of jsonData.province){
-					if(data.name == "广东"){
-						this.provinceList = data.cityList;
-					}
-				}
+                this.provinceList = _.find(jsonData.province, ['name', '广东']).cityList;
 			},
 			// 获取项目数据
 			getProject(){
 				ajaxCustom.ajaxGet(this, 'dingoapi/getUserProjectDatas', (response)=>{
 					response = response.body.data;
 					this.projects = response.projects;
-					let project = this.projects.reverse();
-
 					this.companys = response.companys;
-					this.currentProject = project;
+					this.currentProject = this.projects.reverse();
 					this.changePage(1);
 				}, (response)=>{
 					console.log('请求数据失败');
@@ -105,7 +98,6 @@
 					console.log(responese)
 					alert("添加成功");
 					this.projects = responese.body.data.reverse();
-					console.log(this.projects);
 					this.changePage(1);
 				}, (responese)=>{
 					alert(responese.body.message);
@@ -113,7 +105,6 @@
 			},
 			// 编辑项目
 			updateProject(index){
-				this.cache = JSON.parse(JSON.stringify(this.currentProject[index]));
 				this.relateData = JSON.parse(JSON.stringify(this.currentProject[index]));
 				this.openpro = !this.openpro;
 			},
@@ -130,7 +121,6 @@
 					}else{
 						alert(response.body.message);
 					}
-
 				}, (response)=>{
 					alert(response.body.message);
 				});
@@ -141,71 +131,47 @@
 					console.log(response.body);
 					alert(response.body.message);
 					if(response.body.status_code == 200){
-						for(let i = 0; i < this.projects.length;i++){
-							if(this.projects[i].project_info_id == data.project_info_id){
-								this.projects.splice(i, 1, data);
-								break;
-							}
-						}
-						for(let i = 0; i < this.currentProject.length;i++ ){
-							if(this.currentProject[i].project_info_id == data.project_info_id){
-								this.currentProject.splice(i, 1, data);
-								break;
-							}
-						}
+                        let index = _.findIndex(this.projects, ['project_info_id', data.project_info_id]);
+                        this.projects.splice(index, 1, data);
+                        let currentIndex = _.findIndex(this.currentProject, ['project_info_id', data.project_info_id]);
+                        this.currentProject.splice(index, 1, data);
 					}
 				}, (response)=>{
 					alert(response.body.message);
 				});
 			},
-			// 取消更改
-			cacelUpdate(data){
-				for(let i = 0; i < this.projects.length; i++){
-					if(this.projects[i].project_info_id == data.project_info_id){
-						this.projects[i] = this.cache;
-						this.projects[i].status == 7;
-					}
-				}
-			},
 			// 结算方式转换
 			payToText(pay_items){
-				for(let data of this.projectPayItems){
-					if(data.num == pay_items){
-						return data.text;
-					}
-				}
+                let text = _.find(this.projectPayItems, function(item){
+                    return item.num == pay_items;
+                });
+                return text?text.text:'';
 			},
 			// 搜索功能
 			handleIconClick() {
 				this.showPage = false;
-				this.currentProject = [];
-				for(let data of this.projects){
-					if(
-						data.name.includes(this.keyword) ||
-						data.city.includes(this.keyword) ||
-						data.area.includes(this.keyword)
-						){
-						this.currentProject.push(data);
-					}
-				}
+                let _this = this;
+                this.currentProject = _.filter(this.projects, function(item){
+                    return (
+                        item.name.includes(_this.keyword) ||
+						item.city.includes(_this.keyword) ||
+						item.area.includes(_this.keyword)
+                    );
+                });
 			},
 			// 分地区搜索
 			searchPro(value) {
 				this.showPage = false;
-				this.currentProject = [];
-				for(let data of this.projects){
-					if(data.city.includes(value)){
-						this.currentProject.push(data);
-					}
-				}
+                this.currentProject = _.filter(this.projects, function(item){
+                    return item.city.includes(value);
+                });
 			},
 			// 分页
 			changePage(page){
 				let total = this.projects.length;
-				this.currentProject = [];
-				for(let i = (page-1)*6; i < (page*6 < total ? page*6 : total); i++ ){
-					this.currentProject.push(this.projects[i]);
-				}
+                let start = (page-1)*6;
+                let end = (page*6 < total ? page*6 : total);
+                this.currentProject = _.slice(this.projects, start, end);
 			},
 			// 查看所有地区
 			showAll(){
@@ -217,22 +183,6 @@
 			showRelate(id){
 				this.proReateId = id;
 				this.isShowRelate = !this.isShowRelate;
-			},
-			// 查看项目审核
-			ShowCheck(id){
-				this.isShowCheck = !this.isShowCheck;
-				this.proReateId = id;
-			},
-			// 审核通过
-			succesCheck(data){
-				console.log(data);
-				let pro = this.projects;
-				for(let i = 0; i < pro.length; i++){
-					if(pro[i].project_info_id == data.project_info_id){
-						pro.splice(i, 1, data);
-						pro[i].settlement.conditionType = 8;
-					}
-				}
 			},
 			// 结算方式转换为文本
 			projectTotextDeail(data){
@@ -261,7 +211,7 @@
 </script>
 <template>
 	<div>
-		<headerbar active_number="terminalUsercenter" :identity="1" :text="['项目管理','查看所有项目']">
+		<headerbar active_number="terminalUsercenter" :text="['项目管理','查看所有项目']">
 			<div>
 				<el-tabs type="border-card">
 					<el-tab-pane label="全部地区">
@@ -294,7 +244,7 @@
 					</el-tab-pane>
 					<el-tab-pane label="粤北地区">
 						<div class="cityBox">
-							<ul v-for="item of northGaung">
+							<ul v-for="item of northGuang">
 								<li><el-button @click="searchPro(item);" size="small">{{item}}</el-button></li>
 							</ul>
 						</div>
@@ -336,9 +286,7 @@
 								<td v-html="projectTotextDeail(data)"></td>
 								<td>
 									<span v-if="data.settlement.conditionType!=7">已通过</span>
-									<span v-else>等待审核<br>
-										<!-- <el-button @click="ShowCheck(data.project_id)" size="mini" type="primary" >审核</el-button> -->
-									</span>
+									<span v-else>等待审核</span>
 								</td>
 								<td>
 									<el-button @click="updateProject(index);" size="mini">
@@ -370,8 +318,6 @@
 		<project-creat :open-box="openBox" @getFormDatas="addProject" :role="1"></project-creat>
 		<!-- 项目修改弹出框 -->
 		<show-pro :data="relateData" :openpro="openpro" @getForm="saveEdit" :role="1"></show-pro>
-		<!-- 项目审核弹出框 -->
-		<project-check :opencheck="isShowCheck" :projectId="proReateId" @finishCheck="succesCheck" :companys="companys" :projects="projects" @confirmRelate="confirmRelate" @cancelRelate="cancelRelate"></project-check>
 		<!-- 关联弹出框 -->
 		<relate-box :openbox="isShowRelate" :proReateId="proReateId" :companys="companys" :projects="projects" @confirmRelate="confirmRelate" @cancelRelate="cancelRelate"></relate-box>
 	</div>

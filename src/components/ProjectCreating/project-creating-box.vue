@@ -118,8 +118,7 @@
 			getAllBrands(){
 				ajaxCustom.ajaxGet(this, "api/getAllBrandsWillHeader", (responese)=>{
 					console.log(responese)
-					let resData = responese.body;
-					this.brands.item = resData;
+					this.brands.item = responese.body;
 				}, (responese)=>{
 					alert(responese.body.message);
 				});

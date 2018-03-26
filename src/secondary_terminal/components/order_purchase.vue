@@ -24,6 +24,9 @@
 			},
 			index : {
 				type : Number
+			},
+			priceType : {
+				type : Number
 			}
 		},
 		components : {
@@ -253,7 +256,6 @@
 			// 请求合同价计算规则 并计算合同价
 			getContractPrice(id){
 				ajaxCustom.ajaxGet(this, "dingoapi/getSettlementInfo", {params : { id : id }}, (response)=>{
-					console.log(response);
 					this.contractPriceRule = response.body.data;
 					// 初始化合同价
 					for(let data of this.cacheData){
@@ -268,6 +270,10 @@
 			},
 			// 计算合同价
 			countContractPrice(dataArray){
+				var keyName = 'web_price';
+				if(this.priceType == 2){
+					keyName = 'price';
+				}
 				for(let data of dataArray){
 					// 别名处理
 					for(let item of this.nameList){
@@ -283,12 +289,12 @@
 					for(let rule of this.contractPriceRule){
 						// 品牌相同 规格相同
 						if( (data.brand == rule.brand || data.elseName == rule.brand ) && data.cate_spec == rule.specification){
-							if(data.web_price){
-								data.countPrice = parseInt(data.web_price) + (parseInt(rule.count_number) | 0) + (parseInt(rule.crane) | 0) + (parseInt(rule.freight) | 0) + (parseInt(rule.funds_rate) | 0) + (parseInt(rule.ponderation) | 0);
+							if(data[keyName]){
+								data.countPrice = parseInt(this.calPrice(data[keyName],keyName)) + (parseInt(rule.count_number) | 0) + (parseInt(rule.crane) | 0) + (parseInt(rule.freight) | 0) + (parseInt(rule.funds_rate) | 0) + (parseInt(rule.ponderation) | 0);
 							}else{
 								// 网价为空
 								data.countPrice = '-';
-								data.web_price = '-';
+								data[keyName] = '-';
 							}
 							break;
 						}
@@ -297,6 +303,13 @@
 				this.countWebSpot(dataArray);
 				this.countSpotCountract(dataArray);
 				this.tableDatas.push();
+			},
+			//若是现货价结算，要先＋30再算合同价
+			calPrice(price,key){
+				if(key=='price'){
+					price += 30 ;
+				}
+				return price;
 			},
 			// 计算合同价和市场价的差价
 			countSpotCountract(data){
@@ -546,9 +559,9 @@
 					<el-table-column prop="brand" label="品牌" :filters="filter.brand" :filter-method="brandsFilter" ></el-table-column>
 					<el-table-column prop="price_source" label="供应商" style="max-width: 180px;" :filters="filter.price_source" :filter-method="priceSourceFilter"></el-table-column>
 					<el-table-column prop="warehouse" label="仓库" :filters="filter.warehouse" :filter-method="warehouseFilter"></el-table-column>
-					<el-table-column prop="web_price" label="网价" v-if="priceWay==2" width="100" sortable></el-table-column>
-					<el-table-column prop="countPrice" label="合同价"  v-if="priceWay==1" width="100" sortable></el-table-column>
-					<el-table-column prop="price" label="现货价"  width="100" sortable></el-table-column>
+					<el-table-column prop="web_price" label="网价" key="1" v-if="priceWay==2" width="100" sortable></el-table-column>
+					<el-table-column prop="countPrice" label="合同价"  key="2" v-if="priceWay==1" width="100" sortable></el-table-column>
+					<el-table-column prop="price" label="采购价"  width="100" sortable></el-table-column>
 					<el-table-column prop="price_diff" label="差价"  v-if="priceWay==2" width="90" sortable></el-table-column>
 					<el-table-column prop="count_price_diff" label="差价"  v-if="priceWay==1" width="90" sortable></el-table-column>
 					<el-table-column label="运费" width="90" sortable>

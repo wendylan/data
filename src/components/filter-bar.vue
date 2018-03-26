@@ -43,11 +43,15 @@
 			let result = JSON.parse(JSON.stringify(this.data));
 			let sameCount = 0;
 			let keyCount = 0;
+			
 			for(let key in result[0]){
-				keyCount++;
-				for(let tKey in this.tableDatas[0]){
-					if(key === tKey && result[0][key] == this.tableDatas[0][tKey]){
-						sameCount++;
+				// 防止判断对象或数组, 仅仅判断数值是否相等
+				if(!result[0][key] instanceof Object && !result[0][key] instanceof Array){
+					keyCount++;
+					for(let tKey in this.tableDatas[0]){
+						if(key === tKey && result[0][key] == this.tableDatas[0][tKey]){
+							sameCount++;
+						}
 					}
 				}
 			}

@@ -62,6 +62,7 @@ export default{
 		};
 
 		return {
+			priceType : 1,
 			historyCarInfo : null,
 			carNums : [],
 			car_info_change : 0,
@@ -150,12 +151,17 @@ export default{
 			this.settle = this.data.settlement;
 			this.project = this.data.project;
 			this.tradeBetween = this.data.tradeBetween;
+			this.priceType = this.data.price_type;
 		},
 		totalNum(){
 			let order = this.orderList;
 			let num = 0;
 			for(let i = 0; i < order.length;i++){
-				num += parseInt(order[i].amount);
+				let amount = order[i].amount;
+				if(amount == ''){
+					amount = 0;
+				}
+				num += parseInt(amount);
 			}
 			return num;
 		},
@@ -723,7 +729,7 @@ export default{
 			</div>
 
 			<div v-show="isSelectNeeding">
-				<order-sales :data="project" @confirmOrder="newOrder" :old="orderList" :open="isSelectNeeding" @getOpen="openBox" :id="id" :index="setIndex"></order-sales>
+				<order-sales :data="project" @confirmOrder="newOrder" :priceType="priceType" :old="orderList" :open="isSelectNeeding" @getOpen="openBox" :id="id" :index="setIndex"></order-sales>
 			</div>
 
 		</div>

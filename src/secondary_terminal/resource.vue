@@ -3,7 +3,7 @@
 	import multiple from "../components/multiple.vue";
 	import addressUi from '../components/adds-input.vue';
 	import ajaxCustom from '../components/ajax-custom.js';
-	import { Input, Select, Option, RadioGroup, Radio, DatePicker, Button, CheckboxGroup, Checkbox, Table, TableColumn, Tooltip, Loading, Dialog} from 'element-ui';
+	import { Input, Select, Option, RadioGroup, Radio, DatePicker, Button, CheckboxGroup, Checkbox, Table, TableColumn, Tooltip, Loading, Dialog, Message, Form, FormItem } from 'element-ui';
 	export default{
 		components : {
 			headerbar,
@@ -22,6 +22,8 @@
 			elTable : Table,
 			elTableColumn : TableColumn,
 			elTooltip : Tooltip,
+            elForm : Form,
+            elFormItem : FormItem
 		},
 		created(){
 			// 获取固定框的品名,品牌,规格,材质
@@ -31,31 +33,23 @@
 		},
 		data(){
 			return {
-				upper_limit : null|5,
-				floor_limit : null|5,
-				// 选中的当前品牌
-				brands : [],
-				// 品牌数据源
-				brandData : [],
-				// 选中的当前品名
-				product : '',
-				// 品名数据源
-				productGroup : [],
-				// 选中的当前规格
-				type : '',
-				// 规格数据源
-				typeGroup : [],
-				// 选中的当前材质
-				material : '',
-				// 材质数据源
-				materialGroup : [],
+				initData:{
+                    // 品牌数据源
+                    brandData : [],
+                    // 品名数据源
+                    productGroup : [],
+                    // 规格数据源
+                    typeGroup : [],
+                    // 材质数据源
+                    materialGroup : [],
+                },
 				// 时间段/时间点
 				timeSlot : false,
 				timePoint : false,
 				//禁止选中日期（今日之后的日期）
                 pickerOptions: {
                     disabledDate(time) {
-                        return time.getTime() > Date.now() ;
+                        return time.getTime() > Date.now();
                     }
                 },
                 date : null,
@@ -126,6 +120,29 @@
 					{name : "盘螺", data : [], sizeLimit : "8-10E" },
 					{name : "高线", data : [], sizeLimit : "8-10" }
 				],
+                // 当前搜索表单显示的数据
+                searchInfo : {
+                    upper_limit : null|5,
+                    floor_limit : null|5,
+                    brands : [],
+                    product : '',
+                    material : '',
+                    type : ''
+                },
+                rules : {
+					brands : [
+						{ required: true, type: "array", message: '请选择品牌', trigger: 'change' },
+					],
+					product : [
+						{ required: true, message: '请选择材质', trigger: 'change' },
+					],
+					material : [
+						{ required: true, message: '请选择材质', trigger: 'change' },
+					],
+					type : [
+						{ required: true, message: '请选择规格', trigger: 'change' },
+					],
+				}
 			}
 		},
 		computed:{
@@ -147,7 +164,8 @@
 				ajaxCustom.ajaxGet(this, 'dingoapi/getAllProduct', (response)=>{
 					response = response.body;
 					let brand = response.brand;
-					this.brandData = brand;
+					// this.brandData = brand;
+                    this.initData.brandData = brand;
 				}, (response)=>{
 					alert(response.body.message);
 				});
@@ -162,7 +180,10 @@
 						for(let product in this.allData ){
 							arr.push({ 'cate_spec' : this.allData[product].name, 'material' : this.allData[product].material });
 						}
-						this.productGroup = arr;
+						this.initData.productGroup = arr;
+                        this.searchInfo.product= '';
+                        this.searchInfo.material = '';
+                        this.searchInfo.type = '';
 					}, (response)=>{
 						alert(response.body.message);
 					});
@@ -171,7 +192,7 @@
 			// 改变品名
 			changProduct(product){
 				let arr = [];
-				let material = this.productGroup;
+				let material = this.initData.productGroup;
 				for(let i = 0; i < material.length;i++){
 					if(material[i].cate_spec == product){
 						let data = material[i].material;
@@ -180,12 +201,14 @@
 						}
 					}
 				}
-				this.materialGroup = arr;
+				this.initData.materialGroup = arr;
+                this.searchInfo.material = '';
+                this.searchInfo.type = '';
 			},
 			// 改变材质
 			changMaterial(material){
 				let arr = [];
-				let size = this.materialGroup;
+				let size = this.initData.materialGroup;
 				for(let i = 0; i < size.length; i++){
 					if(size[i].material == material){
 						let data = size[i].size;
@@ -203,7 +226,8 @@
 				else{
 					arr.push({"size" : "8 - 10" });
 				}
-				this.typeGroup = arr;
+				this.initData.typeGroup = arr;
+                this.searchInfo.type= '';
 			},
 			// 获取最开始的表格数据
 			getInitTable(){
@@ -228,8 +252,8 @@
 						item.diffMountAvg = this.getDaysAvg(30, 'price_diff', item.data);
 						//网价数据
 						item.webDate = this.calDateData(this.newestDataDate.value, 'web', item.data);
-						item.previousWebDate = this.getPreviousDateData(this.newestDataDate.value, 'web', item.data);
-						item.webDateFloat = this.getFloatString(item.previousWebDate, item.webDate);
+						// item.previousWebDate = this.getPreviousDateData(this.newestDataDate.value, 'web', item.data);
+						item.webDateFloat = this.getWebFloat(item.data,this.newestDataDate.value);
 
 						item.webWeekAvg = this.getDaysAvg(7, 'web', item.data);
 						item.previousWebWeekAvg = this.getDaysAvg(7, 'web', item.data, 6);
@@ -418,6 +442,30 @@
 					return {value : ("↓"+(-1*float)), type : 1};
 				}
 			},
+			//网价浮动数据处理
+			getWebFloat(data,date){
+				for(let item of data){
+					if( date==item.date){
+						return this.getWebFloatString(item.web_float)
+					}
+				}
+				return {value : "-平", type : 2};
+			},
+			getWebFloatString(float){
+				if(float=='-'){
+					return {value : "-平", type : 2};
+				}
+				float = parseInt(float);
+				if(isNaN(float)){
+					return { vlaue : "", type : 3};
+				}
+				if(float > 0){
+					return { value : ("↑"+float), type : 0};
+				}
+				if(float<0){
+					return {value : ("↓"+(-1*float)), type : 1};
+				}
+			},
 			// 获取地址进行运费计算
 			getAddressData(adds){			//地址
 				this.marketDiff = true;
@@ -525,10 +573,10 @@
 			},
 			// 清空数据函数
 			clearAllData(){
-				this.brands = [];
-				this.product = '';
-				this.type = '';
-				this.material = '';
+				this.searchInfo.brands = [];
+				this.searchInfo.product = '';
+				this.searchInfo.type = '';
+				this.searchInfo.material = '';
 				this.timeSlot = false;
 				this.timePoint = false;
 				this.dateRange = '';
@@ -571,30 +619,48 @@
 				var dateTime = year + "-" + month + "-" +day;
 				return dateTime;
 			},
+            submitInfo(name){
+                console.log(this.$refs[name]);
+				this.$refs[name].validate((valid) => {
+					if (valid) {
+
+						this.search();
+					} else {
+						console.log('error submit!!');
+						return false;
+					}
+				});
+            },
 			// 查询时间段时间点数据
 			search(){
+                if(!this.dateArray.length && !this.tableDateRange){
+                    Message.warning("请选择一个时间段或者时间点");
+                    return;
+                }
 				this.filterDatas.brands = [];
 				let data = {};
 				data.timePart = this.tableDateRange;
 				data.timePoints = this.dateArray;
-				data.discardTopPart = this.upper_limit;
-				data.discardBottomPart = this.floor_limit;
-				data.brands = this.brands;
-				data.spec = this.product;
-				data.size = this.type;
-				data.material = this.material;
+				data.discardTopPart = this.searchInfo.upper_limit;
+				data.discardBottomPart = this.searchInfo.floor_limit;
+
+				data.brands = this.searchInfo.brands;
+				data.spec = this.searchInfo.product;
+				data.size = this.searchInfo.type;
+				data.material = this.searchInfo.material;
+                console.log(data);
 				let loadingInstance = Loading.service({ fullscreen: true, text : "正在加载数据..." });
 				ajaxCustom.ajaxGet(this, "dingoapi/getResourceAnalysis", {params : { data }}, (response)=>{
 					this.analysisData = [];
 					this.originalData = response.body;
 					let timePointsData = response.body.timePointsData;
-					for (var i = 0; i < this.brands.length; i++){
-						this.analysisData.push({'brand' : this.brands[i], 'spec' : this.product, 'size' : this.type, 'material' : this.material, 'display' : true });
+					for (var i = 0; i < this.searchInfo.brands.length; i++){
+						this.analysisData.push({'brand' : this.searchInfo.brands[i], 'spec' : this.searchInfo.product, 'size' : this.searchInfo.type, 'material' : this.searchInfo.material, 'display' : true });
 						for (var j = 0; j < this.dateArray.length; j++) {
 							let date = this.dateArray[j];
-							this.analysisData[i][date] = this.getPointData({}, timePointsData);
+							this.analysisData[i][date] = this.getPointData({}, timePointsData,i,date);
 						}
-						this.analysisData[i][this.tableDateRange] = this.getPartData(response.body.timePartData, this.brands[i]);
+						this.analysisData[i][this.tableDateRange] = this.getPartData(response.body.timePartData, this.searchInfo.brands[i]);
 						this.filterDatas.brands = this.filterDatasFunc(this.filterDatas, this.analysisData);
 					}
 					this.isShowOptions = !this.isShowOptions;
@@ -605,9 +671,9 @@
 				});
 			},
 			//获取时间点数据
-			getPointData(dateData, timePointsData){
+			getPointData(dateData, timePointsData, i, date){
 				for(let item in timePointsData){
-					if (timePointsData[item].brand == this.brands[i]) {
+					if (timePointsData[item].brand == this.searchInfo.brands[i]) {
 						for (let redate in timePointsData[item].prices)  {
 							if (redate == date) {
 								dateData.soptPrice = timePointsData[item].prices[date].price;
@@ -656,7 +722,7 @@
 				let result = {};
 				for (let key of keyArray) {
 					let sum = 0;
-					let catArr = this.exceptionDataEliminate(arr, this.upper_limit, this.floor_limit);
+					let catArr = this.exceptionDataEliminate(arr, this.searchInfo.upper_limit, this.searchInfo.floor_limit);
 					for(let i = 0; i < catArr.length; i++){
 						sum += parseInt(catArr[i][key]);
 					}
@@ -903,66 +969,14 @@
 	</script>
 	<template>
 	<div>
-		<headerbar active_number="stResource" :identity="2" :text="['资源推荐','推荐区域优势品牌']">
+		<headerbar active_number="stResource" :text="['资源推荐','推荐区域优势品牌']">
 			<div>
 				<div class="addr_box">
 					<span> 选择送达地区: 广东省</span>
 					<address-ui province="广东" grade="1" @getAddressData='getAddressData' ></address-ui>
 					<el-button type="primary" size="small" style="float:right;" @click="checkIndex">最新指数</el-button>
 				</div>
-                <!-- 最新指数弹出框 -->
-				<el-dialog v-model="popover"  :title="'广东区域市场最新指数'+'  '+newestDataDate.value"  size="large" style="text-align:center;">
-					<div style="float:left;width:33%;margin-top:0px;margin-bottom:50px;" v-for="(item,_index) in popoverData">
-                        <div class="top_style">
-                            <span>{{item.name+item.sizeLimit}}</span>
-                        </div>
-						<table style="background:url('/data/images/back.png');margin-top:0px;">
-							<thead>
-								<tr>
-									<th style="width:40px;">序列</th>
-									<th>钢厂</th>
-									<th>现货价
-										<div class="sort-icon">
-											<div @click="sortPopoverData('asce','spotDate',_index)">▲</div>
-											<div @click="sortPopoverData('desc','spotDate',_index)" style="margin-top:-3px;">▼</div>
-										</div>
-									</th>
-									<th>网价
-										<div class="sort-icon">
-											<div @click="sortPopoverData('asce','webDate',_index)">▲</div>
-											<div @click="sortPopoverData('desc','webDate',_index)" style="margin-top:-3px;">▼</div>
-										</div>
-									</th>
-									<th>价差
-										<div class="sort-icon">
-											<div @click="sortPopoverData('asce','diffDate',_index)">▲</div>
-											<div @click="sortPopoverData('desc','diffDate',_index)" style="margin-top:-3px;">▼</div>
-										</div>
-									</th>
-								</tr>
-							</thead>
 
-							<tbody>
-								<tr v-for="(li, index) in item.data">
-									<td style="width:40px;">{{index+1}}</td>
-									<td>{{li.brand}}</td>
-									<td>
-										{{li.spotDate}}
-										<font :class="getFontColor(li.spotDateFloat.type)">{{li.spotDateFloat.value}}</font>
-									</td>
-									<td>
-										{{li.webDate}}
-										<font :class="getFontColor(li.webDateFloat.type)">{{li.webDateFloat.value}}</font>
-									</td>
-									<td>
-										{{li.diffDate}}
-										<font :class="getFontColor(li.diffDateFloat.type)">{{li.diffDateFloat.value}}</font>
-									</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-				</el-dialog>
 				<div class="price_box">
 					<template v-if="!(timeSlot || timePoint)" >
 						<span><b>显示项 :</b></span>
@@ -994,7 +1008,10 @@
 					</template>
 
 					<!-- 选择时间段时间点的table数据 -->
-					<table v-if="timeSlot || timePoint" style="background:url('/data/images/back.png');">
+                    <div class="overflow_box" v-if="timeSlot || timePoint">
+
+					<!-- <table v-if="timeSlot || timePoint" style="background:url('/data/images/back.png');"> -->
+					<table  style="background:url('/data/images/back.png');">
 						<thead>
 							<th rowspan="2">推荐品牌
 								<!-- <multiple name="推荐品牌" :options="filterDatas.brands" v-on:selectedArr="sortTableTime"></multiple> -->
@@ -1074,6 +1091,8 @@
 							</tr>
 						</tbody>
 					</table>
+
+                    </div>
 
 					<!-- 今日近一周近一月table数据 -->
 					<table v-else style="background:url('/data/images/back.png');">
@@ -1190,7 +1209,7 @@
 									<td>
 										<a href="javascript:void(0)" @click="moreInfo(item.brand)">{{item.brand}}</a>
 									</td>
-									<td  v-if="checkIsTableRecordIndex(index).display" :rowspan="checkIsTableRecordIndex(index)._length">
+									<td  v-if="checkIsTableRecordIndex(index).display" :rowspan="checkIsTableRecordIndex(index)._length" style="background:#eef1f6;">
 										{{checkIsTableRecordIndex(index).name}} / {{checkIsTableRecordIndex(index).sizeLimit}}
 									</td>
 									<!-- <td  v-if="checkIsTableRecordIndex(index).display" :rowspan="checkIsTableRecordIndex(index)._length">
@@ -1261,6 +1280,61 @@
 				</div>
 			</div>
 		</headerbar>
+
+        <!-- 最新指数弹出框 -->
+        <el-dialog v-model="popover"  :title="'广东区域市场最新指数'+'  '+newestDataDate.value"  size="large" style="text-align:center;">
+            <div style="float:left;width:33%;margin-top:0px;margin-bottom:50px;" v-for="(item,_index) in popoverData">
+                <div class="top_style">
+                    <span>{{item.name+item.sizeLimit}}</span>
+                </div>
+                <table style="background:url('/data/images/back.png');margin-top:0px;">
+                    <thead>
+                        <tr>
+                            <th style="width:40px;">序列</th>
+                            <th>钢厂</th>
+                            <th>现货价
+                                <div class="sort-icon">
+                                    <div @click="sortPopoverData('asce','spotDate',_index)">▲</div>
+                                    <div @click="sortPopoverData('desc','spotDate',_index)" style="margin-top:-3px;">▼</div>
+                                </div>
+                            </th>
+                            <th>网价
+                                <div class="sort-icon">
+                                    <div @click="sortPopoverData('asce','webDate',_index)">▲</div>
+                                    <div @click="sortPopoverData('desc','webDate',_index)" style="margin-top:-3px;">▼</div>
+                                </div>
+                            </th>
+                            <th>价差
+                                <div class="sort-icon">
+                                    <div @click="sortPopoverData('asce','diffDate',_index)">▲</div>
+                                    <div @click="sortPopoverData('desc','diffDate',_index)" style="margin-top:-3px;">▼</div>
+                                </div>
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr v-for="(li, index) in item.data">
+                            <td style="width:40px;">{{index+1}}</td>
+                            <td>{{li.brand}}</td>
+                            <td>
+                                {{li.spotDate}}
+                                <font :class="getFontColor(li.spotDateFloat.type)">{{li.spotDateFloat.value}}</font>
+                            </td>
+                            <td>
+                                {{li.webDate}}
+                                <font :class="getFontColor(li.webDateFloat.type)">{{li.webDateFloat.value}}</font>
+                            </td>
+                            <td>
+                                {{li.diffDate}}
+                                <font :class="getFontColor(li.diffDateFloat.type)">{{li.diffDateFloat.value}}</font>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </el-dialog>
+
 		<!-- 固定框 -->
 		<div class="fixBox">
 			<button id="onBox" @click="showBox">搜索更多数据
@@ -1268,39 +1342,40 @@
 			</button>
 			<div id="selectBox" v-show="isShowOptions">
 				<div>
-					<p>
-						<span class="fixWidth">剔除异常数据:</span>
-						<span>上限
-							<el-input type="number" v-model="upper_limit" style="width:60px;" size="small"></el-input>%,
-						</span>
-						<span>下限
-							<el-input type="number" v-model="floor_limit" style="width:60px;" size="small"></el-input>%,
-						</span>
-					</p>
-					<p>
-						<span class="fixWidth">品牌:</span>
-						<el-select v-model="brands" multiple @change="changBrand">
-							<el-option v-for="item in brandData" :label="item.brand" :value="item.brand"></el-option>
-						</el-select>
-					</p>
-					<p>
-						<span class="fixWidth">品名:</span>
-						<el-select v-model="product" @change="changProduct">
-							<el-option v-for="item in productGroup" :label="item.cate_spec" :value="item.cate_spec"></el-option>
-						</el-select>
-					</p>
-					<p>
-						<span class="fixWidth">材质:</span>
-						<el-select v-model="material" @change="changMaterial">
-							<el-option v-for="item in materialGroup" :label="item.material" :value="item.material"></el-option>
-						</el-select>
-					</p>
-					<p>
-						<span class="fixWidth">规格:</span>
-						<el-select v-model="type">
-							<el-option v-for="item in typeGroup" :label="item.size" :value="item.size"></el-option>
-						</el-select>
-					</p>
+                    <el-form :model="searchInfo" :rules="rules" ref="searchInfo"  label-width="120px">
+    					<el-form-item label="剔除异常数据:">
+    						<span>上限
+    							<el-input type="number" v-model="searchInfo.upper_limit" style="width:60px;" size="small"></el-input>%,
+    						</span>
+    						<span>下限
+    							<el-input type="number" v-model="searchInfo.floor_limit" style="width:60px;" size="small"></el-input>%,
+    						</span>
+    					</el-form-item>
+
+                        <el-form-item prop="brands" label="品牌">
+                            <el-select v-model="searchInfo.brands" multiple  @change="changBrand" >
+    							<el-option v-for="item in initData.brandData" :label="item.brand" :value="item.brand"></el-option>
+    						</el-select>
+                        </el-form-item>
+
+                        <el-form-item prop="product" label="品名" >
+                            <el-select v-model="searchInfo.product" @change="changProduct">
+    							<el-option v-for="item in initData.productGroup" :label="item.cate_spec" :value="item.cate_spec"></el-option>
+    						</el-select>
+                        </el-form-item>
+
+                        <el-form-item prop="material" label="材质" >
+                            <el-select v-model="searchInfo.material" @change="changMaterial">
+    							<el-option v-for="item in initData.materialGroup" :label="item.material" :value="item.material"></el-option>
+    						</el-select>
+                        </el-form-item>
+
+                        <el-form-item prop="type" label="规格" >
+                            <el-select v-model="searchInfo.type">
+    							<el-option v-for="item in initData.typeGroup" :label="item.size" :value="item.size"></el-option>
+    						</el-select>
+                        </el-form-item>
+                    </el-form>
 					<p>
 						<span class="fixWidth">查询方式:</span>
 						<el-checkbox label="时间段" v-model="timeSlot"></el-checkbox>
@@ -1319,7 +1394,8 @@
 					</p>
 					<p class="button_box">
 						<el-button @click="clearAllData" type="danger">重置</el-button>
-						<el-button @click="search">查询</el-button>
+						<!-- <el-button @click="search">查询</el-button> -->
+						<el-button @click="submitInfo('searchInfo')">查询</el-button>
 					</p>
 				</div>
 				<button id="offBox" @click="showBox">数据统计分析
@@ -1480,4 +1556,15 @@
         height:40px;
         line-height:40px;
     }
+
+    .overflow_box {
+        min-width:1000px;
+        overflow-x:scroll;
+        overflow-y:hidden;
+    }
+    .overflow_box table{
+        min-width:100%;
+        width: auto;
+    }
+
 </style>

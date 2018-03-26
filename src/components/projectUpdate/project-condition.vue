@@ -5,6 +5,7 @@
 		openpro : 接收一个布尔值来启动模态框 ( 当布尔值改变时会触发模态框, 无论布尔值是false或true )
 		getForm : 接收一个函数, 函数返回模态框表单值
 	*/
+    import _ from 'lodash';
 	import dealNeeding from './needing-list.vue';
 	import ajaxCustom from '../ajax-custom.js';
 	import addsData from "../../../res/json/provinceList.json";
@@ -43,15 +44,20 @@
 		},
 		data(){
 			return {
+                // 所有品牌
 				brands : {
 					item : []
 				},
+                // 项目弹出框是否打开
 				isOpenBox : false,
+                // 结算条件弹出框是否打开
 				isSelectNeeding : false,
-				radioTab : null,
+                // 地区json数据
 				addsData,
 				province : '广东',
+                // 市区
 				cityOption : [],
+                // 县区
 				areaOption : [],
 			}
 		},
@@ -60,8 +66,7 @@
 			getAllBrands(){
 				ajaxCustom.ajaxGet(this, "api/getAllBrandsWillHeader", (responese)=>{
 					console.log(responese)
-					let resData = responese.body;
-					this.brands.item = resData;
+					this.brands.item = responese.body;
 				}, (responese)=>{
 					alert(responese.body.message);
 				});
@@ -69,16 +74,15 @@
             // 保存结算方式条款信息
 			getFormDatas(){
 				var myreg = /^(((13[0-9]{1})|(15[0-9]{1})|(17[0-9]{1})|(18[0-9]{1}))+\d{8})$/;
-				let receive = this.formDatas.receiverInfo;
-				for(let i = 0; i< receive.length; i++){
-					if(!myreg.test(receive[i].receiver_tel))
-					{
-						alert('请输入有效的手机号码！');
-						return false;
-					}
-				}
-				this.isOpenBox = false;
-				this.$emit('getForm', this.formDatas);
+                let right = _.every(this.formDatas.receiverInfo, function(item){
+                    return myreg.test(item.receiver_tel);
+                });
+                if(right){
+                    this.isOpenBox = false;
+                    this.$emit('getForm', this.formDatas);
+                }else{
+                    alert('请输入有效的手机号码！');
+                }
 			},
 			// 品牌全选
 			selectAllBrand(){
@@ -91,24 +95,15 @@
             // 取消修改
 			cancelUpdate(){
 				this.isOpenBox = false;
-				this.$emit('cancelUpdate', this.formDatas);
 			},
             // 根据选择的省份获取市区
             getCity(){
-                for (var i = 0; i < this.addsData.province.length; i++) {
-                    if (this.addsData.province[i].name==this.province) {
-                        this.cityOption=this.addsData.province[i].cityList;
-                    }
-                }
+                this.cityOption = _.find(this.addsData.province, ['name', this.province]).cityList;
             },
             // 根据选择的城市获取地区
 			getArea(){
 				this.formDatas.area = "";
-				for (var i = 0; i < this.cityOption.length; i++) {
-					if (this.cityOption[i].name == this.formDatas.city) {
-						this.areaOption=this.cityOption[i].areaList;
-					}
-				}
+                this.areaOption = _.find(this.cityOption, ['name', this.formDatas.city]).areaList;
 			},
 			// 添加联系人
 			addReceive(){

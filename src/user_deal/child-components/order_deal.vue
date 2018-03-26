@@ -238,6 +238,7 @@ export default{
 		},
 		// 价格逗号
 		makePriceStr(price){
+			price = this.priceIsNaNJudge(price);
 			var newStr = "";
 			var count = 0;
 			let str = price.toString();
@@ -263,6 +264,12 @@ export default{
 				str = newStr + (str + "00").substr((str + "00").indexOf("."), 3);
 			}
 			return str;
+		},
+		priceIsNaNJudge(price){
+			if(isNaN(price)){
+				price = 0;
+			}
+			return price;
 		},
         // 获取以前订单里面有过的收货人和物流信息
         getOrderHistoryInfo(data){
@@ -440,7 +447,11 @@ export default{
 			let order = this.orderList;
 			let num = 0;
 			for(let i = 0; i < order.length;i++){
-				num += parseInt(order[i].amount);
+				let amount = order[i].amount;
+				if(amount == ''){
+					amount = 0;
+				}
+				num += parseInt(amount);
 			}
             // 加上逗号
 			return this.makePriceStr(num);
@@ -542,7 +553,7 @@ export default{
 				</label>
 				<br>
 				<span>运输方式:</span>
-				<el-select v-if="transportFunction" v-model='transportFunction' placeholder="请选择" size="small">
+				<el-select v-model='transportFunction' placeholder="请选择" size="small">
 					<el-option label="买方自提" :value="1"></el-option>
 					<el-option label="卖方承运" :value="0"></el-option>
 				</el-select>

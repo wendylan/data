@@ -41,49 +41,32 @@
 			// 取消关联
 			cancleRelate(companyid, proId){
 				this.$emit('cancelRelate', { companyid : companyid, proId : proId });
-				let pro = this.projects;
-				for(let i = 0; i < pro.length;i++){
-					if(pro[i].project_id == proId){
-						for(let j = 0; j< this.companys.length; j++){
-							if(this.companys[j].user_id == companyid){
-								pro[i].company = '';
-								this.nowCompany = '';
-							}
-						}
-					}
-				}
+                let proIndex = _.findIndex(this.projects, ['project_id', proId]);
+                this.projects[proIndex].company = '';
+                this.nowCompany = '';
+
 				this.isShowRelate = false;
 			},
 			// 确认关联
 			confirmRelate(companyid, proId){
 				this.$emit('confirmRelate', { companyid : companyid, proId : proId });
-				let pro = this.projects;
-				for(let i = 0; i < pro.length;i++){
-					if(pro[i].project_id == proId){
-						for(let j = 0; j< this.companys.length; j++){
-							if(this.companys[j].user_id == companyid){
-								pro[i].company = this.companys[j].name;
-								this.nowCompany = this.companys[j].name;
-							}
-						}
-					}
-				}
+                let proIndex = _.findIndex(this.projects, ['project_id', proId]);
+                let companyData = _.find(this.companys, ['user_id', companyid]);
+                this.projects[proIndex].company = companyData.name;
+                this.nowCompany = companyData.name;
+
 				this.isShowRelate = false;
 			},
 			// 公司查询
 			handleIconSearch(keyword){
 				this.showSearch = false;
-				this.pageCompany = [];
-				for(let data of this.companys){
-					if(data.name.includes(keyword)){
-						this.pageCompany.push(data);
-					}
-				}
+                this.pageCompany  = _.filter(this.companys, function(item){
+                    return item.name.includes(keyword);
+                });
 			},
 			// 分页功能
 			changePage(page){
 				let total = this.companys.length;
-				// console.log(total);
 				this.pageCompany = [];
 				for(let i = (page-1)*5; i < (page*5 < total ? page*5 : total); i++ ){
 					this.pageCompany.push(this.companys[i]);
@@ -97,13 +80,9 @@
 			},
 			// 获取当前的关联公司和项目
 			getNowPro(){
-				let pro = this.projects;
-				for(let i= 0;i< pro.length;i++){
-					if(pro[i].project_id == this.proId){
-						this.nowProject = pro[i].project_id;
-						this.nowCompany = pro[i].company;
-					}
-				}
+                let proIndex = _.findIndex(this.projects, ['project_id', this.proId]);
+                this.nowProject = this.projects[proIndex].project_id;
+                this.nowCompany = this.projects[proIndex].company;
 			},
 			// 改变项目
 			changeProject(value){

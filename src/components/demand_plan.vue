@@ -106,7 +106,7 @@
 					}).then(() => {
 						ajaxCustom.ajaxPost(this, "dingoapi/savePlanOrder", {data : this.selectInfo, project_id:this.project_id}, (responese)=>{
 							console.log(responese);
-							this.send_notify();
+							// this.send_notify();
 							window.location.href='/usercenter#/userorder';
 						}, (responese)=>{
 							alert(responese.body.message);
@@ -115,7 +115,7 @@
 				}else{
 					ajaxCustom.ajaxPost(this, "dingoapi/savePlanOrder", {data : this.selectInfo, project_id:this.project_id}, (responese)=>{
 						console.log(responese);
-						this.send_notify();
+						// this.send_notify();
 						window.location.href='/usercenter#/userorder';
 					}, (responese)=>{
 						alert(responese.body.message);

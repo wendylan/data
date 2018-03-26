@@ -1,11 +1,11 @@
 <script>
 	import headerbar from '../components/same-headerbar.vue';
 	import ajaxCustom from '../components/ajax-custom.js';
-	import desc from '../components/steel-sort.js';
+	// import desc from '../components/steel-sort.js';
 	import proTable from '../components/table.vue';
-	import sortMethods from '../components/steel-sort.js';
+	// import sortMethods from '../components/steel-sort.js';
 	import draggable from 'vuedraggable';
-	import { Tag, Steps,Step, Switch, Tabs, TabPane, Select, Option, Button, RadioGroup, Radio, Table, TableColumn, DatePicker, Input, Dialog, Loading, MessageBox, Message  } from 'element-ui';
+	import { Tag, Steps, Step, Switch, Tabs, TabPane, Select, Option, Button, RadioGroup, Radio, Table, TableColumn, DatePicker, Input, Dialog } from 'element-ui';
 	export default{
 		components : {
 			headerbar,
@@ -114,11 +114,6 @@
 						buy : [],
 						sell : []
 					}
-				},
-				pickerOptions : {
-					disabledDate(time) {
-			            return time.getTime() > Date.now();
-			          }
 				},
 				radioSelecter : {
 					steel : null,
@@ -383,7 +378,7 @@
 </script>
 <template>
 	<div>
-		<headerbar active_number="supplier_order" :identity="2" :text="['现货订单','钢材现货购买']">
+		<headerbar active_number="supplier_order" :text="['现货订单','钢材现货购买']">
 			<div class="page-tools">
 				<h1>订单处理与查询</h1>
 				<div>
@@ -393,11 +388,11 @@
 							<el-option v-for="item in projectInfo.options" :value="item.project_info_id" :label="item.name"></el-option>
 						</el-select>
 					</div>
-					<div style="float:right;margin-bottom:20px;">
+					<!-- <div style="float:right;margin-bottom:20px;">
 						<span>下单日期：</span>
 						<el-date-picker v-model="orderDate" align="right" type="daterange" size="small" placeholder="选择日期" :picker-options="pickerOptions"></el-date-picker>
 						<el-button type="default" size="small">清空</el-button>
-					</div>
+					</div> -->
 					<div style="clear:both;"></div>
 				</div>
 			</div>

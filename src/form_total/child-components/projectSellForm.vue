@@ -1,8 +1,8 @@
 <script>
-	import ajaxCustom from '../../components/ajax-custom.js';
+	// import ajaxCustom from '../../components/ajax-custom.js';
 	import filterBar from '../../components/filter-bar.vue';
 	import headbar from "../../components/same-headerbar.vue";
-	import { DatePicker, Table, TableColumn, Button, Input, Select, Option, Dialog , Form , FormItem, RadioGroup, Radio, Switch, Loading} from 'element-ui';
+	import { DatePicker, Table, TableColumn, Button } from 'element-ui';
 	export default{
 		components : {
 			headbar,
@@ -43,7 +43,8 @@
 						k : "50",
 						l : "9000"
 
-					},{
+					},
+                    {
 						a : "2017/03/12",
 						b : "300",
 						c : "100",
@@ -57,7 +58,8 @@
 						k : "50",
 						l : "9000"
 
-					},{
+					},
+                    {
 						a : "2017/03/12",
 						b : "300",
 						c : "100",
@@ -71,7 +73,8 @@
 						k : "50",
 						l : "9000"
 
-					},{
+					},
+                    {
 						a : "2017/03/12",
 						b : "300",
 						c : "100",
@@ -85,7 +88,8 @@
 						k : "50",
 						l : "9000"
 
-					},{
+					},
+                    {
 						a : "2017/03/12",
 						b : "300",
 						c : "100",
@@ -99,7 +103,8 @@
 						k : "50",
 						l : "9000"
 
-					},{
+					},
+                    {
 						a : "2017/03/12",
 						b : "300",
 						c : "100",
@@ -113,7 +118,8 @@
 						k : "50",
 						l : "9000"
 
-					},{
+					},
+                    {
 						a : "2017/03/12",
 						b : "300",
 						c : "100",
@@ -137,8 +143,7 @@
 
 <template>
 	<div>
-		<!-- <headbar active_number="5-5" :identity="2" :text="['项目出货统计表', '']"> -->
-		<headbar active_number="projectSellForm" :identity="2" :text="['项目出货统计表', '']">
+		<headbar active_number="projectSellForm" :text="['项目出货统计表', '']">
 			<div class="">
 				<span>选择日期：</span>
 				<el-date-picker

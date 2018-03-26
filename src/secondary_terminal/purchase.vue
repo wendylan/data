@@ -17,8 +17,9 @@
 			headerbar,
 			order,
 			demand,
-			ajaxCustom,
 			projectCreate,
+            proTable,
+            filterBar,
 			elSelect : Select,
 			elOption : Option,
 			elButton : Button,
@@ -31,8 +32,6 @@
 			elDatePicker : DatePicker,
 			elInput : Input,
 			elDialog : Dialog,
-			proTable : proTable,
-			filterBar : filterBar
 		},
 		created(){
 			this.getSoptPrice();
@@ -42,42 +41,53 @@
 		},
 		data(){
 			return{
+				// 当前服务器日期
+				nowdate : null,
+                // 订单数据是否改变，传入组件内进行判断使用
 				isOrderChange : 0,
+                // 用来判断显示哪一个tab(选择品牌/选择项目)
 				activeName : 'first',
+                // 地址
 				formDatas : {
 					city : null,
 					area : null
 				},
+                // 各省份数据
 				addsData,
+                // 市区
 				cityOption : [],
+                // 县区
 				areaOption : [],
+                // 是否显示项目新建的弹出框
 				openBox : false,
+                // 选了地址才显示包到价/现货价的选项
 				addsselect : 0,
+                // 现货价数据原始储存
 				spotPriceAll : [],
+                // 运费原始数据存储
 				freight : [],
+                // 表格数据
 				spotPrice : [],
-				webPrice : [],
-				pickerOptions : {
-					disabledDate(time) {
-						return time.getTime() > Date.now() ;
-					}
-				},
+				// pickerOptions : {
+				// 	disabledDate(time) {
+				// 		return time.getTime() > Date.now() ;
+				// 	}
+				// },
 				date : Date.now(),
-				city : null,
+				// city : null,
+                // 用来组合次序下拉框
 				quotation : ['一次', '二次', '三次', '四次', '五次'],
+                // 次序下拉框
 				selectQuotationOption : [],
+                // 当前选择的次序
 				selectQuotation : null,
+                // 选择地址之后显示包到价还是现货价
 				spotTable : 1,
-				filters : {},
-				filterMethods : {
-					size : function(a, b){ return b['size'] === a;},
-					material : function(a, b){ return b['material'] === a;},
-					brand : function(a, b){ return b['brand'] === a;},
-					warehouse : function(a, b){ return b['warehouse'] === a;},
-					spec : function(a, b){ return b['cate_spec'] === a;}
-				},
+			    // 需求计划单是否显示
 				demand : true,
+                // 点击下单是否显示订单弹出框
 				showOrder : false,
+                // 传入订单弹出框的数据
 				order : {
 					transport_function : 0,
 					orderDetail : []
@@ -106,10 +116,15 @@
 				hasChange : 0,
 				showFilterBool : false,
 				fiterData : [],
+                // 是否显示更多的筛选框
 				isShowSelect : false,
+                // 网价总计
 				webPriceTotal :0,
+                // 市场价总计
 				spotPriceTotal :0,
+                // 差价总计
 				priceDifftTotal :0,
+                // 数量总计
 				amountTotal :0,
 				adds:{
 					city:null,
@@ -168,27 +183,13 @@
 					}
 				}
 			},
-			// 获取所有品牌
-			// getAllBrands(){
-			// 	ajaxCustom.ajaxGet(this, "dingoapi/getAllProduct", (responese)=>{
-			// 		console.log(responese)
-					// let resData = responese.body;
-					// let arr = [];
-					// for(let brand of resData.brand){
-					// 	arr.push({ "value" : brand.brand});
-					// }
-					// this.brands.item = arr;
-			// 	}, (responese)=>{
-			// 		alert(responese.body.message);
-			// 	});
-			// },
 			// 新建项目
 			addProject(formDatas){
 				ajaxCustom.ajaxPost(this, "dingoapi/addProjectDatas", formDatas, (response)=>{
 					console.log(response)
 					alert("添加成功");
 					this.userProject.item = response.body.data.reverse();
-					this.userProject.selected = this.userProject.list[0].project_info_id;
+					this.userProject.selected = this.userProject.item[0].project_info_id;
 				}, (response)=>{
 					alert(response.body.message);
 				});
@@ -240,32 +241,6 @@
 					}
 				}
 			},
-			//过滤
-			getFiltersData(data){
-				if(!data){
-					return;
-				}
-				this.filters = {};
-				for (var i = 0; i < data.length; i++) {
-					this.getFilter('size', data[i].size);
-					this.getFilter('material', data[i].material);
-					this.getFilter('brand', data[i].brand);
-					this.getFilter('warehouse', data[i].warehouse);
-					this.getFilter('spec', data[i].cate_spec);
-				}
-				// this.$set( array or object , 'material', value);
-			},
-			getFilter(filter, data){
-				if(!this.filters[filter]){
-					this.filters[filter] = [];
-				}
-				for (var i = 0; i < this.filters[filter].length; i++) {
-					if(this.filters[filter][i].text == data){
-						return ;
-					}
-				}
-				this.filters[filter].push({'text' : data, 'value' : data});
-			},
 			// 获取地址进行运费计算
 			getAddressData(value){					//地址
 				if(value){
@@ -276,10 +251,6 @@
 				this.formDatas.city = null;
 				this.formDatas.area = null;
 				this.spotTable = true;
-			},
-			// 改变日期获取现货价网价的数据
-			changeDate(date){						//日期
-				this.getSoptPrice(date);
 			},
 			// 改变时间次序
 			setQuotation(value){					//报价次序
@@ -300,16 +271,18 @@
 			getSoptPrice(date){
 				this.selectQuotation = null;
 				let loadingInstance = Loading.service({ fullscreen: true});
-				ajaxCustom.ajaxGet(this, "dingoapi/getSoptPrice", { params : { 'date' : date } }, (responese)=>{
-					if (!responese.body.soptPrice.length) {
+				ajaxCustom.ajaxGet(this, "dingoapi/getPurchaseSpotPrice", { params : { 'date' : date } }, (response)=>{
+					let responseData = response.body.data;
+					this.nowdate = response.body.date;
+					if (!responseData.soptPrice.length) {
 						//当日无数据，清空表数据
 						this.spotPrice = [];
 					}else{
-						this.date = responese.body.date;
-						let times = responese.body.times;
+						this.date = responseData.date;
+						let times = responseData.times;
 						//获取数据
-						var index = responese.body.soptPrice.length;
-						var data =	responese.body.soptPrice;
+						var index = responseData.soptPrice.length;
+						var data =	responseData.soptPrice;
 						for (let i = 0; i < index; i++) {
 							data[i] = desc.todo(data[i], [
 								{ text : "品名", key : "cate_spec" },
@@ -321,11 +294,10 @@
 						if (this.spotPriceAll.length) {
 							for (let i = 0; i < this.spotPriceAll.length; i++) {
 								this.spotPriceAll[i] = this.getPriceTotal(this.SoptPriceAddFreight(this.spotPriceAll[i], this.freight));
-								this.spotPriceAll[i] = this.calculation(responese.body.webprice, this.spotPriceAll[i]);
+								this.spotPriceAll[i] = this.calculation(responseData.webprice, this.spotPriceAll[i]);
 								this.spotPriceAll[i] = this.getTotalDiff(this.spotPriceAll[i]);
 							}
 						}
-						this.getFiltersData(this.spotPrice);
 						//报价次数选择框操作
 						this.selectQuotationOption = [];
 						for (let i = 0; i < index; i++) {
@@ -336,7 +308,7 @@
 							this.selectQuotationOption.push(this.quotation[i]+'  '+times[i]);
 						}
 
-						let brands = responese.body.brands[index-1];
+						let brands = responseData.brands[index-1];
 						let arr = [];
 						for(let brand of brands){
 							arr.push({ "value" : brand});
@@ -346,8 +318,8 @@
 						this.selectQuotation = index-1;
 					}
 					loadingInstance.close();
-				}, (responese)=>{
-					alert(responese.body.message);
+				}, (response)=>{
+					alert(response.body.message);
 					loadingInstance.close();
 				});
 			},
@@ -501,8 +473,8 @@
 					});
 					return;
 				}
-				var date = new Date();
-				date = this.dateFormat(date);
+				var date = this.dateFormat(this.nowdate);
+				console.log(date);
 				if(this.date != date){
 					MessageBox.confirm('网价和市场价不是今天的数据, 是否继续下单?', '提示', {
 						confirmButtonText: '确定',
@@ -611,26 +583,16 @@
 			},
 			//日期对象格式化
 			dateFormat(date){
-				var year = date.getFullYear();
-				var month = (date.getMonth()+1).toString();
-				var day = (date.getDate()).toString();
-				if(month.length == 1){
-					month = '0'+ month;
-				}
-				if(day.length == 1){
-					day = '0' + day;
-				}
-				var dateTime = year + "-" + month + "-" + day;
-				return dateTime;
+				return date.substr(0,10);
 			},
 			//差价最大
 			bestDiffPrice(data){
 				let items = this.planDataSelect;
 				let recorddata = [];
 				if(this.spotTable){
-					recorddata = this.pickOutBestSource(items,data,"web_spot_diff","web_spot_diff","asc");
+					recorddata = this.pickOutBestSource(items, data, "web_spot_diff", "web_spot_diff", "asc");
 				}else{
-					recorddata = this.pickOutBestSource(items,data,"web_total_diff","web_total_diff","asc");
+					recorddata = this.pickOutBestSource(items, data, "web_total_diff", "web_total_diff", "asc");
 				}
 				recorddata = this.deleteNullObject(recorddata);
 				return recorddata;
@@ -640,15 +602,15 @@
 				let items = this.planDataSelect;
 				let recorddata = [];
 				if(this.spotTable){
-					recorddata = this.pickOutBestSource(items,data,"price","price");
+					recorddata = this.pickOutBestSource(items, data, "price", "price");
 				}else{
-					recorddata = this.pickOutBestSource(items,data,"price","web_total_diff");
+					recorddata = this.pickOutBestSource(items, data, "price", "web_total_diff");
 				}
 				recorddata = this.deleteNullObject(recorddata);
 				return recorddata;
 			},
 			//选出最佳资源
-			pickOutBestSource(items,data,key,limitKey,method){
+			pickOutBestSource(items, data, key, limitKey, method){
 				let recorddata = [];
 				let judge = false;
 				for(let j = 0; j<items.length; j++){
@@ -796,7 +758,7 @@
 				for ( let item of this.planDataSelect ) {
 					for (var i = 0; i < data.length; i++) {
 						if(data[i].size == item.size && data[i].material == item.material && data[i].cate_spec == item.spec){
-							if(!this.dataExist(returndata,data[i])&&this.judgeFreight(data[i])){
+							if(!this.dataExist(returndata, data[i])&&this.judgeFreight(data[i])){
 								returndata.push(data[i]);
 								priceSum+=item.value*data[i].web_spot_diff;
 							}
@@ -807,7 +769,7 @@
 				return {data:returndata, priceSum:priceSum};
 			},
 			//由于现在页面上会存在同规格的数据（最低价存在多个数据源），所以增加了这一步的筛选
-			dataExist(data,item){
+			dataExist(data, item){
 				for (var i = 0; i < data.length; i++) {
 					if(data[i].size == item.size && data[i].material == item.material && data[i].cate_spec == item.spec){
 						return true;
@@ -910,13 +872,13 @@
 				this.showOrder = !this.showOrder;
 			},
 			test(){
-				console.log('select',this.planDataSelect);
-				console.log('table',this.spotPrice);
+				console.log('select', this.planDataSelect);
+				console.log('table', this.spotPrice);
 			}
 
 		},
 		watch : {
-			sortWay(n,o){
+			sortWay(n, o){
 				if(n){
 					this.spotPrice = this.spotPriceAll[this.selectQuotation];
 					this.deleteAmount(this.spotPrice);
@@ -939,7 +901,7 @@
 					this.updateAllCal();
 				}
 			},
-			spotTable(n,o){
+			spotTable(n, o){
 				if(!o&&n){
 					this.sortWay = null;
 				}
@@ -950,7 +912,7 @@
 </script>
 <template>
 	<div>
-		<headerbar active_number="purchase" :identity="2" :text="['需求计划单','钢材现货购买']">
+		<headerbar active_number="purchase" :text="['需求计划单','钢材现货购买']">
 			<div>
 				<div class="box_project">
 					<el-tabs v-model="activeName">
@@ -1253,7 +1215,7 @@
 	    bottom: 0px;
 	    width: 100%;
 	    height: 100px;
-	    line-height: 50px;
+	    /*line-height: 50px;*/
 	    z-index: 100;
 	    padding-right: 210px;
 	    background: aliceblue;
@@ -1316,7 +1278,7 @@
 		margin-top: -5px;
 	}
     .fix_main{
-        margin: 0 auto;
+        margin: 5px auto;
         padding-left: 15px;
         padding-right: 15px;
         max-width: 1280px;

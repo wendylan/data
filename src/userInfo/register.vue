@@ -29,10 +29,11 @@
 				} else {
 					callback();
 				}
-			};
+			}
 			return {
 				captcha : null,
 				postcaptcha : null,
+				captcha_message : null,
 				activeName : 'first',
 				registerInfo : {
 					mobile : null,
@@ -70,6 +71,7 @@
 						{ validator: validatePass2, trigger: 'blur' },
 					]
 				},
+				mobile_error :"",
 				captcha_visible: false,
 			}
 		},
@@ -93,40 +95,74 @@
 				this.captcha.src='captcha/1?r='+Math.random();
 			},
 			reg_captcha_submit(){
+				if (this.registerInfo.mobile !== null) {
 				axios.post('/regsms',{
                                 mobile : this.registerInfo.mobile,
                                 postcaptcha : this.postcaptcha
                         })
                         .then(resp => {
-                            console.log(resp.data);
-                        }).catch(err => {             //
-                            console.log('请求失败：'+err.status+','+err.statusText);
-                        });
+							console.log(resp.data);
+							let btn_get_captcha=document.getElementById('get_captcha');
+							this.resend(btn_get_captcha);
+							this.captcha_message=null;
+							this.captcha_visible=false;
+						}).catch(error => {
+							console.log(error);
+							if(error!=null){
+								this.captcha_message=error.response.data;
+								document.getElementById('img_captcha').click();
+								console.log('请求失败：'+error.response.data);
+							}
+						});
+				}
 			},
-			onSubmit() {
+			onSubmit(formName) {
 				console.log(this.registerInfo);
-				if (!!this.registerInfo.mobile){
+				this.$refs[formName].validate((valid) => {
+          		if (valid) {
 					axios.post("/register",{
 							mobile : this.registerInfo.mobile,
 							password : this.registerInfo.password,
 							password_confirmation : this.registerInfo.password_confirmation,
-							verifyCode : this.registerInfo.verifyCode	
+							verifyCode : this.registerInfo.verifyCode
 						})
 						.then(data => {
 							console.log(data.message);
+							window.location.href='/companyInfo';
 						})
 						.catch(errors => {
-							console.log(errors);
+							console.log(errors.response.data);
+							if(errors!=null){
+							this.mobile_error="手机号码已注册";
+							}
 						});
 				}else{
 					console.log('空数据');
+					 return false;
 				}
-        	},
+				});
+			},
+			resend(element){
+				console.log(element)
+				var num = 60
+				var timer = setInterval(function () {
+					num--
+					element.innerHTML = num + '秒后重新获取'
+					element.style.color = ' #ccc'
+					element.disabled = ' disabled'
+					if (num === 0) {
+					element.disabled = ''
+					element.style.color = ' #ffa600'
+					element.innerHTML = '获取验证码'
+					clearInterval(timer)
+					}
+				}, 1000)
+				}
 		},
 	}
 </script>
 <template>
-	<div>
+	<div style="height:100%;">
 		<div class="main_contianer">
 			<div class="left_box">
 				<div class="left_vertial">
@@ -172,9 +208,9 @@
 					<div class="right_vertial">
 						<el-tabs v-model="activeName">
 							<el-tab-pane label="手机注册" name="first">
-								<el-form :model="registerInfo" :rules="rules" ref="registerInfo"  label-width="100px" style="margin-top: 30px;text-align: center;">
-									<form id="registerInfo" method="POST" action="/register" @submit.prevent="onSubmit">
-										<el-form-item prop="mobile" label="手机号码" >
+								<el-form :model="registerInfo" :rules="rules" ref="registerInfo" @submit.prevent="onSubmit" label-width="100px" style="margin-top: 30px;text-align: center;">
+									<!-- <form id="registerInfo" method="POST" action="/register" @submit.prevent="onSubmit"> -->
+										<el-form-item prop="mobile" label="手机号码" :error="mobile_error">
 											<el-input name="mobile"  v-model='registerInfo.mobile' type="text" :maxlength="11" :minlength="13"></el-input>
 										</el-form-item>
 										<el-form-item prop="password" label="设置密码" >
@@ -186,26 +222,29 @@
 											<el-popover
 											ref="popover5"
 											placement="bottom"
-											width="160"
+											width="180"
 											v-model="captcha_visible">
 											<p>请填写图中的验证码</p>
 											<div style="text-align: right; margin: 0">
-												<a @click="recaptcha">	
-													<img src="/captcha/1" id="img_captcha" alt="验证码" title="刷新图片">
-												</a><br><br>
-												<el-input name="captcha"  v-model='postcaptcha' type="text"></el-input>
-												<br><br>
-												<el-button size="mini" type="text" @click="captcha_visible = false">取消</el-button>
-												<el-button type="primary" size="mini" @click = "reg_captcha_submit()">确定</el-button>
+
+													<a @click="recaptcha" ref="recaptcha">
+														<img src="/captcha/1" id="img_captcha" alt="验证码" title="刷新图片">
+													</a><br><br>
+													<span style="color:red" v-if="captcha_message" v-text="captcha_message"></span>
+													<el-input name="captcha"  v-model='postcaptcha' type="text"></el-input>
+													<br><br>
+													<el-button size="mini" type="text" @click="captcha_visible = false">取消</el-button>
+													<el-button type="primary" size="mini" @click = "reg_captcha_submit()">确定</el-button>
+
 											</div>
 											</el-popover>
 										<el-form-item prop="verifyCode" label="手机验证" >
 											<el-input placeholder="请输入手机验证码" v-model="registerInfo.verifyCode" name="verifyCode">
-												<el-button slot="append" v-popover:popover5>获取验证码</el-button>
+												<el-button id="get_captcha" slot="append" v-popover:popover5>获取验证码</el-button>
 											</el-input>
 										</el-form-item>
-										<el-button style="min-width: 100px;" type="success"  @click = "onSubmit()">注册</el-button>
-									</form>
+										<el-button style="min-width: 100px;" type="success"  @click = "onSubmit('registerInfo')">注册</el-button>
+									<!-- </form> -->
 								</el-form>
 							</el-tab-pane>
 							<!-- <el-tab-pane label="邮箱注册" name="second" >
@@ -250,6 +289,7 @@
 	.main_contianer {
 	    width: 100%;
 	    height: 100%;
+        overflow: hidden;
 	}
 
 	.left_box {
@@ -345,6 +385,7 @@
 		display:inline-block;
 		vertical-align: middle;
 	}
+
 
 
 </style>
