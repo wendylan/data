@@ -1,5 +1,5 @@
 <script>
-	import headerbar from '../../components/admin-headerbar.vue';
+	import headerbar from '../../components/same-headerbar.vue';
 	import ajaxCustom from '../../components/ajax-custom.js';
 	import{ Button, Dialog, Form, FormItem, Select, Option, Input, Upload } from 'element-ui';
 	export default{
@@ -192,7 +192,7 @@
 	}
 </script>
 <template>
-	<headerbar active_number="5-6" :text="['品牌详情','查看/编辑品牌详情简称']">
+	<headerbar active_number="brand_manage_data" :text="['品牌详情','查看/编辑品牌详情简称']">
 		<div class="img_box">
 			<div class="left-jump-bar">
 				<div class="brand" v-for="datas in brandDetail" @click="moveToBrand(datas.brands)">{{ datas.brands }}</div>

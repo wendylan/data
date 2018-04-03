@@ -29,6 +29,7 @@ export default{
 	},
 	created(){
 		this.initData();
+		console.log(this.orderList);
 		this.createDynamicTable(this.countRules, this.orderList);
 		this.projectDatas = JSON.parse(JSON.stringify(this.projectInfo));
 		this.projectDatas.allAddr = this.projectDatas.city + this.projectDatas.area + this.projectDatas.addr;
@@ -167,6 +168,8 @@ export default{
 	methods : {
 		// 创建动态table列
 		createDynamicTable(ruleDatas, tableDatas){
+			console.log(ruleDatas);
+			// console.log(this.ruleDatas);
 			this.dynamicColumn = [];
 			const columnQueue = [];
 			// 计算动态列column
@@ -489,7 +492,7 @@ export default{
 	                <th>品名</th>
 	                <th class="small_width">规格</th>
 	                <th>材质</th>
-	                <template v-for="data in dynamicColumn">
+	                <template v-for="data in dynamicColumn"> 
 	                	<th>{{ data.ch }}</th>
 	                </template>
 	                <th>含税总价(元/吨)</th>
@@ -655,8 +658,8 @@ export default{
         width: 100%;
         table-layout: fixed;
         border-collapse:collapse;
-        border:1px solid black;
-        border:1px solid #e0e6ed;
+	    border-top: 1px solid #e0e6ed;
+	    border-left: 1px solid #e0e6ed;
         text-align:center;
         font-size:14px;
     }
@@ -666,7 +669,8 @@ export default{
     thead th{
         text-align: center;
         padding:10px 0px;
-        border:1px solid #dfe6ec;
+		border-right: 1px solid #dfe6ec;
+		border-bottom: 1px solid #dfe6ec;
     }
     table td{
         padding:10px;

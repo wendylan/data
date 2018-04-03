@@ -41,7 +41,7 @@
 			this.filterDatas = JSON.parse(JSON.stringify(this.tableDatas));
 			this.tempTableDatas = JSON.parse(JSON.stringify(this.tableDatas));
 			// 时间控件默认值
-			this.report.date = window._defultDatas.marketPriceDatas[window._defultDatas.marketPriceDatas.length-1].updated_at;
+			this.report.date = window._defultDatas.marketPriceDatas[window._defultDatas.marketPriceDatas.length-1].created_at;
 			this.report.timesOptions = window._defultDatas.marketPriceDatas;
 			// 获取最后一次报价 计算报价时间与次数
 			this.report.times = this.numChangeText(window._defultDatas.marketPriceDatas.length-1) + '(' +this.changsDateStr(window._defultDatas.marketPriceDatas[window._defultDatas.marketPriceDatas.length-1].updated_at) + ')';

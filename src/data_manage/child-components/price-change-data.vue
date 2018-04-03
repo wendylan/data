@@ -2,7 +2,7 @@
 	// 暂时无法按需引入 $confirm
 	// import { Table, TableColumn, Button, Select, Option } from "element-ui";
 	import Vue from "vue";
-	import headerbar from '../../components/admin-headerbar.vue';
+	import headerbar from '../../components/same-headerbar.vue';
 	import ajaxCustom from '../../components/ajax-custom.js';
 	import ElementUI from 'element-ui';
 	Vue.use(ElementUI);
@@ -197,7 +197,7 @@
 </script>
 
 <template>
-	<headerbar active_number="5-3" :text="['风险提示设置','浮动范围挺行数据']">
+	<headerbar active_number="priceRangeData" :text="['风险提示设置','浮动范围挺行数据']">
 		<div class="black">
 			<el-select size="small" placeholder="选择品牌" v-model="brandsModel.selected" @change="getSteelStandard">
 				<el-option v-for="item in brandsModel.data" :label="item" :value="item" ></el-option>

@@ -51,7 +51,7 @@ var router = new VueRouter({
 			{ path : '/price_source_data', component : priceSourceData },
 			{ path : '/brand_manage_data', component : brandManageData },
 			{ path : '/car_info_data', component : carInfoData },
-            { path : '/market_price_data', component : marketPriceData }
+            { path : '/market_price_data/:id', component : marketPriceData }
 		]}
 	]
 });

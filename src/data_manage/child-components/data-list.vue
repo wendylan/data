@@ -1,5 +1,5 @@
 <script>
-	import headerbar from '../../components/admin-headerbar.vue';
+	import headerbar from '../../components/same-headerbar.vue';
 	import ajaxCustom from '../../components/ajax-custom.js';
 	import { Button, Pagination, Loading  } from "element-ui";
 	export default{
@@ -11,6 +11,7 @@
 		created : function(){
 			this.getWebPrice();
 			this.getListData();
+			this.getBaseList();
 		},
 		mounted(){
 			this.apiToken=this.toJson(Laravel.apiToken);
@@ -21,6 +22,7 @@
 				apiToken:"",
 				marketData : null,
 				webPriceNS:[],
+				baseDataList : [],
 				webData : [],
 				totalPage:0,
 				total:0,
@@ -56,8 +58,20 @@
 			changePage : function(page){
 				let loadingInstance = Loading.service({target:"ul#market-price"});
 				var path = "dingoapi/listData?page=" + page;
-				ajaxCustom.ajaxGet(this,path, (responese)=>{
+				ajaxCustom.ajaxGet(this, path, (responese)=>{
 					this.marketData = responese.body.data;
+					loadingInstance.close();
+				}, (responese)=>{
+					console.log(responese);
+					alert("操作失败");
+					loadingInstance.close();
+				});
+			},
+			changeBasePage(page){
+				let loadingInstance = Loading.service({target:"ul#base-price"});
+				var path = "dingoapi/getBaseDataList?page=" + page;
+				ajaxCustom.ajaxGet(this, path, (responese)=>{
+					this.baseDataList = responese.body.data;
 					loadingInstance.close();
 				}, (responese)=>{
 					console.log(responese);
@@ -85,7 +99,7 @@
 			},
 			getListData:function(){
 				ajaxCustom.ajaxGet(this,"dingoapi/listData", (responese)=>{
-					responese = responese.body;
+					var responese = responese.body;
 					let displayCount = 0;
 					for(let data of responese.data.data){
 						if(data.display == 1){
@@ -97,6 +111,24 @@
 						this.canCreate = true;
 					}
 					this.marketData = responese.data;
+				}, (responese)=>{
+					console.log(responese);
+				});
+			},
+			getBaseList(){
+				ajaxCustom.ajaxGet(this,"dingoapi/getBaseDataList", (responese)=>{
+					var responese = responese.body;
+					let displayCount = 0;
+					for(let data of responese.data.data){
+						if(data.display == 1){
+							displayCount++;
+						}
+					}
+					console.log(displayCount)
+					if(displayCount === 3){
+						this.canCreate = true;
+					}
+					this.baseDataList = responese.data;
 				}, (responese)=>{
 					console.log(responese);
 				});
@@ -163,8 +195,28 @@
 					}
 				}
 			},
+			createNewBaseDatas(){
+				// console.log(this.apiToken.permissions);
+				if(confirm("确认是否" + (this.isLoadPrevData?"新增导入上次所有报价":"新增空报价表") + " ?")){
+					if(this.isLoadPrevData === 0){
+						let loadingInstance = Loading.service({target:"body"});
+						ajaxCustom.ajaxGet(this,"dingoapi/addNewBaseData", (responese)=>{
+							console.log(responese)
+							loadingInstance.close();
+							// this.$router.push("check_market_data/"+responese.body.data.id);
+						}, (responese)=>{
+							loadingInstance.close();
+							alert( responese.body.message );
+							console.log(responese);
+						});
+					}
+				}
+			},
 			checkOrEditPriceData(id){
 				window.open("dataManage#/check_market_data/"+id);
+			},
+			editBaseDatas(id){
+				window.open("dataManage#/market_price_data/"+id);
 			},
 			deleteMarketData(id){
 				let isDelete = confirm("是否删除此次报价数据 ?");
@@ -206,7 +258,7 @@
 </script>
 
 <template>
-	<headerbar active_number="4" :text="['数据管理','管理后台的数据']">
+	<headerbar active_number="dataManage" :text="['数据管理','管理后台的数据']">
 		<div class="list-box">
 			<template v-if="marketData">
 				<ul id="market-price">
@@ -242,6 +294,37 @@
 				</div>
 			</template>
 		</div>
+		<!-- base数据列表 -->
+		<!-- <div class="list-box">
+			<template v-if="marketData">
+				<ul id="base-price">
+					<li>
+						<div class="title">基础数据 :</div>
+						<div>
+							<el-button type="primary" @click="createNewBaseDatas()" :disabled="!canCreate">新增</el-button>
+							<p style="margin: 0px;font-size: 14px;" v-show="!canCreate">(必须先完成已有的报价表)</p>
+						</div>
+						<p style="clear:both;"></p>
+					</li>
+					<li v-for="data of baseDataList.data">
+						<div>{{ data.created_at }}</div>
+						<div>
+							<el-button type="default" @click="editBaseDatas(data.id)">编辑</el-button>
+							<template v-if="!data.display">
+								<el-button type="success" @click="reportPriceDatas(data.id)">打开</el-button>
+							</template>
+							<el-button v-show="!data.display" type="danger" @click="deleteMarketData(data.id)" >删除</el-button>
+						</div>
+						<p style="clear:both;"></p>
+					</li>
+				</ul>
+				<div class="page-box">
+					<p>共 {{ baseDataList.total }} 行</p>
+					<el-pagination layout="prev, pager, next" :small="true" :page-size="3" :current-page="baseDataList.current_page" :total="baseDataList.total" @current-change="changeBasePage"></el-pagination>
+				</div>
+			</template>
+		</div> -->
+		
 		<div class="list-box" >
 			<ul  id="webprice">
 				<li >

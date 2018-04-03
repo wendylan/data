@@ -1,5 +1,5 @@
 <script>
-    import headerbar from '../../components/admin-headerbar.vue';
+    import headerbar from '../../components/same-headerbar.vue';
     import echarts from "echarts";
     import {Form,FormItem, Button, Select, Input, Table, TableColumn, Option, DatePicker, Col ,Loading } from 'element-ui';
     import ajaxCustom from '../../components/ajax-custom.js';
@@ -80,14 +80,11 @@
             /*获得并处理品牌数据*/
             getBrandsProducts(brand){
                 this.product="";
-                ajaxCustom.ajaxPost(this,"dingoapi/getProductsData",{ brand : brand.name }, (responese)=>{
-                    console.log(this.brands);
-                    let productData=responese.body.data;
-                    brand.product=undefined;
-                    for (var i = 0; i < productData.length; i++) {
-                        this.getProductsData(brand,productData[i]);
-                    }
-                    this.productGroup=brand.product;
+                this.productData = [];
+                ajaxCustom.ajaxPost(this,"dingoapi/getProductsData",{ 'brand' : brand }, (responese)=>{
+                    this.productData = responese.body.data;
+                    this.getProductsData(responese.body.data);
+                    console.log(this.productData);
                 }, (responese)=>{
                     console.log(responese);
                 });
@@ -110,8 +107,7 @@
                     if (this.dateConrtrast(foremost.getTime()/1000,final.getTime()/1000+86400)) {
                         this.final='';
                     }else{
-                    this.seachHistoryPrice();
-
+                        this.seachHistoryPrice();
                     }
                 }
             },
@@ -163,9 +159,9 @@
                             var data={};
                             data.foremostDate = this.foremost.getTime()/1000;
                             data.finalDate    = this.final.getTime()/1000+86400;
-                            data.brand        = this.brands.name;
-                            data.product      = this.product.name;
-                            data.type         = this.type.name ;
+                            data.brand        = this.brand;
+                            data.product      = this.product;
+                            data.type         = this.type ;
                             data.material     = this.material;
                             ajaxCustom.ajaxPost(this,"dingoapi/seachHistoryPrice",{data}, (responese)=>{
                                 // console.log(responese);
@@ -364,39 +360,53 @@
                 this.historyData[4].data=[];
             },
             /*产品数据处理*/
-            getProductsData(brand,data){
-                if (brand.product==undefined) {
-                    brand.product=[{name : data.product , type :[{name : data.type ,material :[data.material]}]}];
-                }else{
-                    for (var i = 0; i < brand.product.length; i++) {
-                        if(brand.product[i].name==data.product){
-                            this.getTypeData(brand.product[i],data);
-                            return;
-                        }
+            getProductsData(data){
+                let returndata = []
+                for (let item of data) {
+                    if(!this.itemInGroup(item.product,this.productGroup)){
+                        this.productGroup.push(item.product);
                     }
-                    brand.product.push({name : data.product , type :[{name : data.type ,material :[data.material]}]});
                 }
             },
             getTypeData(product,data){
-                for (var i = 0; i < product.type.length; i++) {
-                    if(product.type[i].name==data.type){
-                        this.getMaterialData(product.type[i],data.material);
-                        return;
+                let returndata = []
+                for (let item of data) {
+                    if(item.product == product){
+                        if(!this.itemInGroup(item.type,this.typeGroup)){
+                            this.typeGroup.push(item.type);
+                        }
                     }
                 }
-                product.type.push({name : data.type ,material :[data.material]});
-                },
-            getMaterialData(type,material){
-                type.material.push(material);
+            },
+            getMaterialData(product,type,data){
+                let returndata = []
+                for (let item of data) {
+                    if(item.product == product && item.type == type){
+                        if(!this.itemInGroup(item.type,this.materialGroup)){
+                            this.materialGroup.push(item.material);
+                        }
+                    }
+                }
+            },
+            itemInGroup(item,group){
+                if(!group.length){
+                    return false;
+                }
+                for(let gItem of group){
+                    if(gItem == item){
+                        return true;
+                    }
+                }
+                return false;
             },
             /*联动处理*/
             changeProducts(product){
                 this.type='';
-                this.typeGroup=product.type;
+                this.getTypeData(product,this.productData);
             },
             changeType(type){
-                this.material='';
-                this.materialGroup=type.material;
+                this.material = '';
+                this.getMaterialData(this.product,type,this.productData);
             }
         },
 
@@ -456,9 +466,12 @@
                 foremost : '',
                 final : '',
                 //钢厂or品牌
-                brands : '',
+                brand : '',
+                brandsData : [],
+                productData : [],
                 //产品数据
                 product : '',
+                
                 productGroup : [],
                 //规格数据
                 type : '',
@@ -467,13 +480,12 @@
                 material : '',
                 materialGroup :[],
                 //数据源
-                brandsData : []
             }
         }
     }
 </script>
 <template>
-    <headerbar active_number="3" :text="['历史数据','查看/编辑定价规则']">
+    <headerbar active_number="historyData" :text="['历史数据','查看/编辑定价规则']">
         <div class="form">
             <el-form>
                 <div class="tocenter">
@@ -488,20 +500,20 @@
                     </div>
                     <div>
                         <span>品&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp牌：</span>
-                        <el-select v-model="brands" @change="getBrandsProducts(brands)">
-                            <el-option v-for="item in brandsData" :label="item.name" :value="item"></el-option>
+                        <el-select v-model="brand" @change="getBrandsProducts(brand)">
+                            <el-option v-for="item in brandsData" :label="item.name" :value="item.name"></el-option>
                         </el-select><br>
                     </div>
                     <div>
                         <span>品&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp名：</span>
                         <el-select v-model="product" @change="changeProducts(product)">
-                            <el-option v-for="item in productGroup" :label="item.name" :value="item"></el-option>
+                            <el-option v-for="item in productGroup" :label="item" :value="item"></el-option>
                         </el-select><br>
                     </div>
                     <div>
                         <span>规&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp格：</span>
                         <el-select v-model="type" @change="changeType(type)">
-                            <el-option v-for="item in typeGroup" :label="item.name" :value="item"></el-option>
+                            <el-option v-for="item in typeGroup" :label="item" :value="item"></el-option>
                         </el-select><br>
                     </div>
                     <div>

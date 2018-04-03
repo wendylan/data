@@ -1,5 +1,5 @@
 <script>
-import headerbar from '../../components/admin-headerbar.vue';
+import headerbar from '../../components/same-headerbar.vue';
 import {Table, TableColumn, Select, Option, Button, Popover} from "element-ui";
 import ajaxCustom from '../../components/ajax-custom.js';
 import selecter from './child-components/steel_selecter.vue';
@@ -18,12 +18,13 @@ import orderOperation from './child-components/order_operation.vue';
 		},
 		created : function(){
 			// 前端初始化 , 分配后端获取的初始化数据
-            ajaxCustom.ajaxGet(this, "dingoapi/getInitDatas", function(response){
+            ajaxCustom.ajaxGet(this, "dingoapi/getInitDatas", { params : { id : this.$route.params.id } },function(response){
                 console.log(response.body.data)
 				this.brands = response.body.data.brands;
 				this.suppliers = response.body.data.suppliers;
 				this.warehouses = response.body.data.warehouses;
 				this.treeModel = response.body.data.treeModel;
+				this.created_date = response.body.data.parentDatas.created_at.split(' ')[0];
 				this.isInit = true;
                 this.payment.options = response.body.data.payment;
             });
@@ -41,6 +42,7 @@ import orderOperation from './child-components/order_operation.vue';
 				},
 				showTable : true,
 				showType : 1,
+				created_date : null,
                 brands : [],
                 suppliers : [],
                 warehouses : [],
@@ -222,7 +224,7 @@ import orderOperation from './child-components/order_operation.vue';
 	}
 </script>
 <template>
-	<headerbar active_number="5-1" :text="['市场价格数据','查看/编辑']">
+	<headerbar active_number="market_price_data" :text="['市场价格数据','查看/编辑']">
         <div>
             <!-- 新增付款方式 -->
 			<el-popover ref="edit_payment" placement="bottom" trigger="click">
@@ -245,7 +247,7 @@ import orderOperation from './child-components/order_operation.vue';
                     <div>
                         <div class="float-left">
                             <span>创建时间 : </span>
-                            <span>2018-09-15</span>
+                            <span>{{ created_date }}</span>
                         </div>
                         <div class="float-right">
                            <!--  <span>买买买当前状态 : </span>

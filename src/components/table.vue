@@ -262,8 +262,8 @@
 								<span>{{ item.title.replace('~', '') }}</span>
 								<div class="sort-icon">
 									<div class="sort-icon">
-										<div @click="sortPrice('asce', item.key)" style="color:#F56C6C;">▲</div>
-										<div @click="sortPrice('desc', item.key)" style="margin-top: -5px;color:#67C23A;">▼</div>
+										<div @click="sortPrice('asce', item.key)" style="color:#F56C6C;font-size:12px;">▲</div>
+										<div @click="sortPrice('desc', item.key)" style="margin-top: -5px;color:#67C23A;font-size:12px;">▼</div>
 									</div>
 								</div>
 							</th>
@@ -285,8 +285,8 @@
 									<span>{{ data.title.replace('~', '') }}</span>
 									<div class="sort-icon">
 										<div class="sort-icon">
-											<div @click="sortPrice('asce', data.key)" style="color:#F56C6C;">▲</div>
-											<div @click="sortPrice('desc', data.key)" style="margin-top: -5px;color:#67C23A;">▼</div>
+											<div @click="sortPrice('asce', data.key)" style="color:#F56C6C;font-size:12px;">▲</div>
+											<div @click="sortPrice('desc', data.key)" style="margin-top: -5px;color:#67C23A;font-size:12px;">▼</div>
 										</div>
 									</div>
 								</th>
@@ -333,7 +333,8 @@
 		width: 100%;
 	    table-layout: fixed;
 	    border-collapse:collapse;
-		border:1px solid #e0e6ed;
+	    border-top: 1px solid #e0e6ed;
+	    border-left: 1px solid #e0e6ed;
 		text-align:center;
 		font-size:14px;
 	}
@@ -343,7 +344,8 @@
 	table.table-style thead th{
 		text-align: center;
 		padding:10px 0px;
-		border:1px solid #dfe6ec;
+		border-right: 1px solid #dfe6ec;
+		border-bottom: 1px solid #dfe6ec;
 	}
 	table.table-style td{
 		padding:10px;

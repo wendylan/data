@@ -1,5 +1,5 @@
 <script>
-	import headerbar from '../../components/admin-headerbar.vue';
+	import headerbar from '../../components/same-headerbar.vue';
 	import recommend from "../../../res/json/recommend.json";
 	import ajaxCustom from '../../components/ajax-custom.js';
 	import echarts from "echarts";

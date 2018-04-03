@@ -1,5 +1,5 @@
 <script>
-	import headerbar from '../components/admin-headerbar.vue';
+	import headerbar from '../components/same-headerbar.vue';
 	import sortable from "./sortable.vue";
 	import provinceList from "../../res/json/provinceList.json";
 	import ajaxCustom from '../components/ajax-custom.js';

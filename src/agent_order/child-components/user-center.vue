@@ -236,35 +236,35 @@
 				<el-tabs type="border-card">
 					<el-tab-pane label="全部地区">
 						<div class="cityBox">
-							<ul v-for="city of provinceList">
+							<ul v-for="(city, index) of provinceList" :key="index">
 								<li><el-button @click="searchPro(city.name);" size="small">{{city.name}}</el-button></li>
 							</ul>
 						</div>
 					</el-tab-pane>
 					<el-tab-pane label="珠三角地区">
 						<div class="cityBox">
-							<ul v-for="item of riverArea">
+							<ul v-for="(item, index) of riverArea" :key="index">
 								<li><el-button @click="searchPro(item);" size="small">{{item}}</el-button></li>
 							</ul>
 						</div>
 					</el-tab-pane>
 					<el-tab-pane label="粤东地区">
 						<div class="cityBox">
-							<ul v-for="item of easternGuang">
+							<ul v-for="(item, index) of easternGuang" :key="index">
 								<li><el-button @click="searchPro(item);" size="small">{{item}}</el-button></li>
 							</ul>
 						</div>
 					</el-tab-pane>
 					<el-tab-pane label="粤西地区">
 						<div class="cityBox">
-							<ul v-for="item of westernGuang">
+							<ul v-for="(item, index) of westernGuang" :key="index">
 								<li><el-button @click="searchPro(item);" size="small">{{item}}</el-button></li>
 							</ul>
 						</div>
 					</el-tab-pane>
 					<el-tab-pane label="粤北地区">
 						<div class="cityBox">
-							<ul v-for="item of northGuang">
+							<ul v-for="(item, index) of northGuang" :key="index">
 								<li><el-button @click="searchPro(item);" size="small">{{item}}</el-button></li>
 							</ul>
 						</div>
@@ -291,13 +291,13 @@
 							</tr>
 						</thead>
 						<tbody>
-							<tr v-for="(data, index) in currentProject">
+							<tr v-for="(data, index) in currentProject" :key="index">
 								<td>{{ data.company }}</td>
 								<td>{{ data.name }}</td>
 								<td style="width:200px;">{{ data.province + data.city + data.area + data.addr }}</td>
 								<td style="width:200px;">
 									<template>
-										<span v-for="brand in data.brands">{{ brand }} , </span>
+										<span v-for="(brand, index) in data.brands" :key="index">{{ brand }} , </span>
 									</template>
 								</td>
 								<td>{{ payToText(data.settlement.conditionType) }}
@@ -314,7 +314,7 @@
 									<el-button @click="updateProject(index);" size="mini">
 										<i class="el-icon-edit"></i>
 									</el-button>
-									<el-button @click="delProject(index,data.project_info_id);" size="mini">
+									<el-button @click="delProject(index, data.project_info_id);" size="mini">
 										<i class="el-icon-delete"></i>
 									</el-button>
 									<el-button @click="showRelate(data.project_id)" size="mini">

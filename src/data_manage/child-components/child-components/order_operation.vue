@@ -33,7 +33,7 @@
             }
         },
         methods : {
-            // 根据品牌获取市场价格
+            // 根据品牌获取市场价格 
             getMarketPriceStateByBrand(data){
                 this.selectBrand = data;
                 for(let item of this.allBrands){
@@ -43,7 +43,7 @@
                 ajaxCustom.ajaxGet(this, "dingoapi/getMarketPriceStateByBrand", { params : { 'brand' : data.name } }, (response)=>{
                     console.log(response);
                     this.priceRules = response.body.data.active_rule;
-                    this.markPriceData = response.body.data.content;
+                    this.markPriceData = response.body.data.content ? response.body.data.content : [];
                     this.markPriceDataCache = JSON.parse(JSON.stringify(this.markPriceData));
                     this.initIsBilling(this.markPriceData);
                 }, (response)=>{

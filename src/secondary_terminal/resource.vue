@@ -26,10 +26,13 @@
             elFormItem : FormItem
 		},
 		created(){
+			document.addEventListener("click", this.hidePanel);
 			// 获取固定框的品名,品牌,规格,材质
 			this.getInitData();
 			// 获取最开始的表格数据
 			this.getInitTable();
+			//不可选的日期
+			window.disabledDate = [];
 		},
 		data(){
 			return {
@@ -49,8 +52,15 @@
 				//禁止选中日期（今日之后的日期）
                 pickerOptions: {
                     disabledDate(time) {
+                    	let disabledDate = window.disabledDate;
+                    	for (let i = 0; i <disabledDate.length; i++) {
+                             let disableTime = (new Date(disabledDate[i])).getTime()-28800000;
+                             if(time.getTime() == disableTime){
+                             	return true;
+                             }
+                    	}
                         return time.getTime() > Date.now();
-                    }
+                    },
                 },
                 date : null,
                 // 选择时间段
@@ -69,6 +79,7 @@
                 marketDiff : false,
                 avgDiff : true,
                 webAvg : true,
+                // 是否弹出固定框
                 isShowOptions : false,
                 filterDatas : {
 					brands : []
@@ -159,6 +170,15 @@
 			},
 		},
 		methods : {
+			// 点击其他地方隐藏弹出框
+			hidePanel(event){
+				var sp = document.getElementById("selectBox");
+				if(sp){
+					if(!sp.contains(event.target)){            //这句是说如果我们点击到了id为myPanel以外的区域
+						this.isShowOptions = false;
+					}
+				}
+			},
 			// 获取固定框的品名,品牌,规格,材质
 			getInitData(){
 				ajaxCustom.ajaxGet(this, 'dingoapi/getAllProduct', (response)=>{
@@ -565,6 +585,8 @@
 				}
 				this.forePoint = '';
 				this.dateArray.sort();
+				window.disabledDate = this.dateArray;
+				console.log(window.disabledDate);
 			},
 			// 删除时间点
 			delOne(index){
@@ -602,7 +624,8 @@
 				return filterDataArr.brands;
 			},
 			// 控制左边的弹出框
-			showBox(){
+			showBox(event){
+				event.stopPropagation();
 				this.isShowOptions = !this.isShowOptions;
 			},
 			//日期对象格式化
@@ -1383,7 +1406,7 @@
 					</p>
 					<p v-if="timeSlot">
 						<span class="fixWidth">选择时间段:</span>
-						<el-date-picker v-model="dateRange" type="daterange" @change="changDateRange" :picker-options="pickerOptions" placeholder="选择日期范围"></el-date-picker>
+						<el-date-picker v-model="dateRange" type="daterange"  @change="changDateRange" :picker-options="pickerOptions" placeholder="选择日期范围"></el-date-picker>
 					</p>
 					<p v-if="timePoint">
 						<span class="fixWidth">选择时间点:</span>
@@ -1429,7 +1452,7 @@
 	.fixWidth{
 		display: inline-block;
 		width: 90px;
-		margin-left: 20px;
+		margin-left: 50px;
 	}
 	.fixBox{
 		font-size: 14px;

@@ -150,7 +150,27 @@ text ： 需要在右上方显示的文本
 						index : 'terminalUsercenter',
 						roles : ['终端用户'],
 						permission : '项目管理'
-					}
+					},
+
+					{ name : "历史数据", link : "./historyData.html", icon : 'fa fa-tasks margin', index:"historyData", roles: ['前台数据管理员'], permission: "-" },
+					{ name : "数据管理", link : "./dataManage.html", icon : ' fa fa-wrench margin', index: "dataManage", roles: ['前台数据管理员'], permission: "-" },
+					{ name : "后台数据", 
+						childs : [
+							// { name : "市场价格数据", link : "/dataManage.html#/market_price_data", icon : 'fa fa-th-list margin', index: 'market_price_data' },
+							// { name : "品牌数据", link : "admin/product", icon : 'fa fa-th-list margin', index: 'product' },
+							{ name : "运费数据", link : "/dataManage#/freightData", icon : 'fa fa-th-list margin', index: 'freightData' },
+							{ name : "浮动设置", link : "/dataManage#/priceRangeData", icon : 'fa fa-th-list margin', index: 'priceRangeData' },
+							{ name : "定价规则", link : "/dataManage#/market_rule_data", icon : 'fa fa-th-list margin', index: 'market_rule_data' },
+							{ name : "供应商别名", link : "/dataManage#/price_source_data", icon : 'fa fa-th-list margin', index: 'price_source_data' },
+							{ name : "品牌详情", link : "/dataManage#/brand_manage_data", icon : 'fa fa-th-list margin', index: 'brand_manage_data' },
+							{ name : "物流司机数据", link : "/dataManage#/car_info_data", icon : 'fa fa-th-list margin', index: 'car_info_data' },
+							{ name : "后台补录", link : "/dataManage#/data_search", icon : 'fa fa-th-list margin', index: 'data_search' },
+						], 
+						icon : 'fa fa-th-large margin', 
+						index: "data_background", 
+						roles: ['前台数据管理员'], 
+						permission: "-" 
+					},
 				],
 				nowIndex : null,
 				user : [],
@@ -277,6 +297,9 @@ text ： 需要在右上方显示的文本
             },
             //判断权限是否吻合
             permissionJudge(permission){
+            	if(permission == "-"){
+            		return true;
+            	}
                 let permissions = this.user.permissions;
                 for (var i = 0; i < permissions.length; i++) {
                     if( permissions[i].name == permission ){
@@ -317,7 +340,7 @@ text ： 需要在右上方显示的文本
 				</div>
 			</div>
 
-			<el-row class="tac" >
+			<el-row class="tac">
 			  	<el-col :span="8">
 			    	<el-menu class="el-menu-vertical-demo" theme="dark" :default-active="nowIndex" unique-opened>
 						<template v-for="val in navList" v-if="judgeRolesAndPermission(val.roles,val.permission)">
@@ -407,15 +430,15 @@ text ： 需要在右上方显示的文本
 </template>
 
 <style scoped>
-	.margin{
-		margin-right: 10px;
-		font-size: 16px;
-	}
 	*{
 		margin: 0;
 	}
 	a,a:hover{
 		text-decoration: none;
+	}
+	.margin{
+		margin-right: 10px;
+		font-size: 16px;
 	}
 	.content:after {
         clear: both;
@@ -427,16 +450,19 @@ text ： 需要在右上方显示的文本
     }
     .content {
         padding-left: 210px;
+        min-height: 100%;
     }
     .right_con {
         width: 100%;
     }
     .nav_left {
+    	position: fixed;
         width: 220px;
         margin-left: -220px;
         height: 100%;
         color: #fff;
 		background-color: #324157;
+		overflow: auto;
     }
     .right_con_main{
     	margin: 0 auto;
@@ -496,14 +522,18 @@ text ： 需要在右上方显示的文本
 		width: 220px;
 		height: 100%;
 	}
+	.nav_left .el-menu-item, .el-submenu__title{
+		height: 50px;
+		line-height: 50px;
+	}
 	.nav_left .tac .el-menu-vertical-demo a{
 		color: #fff;
+		height: 50px;
+		line-height: 50px;
 	}
 	.el-menu-item a{
 		display: inline-block;
 		width: 99%;
-		height: 56px;
-		line-height: 56px;
 	}
 	ul li.is-active{
 		background: #48576a;
@@ -516,6 +546,7 @@ text ： 需要在右上方显示的文本
 			color: #fff;
 			background-color: #324157;
 			position: fixed;
+			overflow-y: auto;
 		}
 	}
 

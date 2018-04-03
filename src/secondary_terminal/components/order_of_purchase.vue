@@ -21,7 +21,6 @@ export default{
 	},
 	props : ['data'],
 	created(){
-		this.roles = this.toJson(role);
 		this.connectData;
 		this.orderData;
 		for(let order of this.orderList){
@@ -65,7 +64,6 @@ export default{
 			historyCarInfo : null,
 			carNums : [],
 			car_info_change : 0,
-			roles : [],
 			// 订单id
 			id : null,
 			orderList : [],
@@ -234,20 +232,6 @@ export default{
 			}, (responese)=>{
 				console.log(responese);
 			});
-		},
-		toJson(data){
-			data = data.replace(/&quot;/g, '"');
-			data = JSON.parse(data);
-			return data;
-		},
-		hasRole(role){
-			// console.log(this.data);
-			for (var i = 0; i < this.roles.length; i++) {
-				if(this.roles[i].name==role){
-					return true;
-				}
-			}
-			return false;
 		},
 		changeDate(date){
 			console.log(this.daterange);
@@ -878,8 +862,8 @@ export default{
         width: 100%;
         table-layout: fixed;
         border-collapse:collapse;
-        border:1px solid black;
-        border:1px solid #e0e6ed;
+	    border-top: 1px solid #e0e6ed;
+	    border-left: 1px solid #e0e6ed;
         text-align:center;
         font-size:14px;
     }
@@ -889,7 +873,8 @@ export default{
     thead th{
         text-align: center;
         padding:10px 0px;
-        border:1px solid #dfe6ec;
+		border-right: 1px solid #dfe6ec;
+		border-bottom: 1px solid #dfe6ec;
     }
     table td{
         padding:10px;

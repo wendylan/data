@@ -1,5 +1,5 @@
 <script>
-	import headerbar from '../../components/admin-headerbar.vue';
+	import headerbar from '../../components/same-headerbar.vue';
 	import ajaxCustom from '../../components/ajax-custom.js';
 	import { Input, Button, Table, TableColumn, Popover, Select, Option, Pagination,Message,Loading } from "element-ui";
 	export default{

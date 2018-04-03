@@ -1,6 +1,6 @@
 <script>
     import _ from 'lodash';
-    import headerbar from '../../components/admin-headerbar.vue';
+    import headerbar from '../../components/same-headerbar.vue';
     import ajaxCustom from '../../components/ajax-custom.js';
     import { Button, Input, Form, FormItem } from 'element-ui';
 	export default{
@@ -119,7 +119,7 @@
 </script>
 
 <template>
-	<headerbar active_number="5-7" :text="['物流司机数据','查看/编辑物流司机数据']">
+	<headerbar active_number="car_info_data" :text="['物流司机数据','查看/编辑物流司机数据']">
 		<div>
 			<div style="background-color: #fff;padding: 15px;">
 				<el-button @click="dialogFormVisible=true" type="primary">新建</el-button>

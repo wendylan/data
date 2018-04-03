@@ -1,5 +1,5 @@
 <script>
-    import headerbar from '../../components/admin-headerbar.vue';
+    import headerbar from '../../components/same-headerbar.vue';
 	// import echarts from "echarts";
     import ajaxCustom from '../../components/ajax-custom.js';
     import {Table, TableColumn, Select, Option} from 'element-ui';

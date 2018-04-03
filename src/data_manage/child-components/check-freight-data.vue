@@ -1,5 +1,5 @@
 <script>
-import headerbar from '../../components/admin-headerbar.vue';
+import headerbar from '../../components/same-headerbar.vue';
 import jsonData from "../../../res/json/provinceList.json";
 import ajaxCustom from '../../components/ajax-custom.js';
 	export default{
@@ -88,7 +88,7 @@ import ajaxCustom from '../../components/ajax-custom.js';
 </script>
 
 <template>
-	<headerbar active_number="5-2" :text="['运费数据','查看/编辑运费数据']">
+	<headerbar active_number="freightData" :text="['运费数据','查看/编辑运费数据']">
 		<div class="white_style">
 			<router-link tag="div" to="/create_freight_data">
 				<el-button style="float:right;margin-top: -8px;" type="primary">新增数据</el-button>

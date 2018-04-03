@@ -1,5 +1,5 @@
 <script>
-	import headerbar from '../../components/admin-headerbar.vue';
+	import headerbar from '../../components/same-headerbar.vue';
 	import ajaxCustom from '../../components/ajax-custom.js';
 	import { Input , Select , Option, Loading, Switch, Dialog, Cascader } from "element-ui";
 	import  steelHeader from "./child-components/steel-header.vue";

@@ -53,6 +53,7 @@
 			// 查询相对应的品牌数据
 			searchBrand(){
                 this.filterBrands = _.filter(this.brandsData, ['brands', this.allBrands.selected]);
+                console.log(this.filterBrands);
 			},
 			// 获取图片路径
 			getImgPath(file){
@@ -76,9 +77,9 @@
 			<div class="some_style">
 				<span>请选择品牌:</span>
 				<el-select placeholder="请选择" v-model="allBrands.selected" @change="searchBrand" size="small">
-					<el-option v-for="brand in allBrands.item" :label="brand" :value="brand"></el-option>
+					<el-option v-for="(brand, index) in allBrands.item" :label="brand" :value="brand" :key="index"></el-option>
 				</el-select>
-				<table v-for="item in filterBrands">
+				<table v-for="item in filterBrands" :key="item.id">
 					<tr>
 						<th>品牌</th>
 						<td>{{ item.brands }}</td>
@@ -111,7 +112,7 @@
 						<th>钢厂三证</th>
 						<td>
 							<template v-for="data in item.steel_certificate">
-								<img :src="getImgPath(data.value)" alt="" class="img_style">
+								<img :src="getImgPath(data.value)" alt="" class="img_style" :key="data.type">
 							</template>
 						</td>
 
@@ -125,7 +126,7 @@
 					<tr>
 						<th>广东区域供应商</th>
 						<td>
-						    <span v-for="data in item.supplier">{{ data.name }}, </span>
+						    <span v-for="(data, index) in item.supplier" :key="index">{{ data.name }}, </span>
 						</td>
 					</tr>
 				</table>

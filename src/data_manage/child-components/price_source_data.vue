@@ -1,6 +1,6 @@
 <script>
 	import ajaxCustom from '../../components/ajax-custom.js';
-	import headerbar from '../../components/admin-headerbar.vue';
+	import headerbar from '../../components/same-headerbar.vue';
 	import{ Button, Dialog, Form, FormItem, Select, Option, Input } from 'element-ui';
 	export default{
 		created() {
@@ -86,7 +86,7 @@
 	}
 </script>
 <template>
-	<headerbar active_number="5-5" :text="['供应商','查看/编辑供应商简称']">
+	<headerbar active_number="price_source_data" :text="['供应商','查看/编辑供应商简称']">
 		<div style="background-color: #fff;padding: 15px;margin-bottom: 30px;">
 			<table width="100%" cellspacing="0" cellpadding="0">
 				<thead>

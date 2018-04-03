@@ -1,5 +1,5 @@
 <script>
-import headerbar from '../../components/admin-headerbar.vue';
+import headerbar from '../../components/same-headerbar.vue';
 import {Table,TableColumn,Select,Option,Button} from "element-ui";
 import ajaxCustom from '../../components/ajax-custom.js';
 	export default{
@@ -60,7 +60,7 @@ import ajaxCustom from '../../components/ajax-custom.js';
 	}
 </script>
 <template>
-	<headerbar active_number="5-4" :text="['定价规则数据','查看/编辑定价规则']">
+	<headerbar active_number="market_rule_data" :text="['定价规则数据','查看/编辑定价规则']">
 		<el-table :data="data" >
 			<el-table-column prop="id" label="序列" width="80"></el-table-column>
 			<el-table-column label="描述" width="420">

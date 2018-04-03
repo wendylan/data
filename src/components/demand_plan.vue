@@ -83,6 +83,7 @@
 						console.log(responese);
 						let brandData = responese.body.data;
 						this.brandInfo = this.sortData(brandData);
+						console.log(this.brandInfo);
 					}, (responese)=>{
 						alert(responese.body.message);
 					});
@@ -161,13 +162,13 @@
 			<div class="floatclear">
 				<!-- <h1>需求计划单</h1> -->
 				<div style="text-align: center;height: 650px;margin-left: 15px;padding-top: 15px;">
-					<div class="box bigBox" v-for='spec in brandInfo'>
+					<div class="box bigBox" v-for='(spec, spkey) in brandInfo' :key="spkey">
 						<h4 class="spec_header"><b>{{spec.name}}</b></h4>
 						<p>单位:吨</p>
-						<div class="smallbox" v-for='material in spec.material'>
+						<div class="smallbox" v-for='(material, mkey) in spec.material' :key="mkey">
 							<b>{{material.name}}</b>
 							<div>
-								<span v-for='size in material.size'>
+								<span v-for='(size, sikey) in material.size' :key="sikey">
 									<span class='set_width'>Ф{{size.name}}</span>
 									<el-input size="small" v-model='size.value' @change='record(size.value,size.name,material.name,spec.name)' type="number" min="0" class="inline_box">
 									</el-input><br>

@@ -116,7 +116,7 @@
 			<div>
 				<label>选择项目:</label>
 				<el-select v-model="nowProject" size="small" @change="changeProject">
-					<el-option v-for="pro in projects" :label="pro.name" :value="pro.project_id"></el-option>
+					<el-option v-for="pro in projects" :label="pro.name" :value="pro.project_id" :key="pro.project_id"></el-option>
 				</el-select>
 				<el-input class="leftBox" style="float:right" placeholder="搜索" v-model="keyword" icon="search" @change="handleIconSearch" size="small"></el-input>
 				<table style="margin-top:10px;">
@@ -127,7 +127,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr v-for="item in pageCompany" >
+						<tr v-for="(item, index) in pageCompany" :key="index">
 							<td>{{item.name}}</td>
 							<td>
 								<el-button v-if="item.name == nowCompany" type="danger" @click="cancleRelate(item.user_id, proId)" size="small">解除关联</el-button>

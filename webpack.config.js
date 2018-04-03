@@ -33,8 +33,8 @@ module.exports = {
         'messageList' : ["babel-polyfill", './src/messageList.js'],
         'buybuybuySalesOrder' : ["babel-polyfill", './src/buybuybuySalesOrder.js'],
         'userProject' : ["babel-polyfill", './src/userProject.js'],
-        'retrievePassword' : ["babel-polyfill", './src/retrieve-password.js'],
         'modifyPassword' :["babel-polyfill", './src/modifyPassword.js'],
+        'forgetPassword' :["babel-polyfill", './src/forgetPassword.js'],
         'vendor' : ['vue', 'element-ui', 'vuex', 'axios', 'vue-router', 'vue-resource', 'lodash', './src/components/same-headerbar.vue', './src//components/ajax-custom.js', './src//components/table.vue']
     },
     output: {

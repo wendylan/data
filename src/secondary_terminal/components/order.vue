@@ -2,6 +2,7 @@
 import ajaxCustom from '../../components/ajax-custom.js';
 import orderSales from './order_purchase.vue';
 import { Input, Table, TableColumn, Button, Dialog, Select, Option, DatePicker, Autocomplete, Form, FormItem, Steps, Step } from 'element-ui';
+import _ from "lodash";
 export default{
 	components : {
 		orderSales,
@@ -21,9 +22,9 @@ export default{
 	},
 	props : ['data'],
 	created(){
-		this.roles = this.toJson(role);
 		this.connectData;
 		this.orderData;
+		this.getContractPrice(this.data.project_id)
 		for(let order of this.orderList){
 			order.allAmount = order.amount;
 		}
@@ -62,11 +63,21 @@ export default{
 		};
 
 		return {
+			contractPriceRule: [],
+			dynamicColumn : [],
+			ruleChinese : [
+				{ en : "marketPrice", ch : "现货价" },
+				{ en : "brand", ch : "品牌" },
+				{ en : "freight", ch : "运费" },
+				{ en : "funds_rate", ch : "资金费率" },
+				{ en : "ponderation", ch : "过磅费" },
+				{ en : "crane", ch : "吊车费" },
+				{ en : "webPrice", ch : "网价" }
+			],
 			priceType : 1,
 			historyCarInfo : null,
 			carNums : [],
 			car_info_change : 0,
-			roles : [],
 			id : null,
 			orderList : [],
 			orderStatus : 0,
@@ -192,6 +203,79 @@ export default{
 		},
 	},
 	methods : {
+		// 获取合同价条款
+		getContractPrice(id){
+			if(parseInt(id)){
+				ajaxCustom.ajaxGet(this, "dingoapi/getSettlementInfo", {params : { id : id }}, (responese)=>{
+					console.log(responese)
+					this.contractPriceRule = responese.body.data;
+					this.createDynamicTable(this.contractPriceRule, this.orderList);
+				}, (responese)=>{
+					alert(responese.body.message);
+				});
+
+			}
+		},
+
+		// 创建动态table列
+		createDynamicTable(ruleDatas, tableDatas){
+			console.log(ruleDatas);
+			// console.log(this.ruleDatas);
+			this.dynamicColumn = [];
+			const columnQueue = [];
+			// 计算动态列column
+			let column = [];
+			let references = [];
+			for(let data of ruleDatas){
+				for(let key in data){
+					if(data[key]){
+						column.push(key);
+					}
+					if(key == "reference"){
+						references.push(data[key]);
+					}
+				}
+			}
+
+			// 去重过滤得到需要动态渲染的column
+			column = _.without(_.uniq(column), "brand", "count_number", "specification", "reference");
+
+			// 计算 reference 到 column
+			if(references.length){
+				references = _.uniq(references);
+				for(let data of references){
+					if(data.includes("网价")){
+						column.push("webPrice");
+					}
+					if(data.includes("现货价")){
+						column.push("marketPrice");
+					}
+				}
+				column = _.uniq(column);
+			}
+
+			// 添加动态列到dynamicColumn
+			for(let data of this.ruleChinese){
+				for(let key of column){
+					if(data.en == key){
+						this.dynamicColumn.push(data);
+					}
+				}
+			}
+
+			// 整合table数据与rule数据
+			column = _.without(column, "webPrice", "marketPrice");
+			for(let data of tableDatas){
+				for(let rule of ruleDatas){
+					if(data.brand == rule.brand && data.cate_spec == rule.specification){
+						// 添加额外属性
+						for(let key of column){
+							this.$set(data, key, rule[key]);
+						}
+					}
+				}
+			}
+		},
         // 获取所有品牌
         getAllProduct(){
             ajaxCustom.ajaxGet(this, "dingoapi/getAllProduct", (responese)=>{
@@ -268,20 +352,6 @@ export default{
 					}
 				}
 			}
-		},
-		toJson(data){
-			data = data.replace(/&quot;/g, '"');
-			data = JSON.parse(data);
-			return data;
-		},
-		hasRole(role){
-			// console.log(this.data);
-			for (var i = 0; i < this.roles.length; i++) {
-				if(this.roles[i].name==role){
-					return true;
-				}
-			}
-			return false;
 		},
 		changeDate(date){
 			console.log(this.daterange);
@@ -568,6 +638,9 @@ export default{
 			                <th>品名</th>
 			                <th style="width: 60px;">规格</th>
 			                <th>材质</th>
+			                <template v-for="data in dynamicColumn"> 
+			                	<th>{{ data.ch }}</th>
+			                </template>
 			                <th>含税单价(元/吨)</th>
 			                <th>运费(元/吨)</th>
 			                <th>下单数量(吨)</th>
@@ -587,6 +660,9 @@ export default{
 			                <td>{{ order.cate_spec }}</td>
 			                <td style="width: 60px;">Φ{{ order.size }}</td>
 			                <td>{{ order.material }}</td>
+			                <template v-for="data in dynamicColumn">
+			                	<td>{{ order[data.en] }}</td>
+			                </template>
 			                <td>
 			                	<el-input v-model="order.unit_price" type="number" size="small" min="0"></el-input>
 			                </td>
@@ -616,7 +692,9 @@ export default{
 			        </tbody>
 			            <tr>
 			            	<td colspan="3">总计</td>
-			            	<td colspan="4"></td>
+			            	<td :colspan="3 + dynamicColumn.length"></td>
+			            	<td></td>
+			            	<!-- <td colspan="4"></td> -->
 			            	<td>{{ totalNum }}</td>
 			            	<td v-if="orderStatus>2">
 			            		{{ totalReceived }}
@@ -919,8 +997,8 @@ export default{
         width: 100%;
         table-layout: fixed;
         border-collapse:collapse;
-        border:1px solid black;
-        border:1px solid #e0e6ed;
+	    border-top: 1px solid #e0e6ed;
+	    border-left: 1px solid #e0e6ed;
         text-align:center;
         font-size:14px;
     }
@@ -930,7 +1008,8 @@ export default{
     thead th{
         text-align: center;
         padding:10px 0px;
-        border:1px solid #dfe6ec;
+		border-right: 1px solid #dfe6ec;
+		border-bottom: 1px solid #dfe6ec;
     }
     table td{
         padding:10px;

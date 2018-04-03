@@ -3,6 +3,7 @@
 	import ajaxCustom from '../components/ajax-custom.js';
 	import headerbar from "../components/same-headerbar.vue";
 	import order from "./components/order_terminal.vue";
+	import _ from 'lodash';
 	export default{
 		components:{
 			headerbar,
@@ -16,7 +17,7 @@
 			elTable:Table,
 			elTableColumn:TableColumn,
 			elPagination:Pagination,
-			elDialog:Dialog,
+			elDialog:Dialog, 
 			elForm:Form,
 			elFormItem:FormItem,
 			elInput:Input,
@@ -317,86 +318,36 @@
 			// tab控件
 			handleClick() {
 				this.userProjectInfo.selected = '';
-					this.foremost = '';
-					this.final = '';
+				this.foremost = '';
+				this.final = '';
+				this.currentOrderInfo = [];
+				const processArr = [
+					{ active : "six", status : 100 },
+					{ active : "zero", status : 0 },
+					{ active : "one", status : 1 },
+					{ active : "two", status : 2 },
+					{ active : "three", status : 3 },
+					{ active : "four", status : 4 },
+					{ active : "five", status : 5 },
+					{ active : "seven", status : -1 }
+				]
 
-					let active = this.activeName;
-					// 全部订单
-					if(active == 'six') {
-						this.currentOrderInfo = [];
-						this.currentOrderInfo = this.orderInfo;
-						this.changePage(1);
+				let selected = _.find(processArr, { "active" : this.activeName });
+				if(selected.active !== "six" && selected.active !== "seven"){
+					let orders = _.filter(this.orderInfo, { "status" : selected.status });
+					if(orders.length){
+						this.currentOrderInfo = _.concat(this.currentOrderInfo, orders);
 					}
-					// 未处理
-					if(active == 'zero') {
-						this.currentOrderInfo = [];
-						for(let data of this.orderInfo){
-							if(data.status == 0 ){
-								this.currentOrderInfo.push(data);
-							}
-						}
-						this.changePage(1);
-					}
-					// 处理中
-					if(active == 'one') {
-						this.currentOrderInfo = [];
-						for(let data of this.orderInfo) {
-							if(data.status == 1) {
-								this.currentOrderInfo.push(data);
-							}
-						}
-						this.changePage(1);
-					}
-					// 待确认
-					if(active == 'two') {
-						this.currentOrderInfo = [];
-						for(let data of this.orderInfo){
-							if(data.status == 2 ){
-								this.currentOrderInfo.push(data);
-							}
-						}
-						this.changePage(1);
-					}
-					// 待发货
-					if(active == 'three') {
-						this.currentOrderInfo = [];
-						for(let data of this.orderInfo){
-							if(data.status == 3 ){
-								this.currentOrderInfo.push(data);
-							}
-						}
-						this.changePage(1);
-					}
-					// 待收货
-					if(active == 'four') {
-						this.currentOrderInfo = [];
-						for(let data of this.orderInfo){
-							if(data.status == 4 ){
-								this.currentOrderInfo.push(data);
-							}
-						}
-						this.changePage(1);
-					}
-					// 已完成
-					if(active == 'five') {
-						this.currentOrderInfo = [];
-						for(let data of this.orderInfo){
-							if(data.status == 5 ){
-								this.currentOrderInfo.push(data);
-							}
-						}
-						this.changePage(1);
-					}
-					// 已取消
-					if(active == 'seven') {
-						this.currentOrderInfo = [];
-						for(let data of this.orderInfo) {
-							if(data.status < 0){
-								this.currentOrderInfo.push(data);
-							}
-						}
-						this.changePage(1);
-					}
+				}
+				if(selected.active == 'six'){
+					this.currentOrderInfo = this.orderInfo;
+				}
+				if(selected.active == 'seven'){
+					this.currentOrderInfo = _.concat(this.currentOrderInfo, _.filter(this.orderInfo, (val)=>{
+						return val.status < 0;
+					}));
+				}
+				this.changePage(1);
 			},
 			// 根据项目来查询
 			selectProject(data){

@@ -191,8 +191,8 @@
 <template>
 	<div>
 		<headerbar :text="['企业信息', '企业信息']">
-			<div>
-                <div class="text_box" v-if="(!isEdit) ">
+			<div class="text_box">
+                <div v-if="(!isEdit) ">
                     <template v-for="item in allCompanyInfo">
                         <div class="inline" >
                             <label>企业名称：</label>
@@ -267,7 +267,7 @@
 			  			</p>
                     </template>
 				</div>
-				<div class="text_box" v-if="isEdit||(!(allCompanyInfo.length))">
+				<div v-if="isEdit||(!(allCompanyInfo.length))">
 					<el-form :model="companyInfo" :rules="rules" ref="companyInfo"  label-width="150px" >
 						<form id="form" method="POST" action="dingoapi/postCompanyInfo" enctype="multipart/form-data" >
 

@@ -454,7 +454,7 @@
 						<div class="left">
 							<span>选择项目:</span>
 							<el-select size="small" v-model="userProjectInfo.selected" @change="selectProject">
-								<el-option v-for="option in userProjectInfo.item" :label="`${option.name}(${option.company})`" :value="option.project_info_id"></el-option>
+								<el-option v-for="(option, index) in userProjectInfo.item" :key="index" :label="`${option.name}(${option.company})`" :value="option.project_info_id"></el-option>
 							</el-select>
 							<el-button @click="clearProject" size="small">全部订单</el-button>
 						</div>
@@ -547,16 +547,16 @@
 		<!-- 钢材采购确认表的弹出框开始 -->
 		<el-dialog v-model="showOrder" title="计划单"  size="full" style="text-align:center;" :show-close="hideCloseBoolean" :close-on-click-modal="false">
 			<order
-			 @exit='exitOrder'
-			 @send='sendOrder'
-			 @saveOrder='saveOrder'
-			 @cancel='cancelOrder'
-			 @hideClose="hideClose"
-			 @sendForPurchar = "sendForPurchar"
-			 @sendForReceived = "sendForReceived"
-			 @confirm='confirmOrder'
-			 @confirmReceived = "confirmReceived"
-			 :data='buyData' >
+				@exit='exitOrder'
+				@send='sendOrder'
+				@saveOrder='saveOrder'
+				@cancel='cancelOrder'
+				@hideClose="hideClose"
+				@sendForPurchar = "sendForPurchar"
+				@sendForReceived = "sendForReceived"
+				@confirm='confirmOrder'
+				@confirmReceived = "confirmReceived"
+				:data='buyData' >
 			</order>
 		</el-dialog>
 		<!-- 钢材采购确认表的弹出框结束 -->

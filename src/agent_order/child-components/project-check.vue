@@ -88,7 +88,7 @@
 					广东省{{ projectInfo.city + projectInfo.area + projectInfo.addr }}
 				</el-form-item>
 				<el-form-item label="品牌范围 : " :label-width="labelWidth" class="text_left">
-					<span v-for="item in projectInfo.brands">{{ item }},</span>
+					<span v-for="(item, index) in projectInfo.brands" :key="index">{{ item }},</span>
 				</el-form-item>
 				<el-form-item label="结算方式 : " :label-width="labelWidth" class="text_left">
 					{{ payToText(projectInfo.settlement.conditionType) }}

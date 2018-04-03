@@ -1,5 +1,5 @@
 <script>
-import headerbar from '../../components/admin-headerbar.vue';
+import headerbar from '../../components/same-headerbar.vue';
 import ajaxCustom from '../../components/ajax-custom.js';
 import usuallySource from "../../../res/json/usually_steel_brand_source.json";
 import {Select, Table, TableColumn, DatePicker, Loading } from 'element-ui';
@@ -312,7 +312,7 @@ import {Select, Table, TableColumn, DatePicker, Loading } from 'element-ui';
 	}
 </script>
 <template>
-	<headerbar :text="['后台补录','管理后台的市场价数据']" active_number="5-8">
+	<headerbar active_number="data_search" :text="['后台补录','管理后台的市场价数据']">
 		<div>
 			<div class="block" style="padding-left:50px;">
 				<span class="demonstration">选择时间</span>

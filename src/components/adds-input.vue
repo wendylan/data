@@ -62,10 +62,10 @@
 		</el-select> -->
 
 		<el-select v-model="cityChoose" @change="getArea()" size="small" placeholder="城市">
-			<el-option v-for="item in cityOption " :label="item.name" :value="item.name"></el-option>
+			<el-option v-for="(item,index) in cityOption " :label="item.name" :value="item.name" :key="index"></el-option>
 		</el-select>
 		<el-select v-model="areaChoose" size="small" placeholder="区\县" @change="sendDataToParent" v-if='grade==1'>
-			<el-option v-for="item in areaOption " :label="item" :value="item"></el-option>
+			<el-option v-for="(item, index) in areaOption " :label="item" :value="item" :key="index"></el-option>
 		</el-select>
 		<el-button @click="emptyAdds" type="default" size="small">置空</el-button>
 	</span>
